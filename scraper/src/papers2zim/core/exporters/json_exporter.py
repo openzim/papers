@@ -59,6 +59,7 @@ def _creator_to_preview(
         last_name=creator.sort_name or "",
         book_count=book_count,
         total_popularity=total_popularity,
+        portrait_path=creator.extra.get("portrait_path"),
     )
 
 
@@ -69,11 +70,14 @@ def _creator_to_schema(
     book_count, total_popularity = author_stats.get(creator.id, (0, 0))
     return AuthorSchema(
         id=creator.id,
-        name=creator.name,
         first_name=creator.extra.get("first_names"),
         last_name=creator.sort_name or "",
         birth_year=creator_birth_year(creator),
         death_year=creator_death_year(creator),
+        name=creator.name,
+        bio=creator.extra.get("bio"),
+        portrait_path=creator.extra.get("portrait_path"),
+        webpage_resource=creator.extra.get("webpage_resource"),
         book_count=book_count,
         total_popularity=total_popularity,
     )
@@ -307,11 +311,14 @@ def generate_json_files(
         ]
         author_detail = AuthorDetail(
             id=creator.id,
-            name=creator.name,
             first_name=creator.extra.get("first_names"),
             last_name=creator.sort_name or "",
             birth_year=creator_birth_year(creator),
             death_year=creator_death_year(creator),
+            name=creator.name,
+            bio=creator.extra.get("bio"),
+            portrait_path=creator.extra.get("portrait_path"),
+            webpage_resource=creator.extra.get("webpage_resource"),
             books=creator_works,
             book_count=len(creator_works),
             total_popularity=author_stats.get(creator.id, (0, 0))[1],

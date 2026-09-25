@@ -7,7 +7,10 @@ import pytest
 import requests
 from requests.adapters import HTTPAdapter
 
-from papers2zim.core.download_engine import DownloadEngine, fetch_bytes_with_retry
+from papers2zim.core.download_engine import (
+    DownloadEngine,
+    fetch_bytes_with_retry,
+)
 from papers2zim.core.ports import DownloadRequest
 
 URL = "https://example.org/books/12345.epub"
@@ -186,3 +189,24 @@ def test_fetch_bytes_gives_up_immediately_on_fatal_4xx(session):
         fetch_bytes_with_retry(URL, session=session)
 
     session.get.assert_called_once()
+
+
+# headers passed in as arg must win over the default User-Agent and an
+# explicit `None` User-Agent must not be overwritten (see benoit74 review
+# comments on this file) so every caller can decide its own identity
+def test_fetch_bytes_custom_user_agent_wins_over_default(session):
+    fetch_bytes_with_retry(URL, session=session, headers={"User-Agent": "custom/1.0"})
+
+    merged = session.get.call_args.kwargs["headers"]
+    assert merged["User-Agent"] == "custom/1.0"
+    assert "papers2zim" not in merged["User-Agent"]
+
+
+def test_fetch_bytes_none_user_agent_is_passed_through(session):
+    # A `None` UA means "do not send the User-Agent header" (benoit74 review):
+    # the caller deliberately refuses to identify itself, so the merged
+    # headers passed to the transport must NOT contain the key at all
+    fetch_bytes_with_retry(URL, session=session, headers={"User-Agent": None})
+
+    merged = session.get.call_args.kwargs["headers"]
+    assert "User-Agent" not in merged

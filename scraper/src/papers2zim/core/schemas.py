@@ -23,6 +23,7 @@ class AuthorPreview(CamelModel):
     last_name: str
     book_count: int
     total_popularity: float = 0
+    portrait_path: str | None = None
 
 
 class Author(AuthorPreview):
@@ -30,6 +31,8 @@ class Author(AuthorPreview):
 
     birth_year: str | None = None
     death_year: str | None = None
+    bio: str | None = None
+    webpage_resource: str | None = None
 
 
 class AuthorDetail(Author):
