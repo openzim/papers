@@ -5,9 +5,9 @@ from pathlib import Path
 
 import requests
 
-from gutenberg2zim.core.download_engine import DownloadEngine
-from gutenberg2zim.core.ports import WorkRef
-from gutenberg2zim.sources.opentextbooks.metadata import OpenTextbookLibraryMetadata
+from papers2zim.core.download_engine import DownloadEngine
+from papers2zim.core.ports import WorkRef
+from papers2zim.sources.opentextbooks.metadata import OpenTextbookLibraryMetadata
 
 BASE = "https://open.umn.edu/opentextbooks"
 

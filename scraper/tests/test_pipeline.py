@@ -4,15 +4,15 @@ from unittest.mock import MagicMock, patch
 
 import requests
 
-from gutenberg2zim.core.models import Work
-from gutenberg2zim.core.pipeline import (
+from papers2zim.core.models import Work
+from papers2zim.core.pipeline import (
     Pipeline,
     compute_flame_ratings,
 )
-from gutenberg2zim.core.ports import WorkRef
-from gutenberg2zim.core.progress import ScraperProgress
-from gutenberg2zim.core.work_store import WorkStore
-from gutenberg2zim.sources.gutenberg.catalog import GUTENBERG_SOURCE
+from papers2zim.core.ports import WorkRef
+from papers2zim.core.progress import ScraperProgress
+from papers2zim.core.work_store import WorkStore
+from papers2zim.sources.gutenberg.catalog import GUTENBERG_SOURCE
 
 
 def make_work(work_id: str, popularity: float | int) -> Work:
@@ -67,8 +67,8 @@ def test_run_calls_hooks_in_order_and_stores_works():
     refs = [WorkRef(id=str(i), source=GUTENBERG_SOURCE) for i in (1, 2, 3)]
 
     with (
-        patch("gutenberg2zim.core.pipeline.generate_json_files") as mock_json,
-        patch("gutenberg2zim.core.pipeline.generate_noscript_pages") as mock_nojs,
+        patch("papers2zim.core.pipeline.generate_json_files") as mock_json,
+        patch("papers2zim.core.pipeline.generate_noscript_pages") as mock_nojs,
     ):
         pipeline.run(refs)
 
@@ -153,8 +153,8 @@ def test_no_book_level_retry_for_network_errors():
 
     pipeline.process_ref = flaky_process
     with (
-        patch("gutenberg2zim.core.pipeline.generate_json_files"),
-        patch("gutenberg2zim.core.pipeline.generate_noscript_pages"),
+        patch("papers2zim.core.pipeline.generate_json_files"),
+        patch("papers2zim.core.pipeline.generate_noscript_pages"),
     ):
         pipeline.run(refs)
 

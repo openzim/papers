@@ -5,7 +5,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 
 import pytest
 
-from gutenberg2zim.core.content_validation import is_html_document, is_valid_book_file
+from papers2zim.core.content_validation import is_html_document, is_valid_book_file
 
 
 def _zip_bytes(*files: tuple[str, bytes]) -> bytes:

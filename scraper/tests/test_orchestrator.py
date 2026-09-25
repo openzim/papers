@@ -4,8 +4,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from gutenberg2zim.config import ScrapeConfig
-from gutenberg2zim.orchestrator import run_scrape
+from papers2zim.config import ScrapeConfig
+from papers2zim.orchestrator import run_scrape
 
 
 class FailingCatalog:
@@ -23,9 +23,9 @@ def test_closes_download_engine_when_catalog_construction_fails(tmp_path):
     )
 
     with (
-        patch("gutenberg2zim.orchestrator.DownloadEngine", return_value=engine),
-        patch("gutenberg2zim.orchestrator.get_source", return_value=profile),
-        patch("gutenberg2zim.orchestrator.i18n.setup_i18n"),
+        patch("papers2zim.orchestrator.DownloadEngine", return_value=engine),
+        patch("papers2zim.orchestrator.get_source", return_value=profile),
+        patch("papers2zim.orchestrator.i18n.setup_i18n"),
         pytest.raises(RuntimeError, match="catalog setup failed"),
     ):
         run_scrape(config)

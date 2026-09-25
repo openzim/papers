@@ -1,8 +1,8 @@
 """Tests for sources.wikisource.metadata."""
 
-from gutenberg2zim.core.download_engine import DownloadEngine
-from gutenberg2zim.core.ports import WorkRef
-from gutenberg2zim.sources.wikisource.metadata import WikisourceMetadata
+from papers2zim.core.download_engine import DownloadEngine
+from papers2zim.core.ports import WorkRef
+from papers2zim.sources.wikisource.metadata import WikisourceMetadata
 
 
 class StubEngine(DownloadEngine):

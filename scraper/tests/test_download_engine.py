@@ -7,8 +7,8 @@ import pytest
 import requests
 from requests.adapters import HTTPAdapter
 
-from gutenberg2zim.core.download_engine import DownloadEngine, fetch_bytes_with_retry
-from gutenberg2zim.core.ports import DownloadRequest
+from papers2zim.core.download_engine import DownloadEngine, fetch_bytes_with_retry
+from papers2zim.core.ports import DownloadRequest
 
 URL = "https://example.org/books/12345.epub"
 
@@ -155,7 +155,7 @@ def test_worker_session_sends_a_descriptive_user_agent(tmp_path):
     """The default python-requests UA is rejected by some hosts (ws-export)."""
     engine = DownloadEngine(cache_dir=tmp_path / "cache")
     user_agent = engine._get_session().headers["User-Agent"]
-    assert "gutenberg2zim" in user_agent
+    assert "papers2zim" in user_agent
     assert "python-requests" not in user_agent
 
 

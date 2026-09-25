@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for your interest in contributing to the Gutenberg scraper! This document provides guidelines for contributing to the project.
+Thank you for your interest in contributing to the Papers scraper! This document provides guidelines for contributing to the project.
 
 For general openZIM contribution guidelines, see the [openZIM Contributing Wiki](https://github.com/openzim/overview/wiki/Contributing).
 
@@ -11,15 +11,12 @@ The project consists of several components:
 - **`scraper/`**: Python scraper that downloads books and generates ZIM files
 - **`ui/`**: Vue.js frontend that provides the user interface within the ZIM
 - **`locales/`**: UI translation files (multiple languages supported)
-- **`scraper/docs/`**: Technical documentation
-  - `JSON_FILE_STRUCTURE.md`: JSON schema documentation for the Vue.js UI
-  - `GUTENBERG_STRUCTURE.md`: Project Gutenberg structure and metadata documentation
 
 ## Ways to Contribute
 
 ### 1. Adding UI Translations
 
-UI translations are managed through [translatewiki.net](https://translatewiki.net/w/i.php?title=Special:MessageGroupStats/kiwix-gutenberg). We welcome volunteers to contribute translations in their native languages.
+UI translations are managed through [translatewiki.net](https://translatewiki.net/w/i.php?title=Special:MessageGroupStats/kiwix-papers). We welcome volunteers to contribute translations in their native languages.
 
 When a new language `<new_code>` starts being translated, developers need to add support for it:
 
@@ -32,13 +29,13 @@ When a new language `<new_code>` starts being translated, developers need to add
    - Add `languageNames.<new_code>` key in `locales/qqq.json` (documentation)
    - Add `languageNames.<new_code>` key in `locales/<new_code>.json`
 
-**Example**: See [commit adding Hindi support](https://github.com/openzim/gutenberg/commit/f03b6320febda3545b44619864825ba1367802c9)
+**Example**: See [commit adding Hindi support](https://github.com/openzim/papers/commit/f03b6320febda3545b44619864825ba1367802c9)
 
 ### 2. Contributing Code
 
 #### Python Scraper
 
-The scraper is located in `scraper/src/gutenberg2zim/`. Key files:
+The scraper is located in `scraper/src/papers2zim/`. Key files:
 
 - `entrypoint.py`: CLI argument parsing
 - `zim.py`: ZIM file creation
@@ -75,14 +72,6 @@ ruff check src
 ```bash
 hatch run check:all
 ```
-
-**Documentation**:
-
-Before contributing, familiarize yourself with these key documents:
-
-- **[JSON File Structure](scraper/docs/JSON_FILE_STRUCTURE.md)**: Detailed specification of the JSON schema used by the Vue.js UI. Essential reading if you're working on data export (`export.py`) or the Vue.js frontend. Explains the two-tier architecture (preview + detail files), file naming conventions, and loading strategies.
-
-- **[Gutenberg Structure](scraper/docs/GUTENBERG_STRUCTURE.md)**: Comprehensive overview of the project architecture, including directory structure, Python-to-Vue.js data flow, Pydantic schemas, and design decisions. Useful for understanding how the scraper and UI work together.
 
 #### Vue.js UI
 
@@ -122,16 +111,16 @@ When developing the UI, you need JSON assets (`books.json`, `authors.json`, etc.
 **1. Build the Docker image**:
 
 ```bash
-docker build -t local-gutenberg .
+docker build -t local-papers .
 ```
 
 **2. Generate a small ZIM file with JSON assets**:
 
 ```bash
 docker run --rm -it -v "$PWD/output":/output \
-  local-gutenberg \
-  gutenberg2zim --books 1,2,3 --languages en --formats html \
-  --zim-file gutenberg_dev.zim --output /output
+  local-papers \
+  papers2zim --books 1,2,3 --languages en --formats html \
+  --zim-file papers_dev.zim --output /output
 ```
 
 Adjust `--books`, `--languages`, and `--formats` to match your test dataset.
@@ -144,11 +133,11 @@ find ui/public/ -mindepth 1 ! -name ".gitignore" ! -name "about-bg.jpg" -delete
 
 # Extract from ZIM
 docker run -it --rm -v $(pwd)/output:/data ghcr.io/openzim/zim-tools:latest \
-  zimdump dump --dir=/data/gutenberg_dev /data/gutenberg_dev.zim
+  zimdump dump --dir=/data/papers_dev /data/papers_dev.zim
 
 # Move to UI public folder
-mv output/gutenberg_dev/* ui/public/
-rm -rf output/gutenberg_dev
+mv output/papers_dev/* ui/public/
+rm -rf output/papers_dev
 ```
 
 On Windows, run these commands in WSL or adapt them to PowerShell.

@@ -4,11 +4,11 @@ from io import BytesIO
 from unittest.mock import MagicMock, patch
 from zipfile import ZIP_STORED, ZipFile
 
-from gutenberg2zim.core.models import Format, Work
-from gutenberg2zim.core.ports import WorkRef
-from gutenberg2zim.core.progress import ScraperProgress
-from gutenberg2zim.core.work_store import WorkStore
-from gutenberg2zim.sources.wikisource.pipeline import WikisourcePipeline
+from papers2zim.core.models import Format, Work
+from papers2zim.core.ports import WorkRef
+from papers2zim.core.progress import ScraperProgress
+from papers2zim.core.work_store import WorkStore
+from papers2zim.sources.wikisource.pipeline import WikisourcePipeline
 
 
 def _work() -> Work:
@@ -59,7 +59,7 @@ def test_process_ref_downloads_epub_and_marks_the_rest_unsupported():
     pipeline = _pipeline(work, engine, assembler)
 
     with patch(
-        "gutenberg2zim.sources.wikisource.pipeline.extract_cover",
+        "papers2zim.sources.wikisource.pipeline.extract_cover",
         return_value=None,
     ):
         pipeline.process_ref(WorkRef(id=work.id, source="wikisource"))
@@ -95,7 +95,7 @@ def test_process_ref_attaches_a_cover_when_extractable():
     pipeline = _pipeline(work, engine, assembler)
 
     with patch(
-        "gutenberg2zim.sources.wikisource.pipeline.extract_cover",
+        "papers2zim.sources.wikisource.pipeline.extract_cover",
         return_value=b"cover bytes",
     ):
         pipeline.process_ref(WorkRef(id=work.id, source="wikisource"))

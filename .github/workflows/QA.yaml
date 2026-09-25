@@ -83,4 +83,4 @@ jobs:
           pip install -e .
 
       - name: Validate i18n translations
-        run: gutenberg2zim-validate-i18n
+        run: papers2zim-validate-i18n

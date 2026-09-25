@@ -3,11 +3,11 @@
 from importlib import resources
 from unittest.mock import MagicMock
 
-from gutenberg2zim.core.exporters.html_reader_controls import (
+from papers2zim.core.exporters.html_reader_controls import (
     export_html_reader_control_assets,
 )
-from gutenberg2zim.core.models import Work
-from gutenberg2zim.sources.gutenberg.rewriter import update_html_for_static
+from papers2zim.core.models import Work
+from papers2zim.sources.gutenberg.rewriter import update_html_for_static
 
 
 def test_exports_bundled_reader_control_assets_with_zim_paths_and_media_types():
@@ -26,7 +26,7 @@ def test_exports_bundled_reader_control_assets_with_zim_paths_and_media_types():
     ]
     actual_assets = [(call.kwargs["path"], call.kwargs["mimetype"]) for call in calls]
     assert actual_assets == expected_assets
-    assets_dir = resources.files("gutenberg2zim.core") / "assets"
+    assets_dir = resources.files("papers2zim.core") / "assets"
     for call in calls:
         zim_path = call.kwargs["path"]
         resource = assets_dir.joinpath(*zim_path.split("/"))

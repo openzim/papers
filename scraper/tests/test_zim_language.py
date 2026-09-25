@@ -1,7 +1,7 @@
 import pytest
 
-from gutenberg2zim.core.language import get_zim_language_metadata, resolve_language
-from gutenberg2zim.sources.gutenberg.catalog import CatalogEntry
+from papers2zim.core.language import get_zim_language_metadata, resolve_language
+from papers2zim.sources.gutenberg.catalog import CatalogEntry
 
 
 def _make_books(languages_per_book: list[list[str]]) -> list[CatalogEntry]:

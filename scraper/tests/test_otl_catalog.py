@@ -4,10 +4,10 @@ from pathlib import Path
 
 import pytest
 
-from gutenberg2zim.core.download_engine import DownloadEngine
-from gutenberg2zim.core.ports import CatalogFilters
-from gutenberg2zim.core.utils import CriticalError
-from gutenberg2zim.sources.opentextbooks.catalog import (
+from papers2zim.core.download_engine import DownloadEngine
+from papers2zim.core.ports import CatalogFilters
+from papers2zim.core.utils import CriticalError
+from papers2zim.sources.opentextbooks.catalog import (
     CATALOG_FILENAME,
     OTL_SOURCE,
     OpenTextbookLibraryCatalog,

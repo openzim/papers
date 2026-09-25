@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from gutenberg2zim.config import build_scrape_config
-from gutenberg2zim.core.utils import CriticalError
+from papers2zim.config import build_scrape_config
+from papers2zim.core.utils import CriticalError
 
 
 def test_lcc_shelves_are_rejected_for_opentextbooks():
@@ -93,5 +93,5 @@ def test_default_ui_dist_is_packaged_with_the_scraper():
     config = build_scrape_config({"--source": "gutenberg"})
 
     assert config.ui_dist == (
-        Path(__file__).parents[1] / "src" / "gutenberg2zim" / "zimui"
+        Path(__file__).parents[1] / "src" / "papers2zim" / "zimui"
     )

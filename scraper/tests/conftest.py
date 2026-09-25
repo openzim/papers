@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from gutenberg2zim.core.models import CollectionRef, Cover, Creator, Work
+from papers2zim.core.models import CollectionRef, Cover, Creator, Work
 
 
 @pytest.fixture

@@ -7,8 +7,8 @@ from zipfile import ZIP_DEFLATED, ZIP_STORED, ZipFile, ZipInfo
 
 import pytest
 
-from gutenberg2zim.core import epub_optimizer
-from gutenberg2zim.core.epub_optimizer import optimize_epub_bytes
+from papers2zim.core import epub_optimizer
+from papers2zim.core.epub_optimizer import optimize_epub_bytes
 
 pytestmark = pytest.mark.filterwarnings("ignore:Duplicate name:UserWarning")
 

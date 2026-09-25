@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from gutenberg2zim.sources.opentextbooks.invalid_urls import InvalidEditionCache
+from papers2zim.sources.opentextbooks.invalid_urls import InvalidEditionCache
 
 
 def test_add_persists_url_with_atomic_replacement(tmp_path, monkeypatch):

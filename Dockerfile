@@ -3,13 +3,13 @@ FROM node:24-alpine AS ui
 WORKDIR /src/ui
 COPY locales /src/locales
 COPY ui /src/ui
-COPY scraper/src/gutenberg2zim /src/scraper/src/gutenberg2zim
+RUN mkdir -p /src/scraper/src/papers2zim/zimui
 RUN yarn install --frozen-lockfile || npm install
 RUN yarn build || npm run build
 
 FROM python:3.14-bookworm
 
-LABEL org.opencontainers.image.source="https://github.com/openzim/gutenberg"
+LABEL org.opencontainers.image.source="https://github.com/openzim/papers"
 
 # Install necessary packages
 RUN apt-get update \
@@ -24,7 +24,7 @@ RUN apt-get update \
 # Copy pyproject.toml and its dependencies
 COPY README.md LICENSE /src/
 COPY scraper/pyproject.toml /src/scraper/
-COPY scraper/src/gutenberg2zim/__about__.py /src/scraper/src/gutenberg2zim/__about__.py
+COPY scraper/src/papers2zim/__about__.py /src/scraper/src/papers2zim/__about__.py
 
 # Install Python dependencies
 RUN pip install --no-cache-dir /src/scraper
@@ -35,7 +35,7 @@ COPY locales /locales
 COPY scraper /src/scraper
 
 # Copy the UI build into the scraper package before installing it.
-COPY --from=ui /src/scraper/src/gutenberg2zim/zimui /src/scraper/src/gutenberg2zim/zimui
+COPY --from=ui /src/scraper/src/papers2zim/zimui /src/scraper/src/papers2zim/zimui
 
 # Install scraper itself + cleanup
 RUN pip install --no-cache-dir /src/scraper \
@@ -50,4 +50,4 @@ ENV LANG=en_US.UTF-8 \
     LC_ALL=en_US.UTF-8 \
     ZIM_OUTPUT=/output
 
-CMD ["gutenberg2zim", "--help"]
+CMD ["papers2zim", "--help"]

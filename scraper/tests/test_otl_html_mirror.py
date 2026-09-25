@@ -2,8 +2,8 @@
 
 from base64 import b64decode
 
-from gutenberg2zim.core.models import Format, Work
-from gutenberg2zim.sources.opentextbooks.html_mirror import download_html_edition
+from papers2zim.core.models import Format, Work
+from papers2zim.sources.opentextbooks.html_mirror import download_html_edition
 
 
 class StubEngine:
@@ -159,7 +159,7 @@ def test_stops_fetching_when_html_edition_reaches_byte_budget(monkeypatch):
 
     engine.fetch_bytes = fetch_bytes  # type: ignore[method-assign]
     monkeypatch.setattr(
-        "gutenberg2zim.sources.opentextbooks.html_mirror.MAX_HTML_EDITION_BYTES",
+        "papers2zim.sources.opentextbooks.html_mirror.MAX_HTML_EDITION_BYTES",
         len(root) + len(chapter) + 100,
     )
 
@@ -182,7 +182,7 @@ def test_keeps_original_asset_path_when_webp_conversion_fails(monkeypatch):
     )
     chapter = b"<!doctype html><html><body>" + b"y" * 700 + b"</body></html>"
     monkeypatch.setattr(
-        "gutenberg2zim.sources.opentextbooks.html_mirror.ImageProcessor.optimize_image_content",
+        "papers2zim.sources.opentextbooks.html_mirror.ImageProcessor.optimize_image_content",
         lambda _content: (_ for _ in ()).throw(ValueError("invalid image")),
     )
 

@@ -107,27 +107,27 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Build the Docker image
-        run: docker build -t gutenberg .
+        run: docker build -t papers .
 
       - name: Ensure the Docker image contains the packaged ZIM UI
         run: |
-          docker run --rm gutenberg python -c "from pathlib import Path; import gutenberg2zim; path = Path(gutenberg2zim.__file__).parent / 'zimui'; assert (path / 'index.html').is_file() and (path / 'assets').is_dir(), 'zimui not found'"
+          docker run --rm papers python -c "from pathlib import Path; import papers2zim; path = Path(papers2zim.__file__).parent / 'zimui'; assert (path / 'index.html').is_file() and (path / 'assets').is_dir(), 'zimui not found'"
 
       - name: Build small integration ZIMs
         run: |
           mkdir -p output
-          docker run --rm -v "$PWD/output:/output" gutenberg gutenberg2zim \
+          docker run --rm -v "$PWD/output:/output" papers papers2zim \
             --source gutenberg \
             --output /output \
             --zim-file /output/gutenberg-integration.zim \
-            --zim-name gutenberg_integration_test \
+            --zim-name papers_integration_test \
             --zim-title "Gutenberg Test" \
             --zim-desc "One Project Gutenberg book for integration testing" \
             --books 11 \
             --formats html \
             --no-index \
             --overwrite
-          docker run --rm -v "$PWD/output:/output" gutenberg gutenberg2zim \
+          docker run --rm -v "$PWD/output:/output" papers papers2zim \
             --source opentextbooks \
             --output /output \
             --zim-file /output/opentextbooks-integration.zim \
@@ -152,7 +152,7 @@ jobs:
             -v "$PWD/scraper/tests-integration:/src/scraper/tests-integration:ro" \
             -v "$PWD/output:/output:ro" \
             -e ZIM_DIRECTORY=/output \
-            gutenberg \
+            papers \
             bash -c "pip install --no-cache-dir pytest && pytest -v /src/scraper/tests-integration"
 
       - name: Archive integration ZIMs

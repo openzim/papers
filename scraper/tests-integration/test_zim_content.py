@@ -74,7 +74,7 @@ def test_zim_metadata_and_main_page(zim: Archive, expected: ZimExpectation):
     assert zim.get_text_metadata("Title") == expected.title
     assert zim.get_text_metadata("Creator") == expected.source_creator
     assert zim.get_text_metadata("Publisher") == "openZIM"
-    assert "gutenberg2zim-" in zim.get_text_metadata("Scraper")
+    assert "papers2zim-" in zim.get_text_metadata("Scraper")
     favicon = zim.get_item("favicon.png")
     assert favicon
     assert favicon.mimetype == "image/png"

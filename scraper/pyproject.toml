@@ -3,7 +3,7 @@ requires = ["hatchling", "hatch-openzim>=0.3.0"]
 build-backend = "hatchling.build"
 
 [project]
-name = "gutenberg2zim"
+name = "papers2zim"
 requires-python = ">=3.14,<3.15"
 description = "Build offline ZIM libraries from supported book sources"
 dependencies = [
@@ -42,22 +42,22 @@ dev = [
   "debugpy==1.8.22",
   "ipdb==0.13.13",
   "ipython==9.17.1",
-  "gutenberg2zim[scripts]",
-  "gutenberg2zim[lint]",
-  "gutenberg2zim[test]",
-  "gutenberg2zim[check]",
+  "papers2zim[scripts]",
+  "papers2zim[lint]",
+  "papers2zim[test]",
+  "papers2zim[check]",
 ]
 
 [project.scripts]
-gutenberg2zim = "gutenberg2zim.cli:main"
-gutenberg2zim-validate-i18n = "gutenberg2zim.scripts.validate_i18n:main"
+papers2zim = "papers2zim.cli:main"
+papers2zim-validate-i18n = "papers2zim.scripts.validate_i18n:main"
 
 [tool.hatch.version]
-path = "src/gutenberg2zim/__about__.py"
+path = "src/papers2zim/__about__.py"
 
 [tool.hatch.metadata.hooks.openzim-metadata]
 kind = "scraper"
-additional-keywords = ["books", "gutenberg", "opentextbooks"]
+additional-keywords = ["books", "papers", "opentextbooks"]
 readme = "../README.md"
 
 [tool.hatch.build.hooks.openzim-build]
@@ -66,7 +66,7 @@ readme = "../README.md"
 exclude = ["/.github"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/gutenberg2zim"]
+packages = ["src/papers2zim"]
 
 [tool.hatch.envs.default]
 features = ["dev"]
@@ -105,7 +105,7 @@ all = "inv checkall --args '{args}'"
 [tool.black]
 line-length = 88
 target-version = ['py314']
-exclude = "(src/gutenberg2zim/zimui/.*|.hatch/.*)"
+exclude = "(src/papers2zim/zimui/.*|.hatch/.*)"
 
 [tool.ruff]
 target-version = "py314"
@@ -199,7 +199,7 @@ unfixable = [
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["gutenberg2zim"]
+known-first-party = ["papers2zim"]
 
 [tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"
@@ -217,14 +217,14 @@ testpaths = ["tests"]
 pythonpath = [".", "src"]
 
 [tool.coverage.paths]
-great_project = ["src/gutenberg2zim"]
+great_project = ["src/papers2zim"]
 tests = ["tests"]
 
 [tool.coverage.run]
-source_pkgs = ["gutenberg2zim"]
+source_pkgs = ["papers2zim"]
 branch = true
 parallel = true
-omit = ["src/gutenberg2zim/__about__.py"]
+omit = ["src/papers2zim/__about__.py"]
 
 [tool.coverage.report]
 exclude_lines = ["no cov", "if __name__ == .__main__.:", "if TYPE_CHECKING:"]
@@ -234,8 +234,8 @@ include = ["src", "tests", "tasks.py"]
 exclude = [
   "**/node_modules",
   "**/__pycache__",
-  "src/gutenberg2zim/templates",
-  "src/gutenberg2zim/zimui",
+  "src/papers2zim/templates",
+  "src/papers2zim/zimui",
   ".hatch",
 ]
 extraPaths = ["src"]

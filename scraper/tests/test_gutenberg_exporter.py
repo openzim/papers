@@ -6,8 +6,8 @@ from unittest.mock import ANY, MagicMock, patch
 import pytest
 from PIL import Image
 
-from gutenberg2zim.core.models import Work
-from gutenberg2zim.sources.gutenberg.exporter import (
+from papers2zim.core.models import Work
+from papers2zim.sources.gutenberg.exporter import (
     export_book,
     handle_book_files,
     is_cover_asset,
@@ -69,9 +69,7 @@ def test_export_book_aliases_bundled_cover_and_skips_mirror_download():
     work = _work()
     assembler = MagicMock()
     engine = MagicMock()
-    with patch(
-        "gutenberg2zim.sources.gutenberg.exporter.download_book_cover"
-    ) as download:
+    with patch("papers2zim.sources.gutenberg.exporter.download_book_cover") as download:
         export_book(
             work=work,
             book_files={"11_cover.jpg": _image_bytes("JPEG")},
@@ -93,7 +91,7 @@ def test_export_book_downloads_cover_when_not_bundled():
     assembler = MagicMock()
     engine = MagicMock()
     with patch(
-        "gutenberg2zim.sources.gutenberg.exporter.download_book_cover",
+        "papers2zim.sources.gutenberg.exporter.download_book_cover",
         return_value=_image_bytes("JPEG"),
     ) as download:
         export_book(
@@ -121,7 +119,7 @@ def test_optimize_failure_leaves_cover_undetected_and_triggers_mirror_download()
     assembler = MagicMock()
     engine = MagicMock()
     with patch(
-        "gutenberg2zim.sources.gutenberg.exporter.optimize_content",
+        "papers2zim.sources.gutenberg.exporter.optimize_content",
         side_effect=Exception("cannot optimize cover"),
     ):
         handle_book_files(
@@ -132,7 +130,7 @@ def test_optimize_failure_leaves_cover_undetected_and_triggers_mirror_download()
         )
     assert "html_cover_path" not in work.extra
     with patch(
-        "gutenberg2zim.sources.gutenberg.exporter.download_book_cover",
+        "papers2zim.sources.gutenberg.exporter.download_book_cover",
         return_value=_image_bytes("JPEG"),
     ) as download:
         export_book(
@@ -163,9 +161,7 @@ def test_export_book_still_uses_icon_linked_html_cover():
     work = _work()
     assembler = MagicMock()
     engine = MagicMock()
-    with patch(
-        "gutenberg2zim.sources.gutenberg.exporter.download_book_cover"
-    ) as download:
+    with patch("papers2zim.sources.gutenberg.exporter.download_book_cover") as download:
         export_book(
             work=work,
             book_files={

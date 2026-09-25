@@ -1,8 +1,8 @@
 """Tests for core.index_builder."""
 
-from gutenberg2zim.core.index_builder import IndexBuilder
-from gutenberg2zim.core.models import CollectionRef, Creator, Work
-from gutenberg2zim.core.work_store import WorkStore
+from papers2zim.core.index_builder import IndexBuilder
+from papers2zim.core.models import CollectionRef, Creator, Work
+from papers2zim.core.work_store import WorkStore
 
 
 def _work(

@@ -4,11 +4,11 @@ from io import BytesIO
 from unittest.mock import MagicMock, patch
 from zipfile import ZIP_STORED, ZipFile
 
-from gutenberg2zim.core.models import Format, Work
-from gutenberg2zim.core.ports import WorkRef
-from gutenberg2zim.core.progress import ScraperProgress
-from gutenberg2zim.core.work_store import WorkStore
-from gutenberg2zim.sources.opentextbooks.pipeline import OpenTextbookLibraryPipeline
+from papers2zim.core.models import Format, Work
+from papers2zim.core.ports import WorkRef
+from papers2zim.core.progress import ScraperProgress
+from papers2zim.core.work_store import WorkStore
+from papers2zim.sources.opentextbooks.pipeline import OpenTextbookLibraryPipeline
 
 
 def _pipeline(work: Work, engine: MagicMock, assembler: MagicMock):
@@ -88,12 +88,12 @@ def test_run_exports_a_downloaded_otl_work_without_popularity_metrics():
 
     with (
         patch(
-            "gutenberg2zim.sources.opentextbooks.pipeline.extract_cover",
+            "papers2zim.sources.opentextbooks.pipeline.extract_cover",
             return_value=b"cover bytes",
         ),
-        patch("gutenberg2zim.core.pipeline.export_search_items") as search_items,
-        patch("gutenberg2zim.core.pipeline.generate_json_files") as json_files,
-        patch("gutenberg2zim.core.pipeline.generate_noscript_pages") as nojs_pages,
+        patch("papers2zim.core.pipeline.export_search_items") as search_items,
+        patch("papers2zim.core.pipeline.generate_json_files") as json_files,
+        patch("papers2zim.core.pipeline.generate_noscript_pages") as nojs_pages,
     ):
         pipeline.run([WorkRef(id="10", source="opentextbooks")])
 
@@ -131,7 +131,7 @@ def test_process_ref_rejects_an_html_landing_page_at_a_pdf_url():
     pipeline = _pipeline(work, engine, assembler)
 
     with patch(
-        "gutenberg2zim.sources.opentextbooks.pipeline.fetch_page_cover"
+        "papers2zim.sources.opentextbooks.pipeline.fetch_page_cover"
     ) as fetch_cover:
         pipeline.process_ref(WorkRef(id="10", source="opentextbooks"))
 
@@ -166,7 +166,7 @@ def test_html_controls_only_receive_validated_binary_formats():
     edition = MagicMock(pages={"Calculus.10": b"<!doctype html><html></html>"})
 
     with patch(
-        "gutenberg2zim.sources.opentextbooks.pipeline.download_html_edition",
+        "papers2zim.sources.opentextbooks.pipeline.download_html_edition",
         return_value=edition,
     ) as mirror:
         pipeline.process_ref(WorkRef(id="10", source="opentextbooks"))
@@ -207,7 +207,7 @@ def test_html_is_not_mirrored_when_a_binary_format_is_available_after_it():
     edition = MagicMock(pages={"Calculus.10": b"<!doctype html><html></html>"})
 
     with patch(
-        "gutenberg2zim.sources.opentextbooks.pipeline.download_html_edition",
+        "papers2zim.sources.opentextbooks.pipeline.download_html_edition",
         return_value=edition,
     ) as mirror:
         pipeline.process_ref(WorkRef(id="10", source="opentextbooks"))
@@ -241,7 +241,7 @@ def test_process_ref_accepts_a_valid_epub_archive():
     pipeline = _pipeline(work, engine, assembler)
 
     with patch(
-        "gutenberg2zim.sources.opentextbooks.pipeline.optimize_epub_bytes",
+        "papers2zim.sources.opentextbooks.pipeline.optimize_epub_bytes",
         return_value=b"optimized epub",
     ) as optimize_epub:
         pipeline.process_ref(WorkRef(id="10", source="opentextbooks"))

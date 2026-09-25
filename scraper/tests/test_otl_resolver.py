@@ -1,7 +1,7 @@
 """Tests for sources.opentextbooks.resolver."""
 
-from gutenberg2zim.core.models import Format, Work
-from gutenberg2zim.sources.opentextbooks.resolver import (
+from papers2zim.core.models import Format, Work
+from papers2zim.sources.opentextbooks.resolver import (
     OpenTextbookLibraryFormatResolver,
 )
 

@@ -1,6 +1,6 @@
 """Tests for Open Textbook Library cover extraction."""
 
-from gutenberg2zim.sources.opentextbooks.covers import fetch_page_cover
+from papers2zim.sources.opentextbooks.covers import fetch_page_cover
 
 
 class StubEngine:
@@ -18,7 +18,7 @@ class StubEngine:
 
 def test_fetch_page_cover_falls_back_to_open_graph_image(monkeypatch):
     monkeypatch.setattr(
-        "gutenberg2zim.sources.opentextbooks.covers.ImageProcessor.optimize_image_content",
+        "papers2zim.sources.opentextbooks.covers.ImageProcessor.optimize_image_content",
         lambda content: b"webp:" + content,
     )
 
@@ -36,7 +36,7 @@ def test_fetch_page_cover_prefers_portrait_book_cover(monkeypatch):
     engine.pages["https://example.org/social-card.png"] = b"social"
     engine.pages["https://example.org/book-cover.png"] = b"book"
     monkeypatch.setattr(
-        "gutenberg2zim.sources.opentextbooks.covers.ImageProcessor.optimize_image_content",
+        "papers2zim.sources.opentextbooks.covers.ImageProcessor.optimize_image_content",
         lambda content: b"webp:" + content,
     )
 

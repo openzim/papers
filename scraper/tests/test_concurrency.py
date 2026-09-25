@@ -5,7 +5,7 @@ import time
 
 import pytest
 
-from gutenberg2zim.core.concurrency import parallel_map
+from papers2zim.core.concurrency import parallel_map
 
 
 def test_processes_all_items():

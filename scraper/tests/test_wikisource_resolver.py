@@ -1,7 +1,7 @@
 """Tests for sources.wikisource.resolver."""
 
-from gutenberg2zim.core.models import Format, Work
-from gutenberg2zim.sources.wikisource.resolver import WikisourceFormatResolver
+from papers2zim.core.models import Format, Work
+from papers2zim.sources.wikisource.resolver import WikisourceFormatResolver
 
 
 def _work(*formats: Format) -> Work:

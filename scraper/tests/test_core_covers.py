@@ -3,7 +3,7 @@
 import io
 import zipfile
 
-from gutenberg2zim.core.covers import _epub_cover, extract_cover
+from papers2zim.core.covers import _epub_cover, extract_cover
 
 
 def test_extract_cover_returns_none_for_unsupported_format():

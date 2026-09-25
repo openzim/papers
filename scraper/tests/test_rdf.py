@@ -2,8 +2,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from gutenberg2zim.core.download_engine import DownloadEngine
-from gutenberg2zim.sources.gutenberg.metadata import (
+from papers2zim.core.download_engine import DownloadEngine
+from papers2zim.sources.gutenberg.metadata import (
     RdfParseError,
     RdfParser,
     clean_marc_notation,

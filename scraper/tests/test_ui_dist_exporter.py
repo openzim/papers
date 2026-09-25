@@ -2,8 +2,8 @@
 
 from unittest.mock import MagicMock
 
-from gutenberg2zim.constants import FAVICON_BYTES
-from gutenberg2zim.core.exporters.ui_dist_exporter import export_ui_dist
+from papers2zim.constants import FAVICON_BYTES
+from papers2zim.core.exporters.ui_dist_exporter import export_ui_dist
 
 
 def test_exports_fallback_favicon_when_the_ui_build_has_none(tmp_path):

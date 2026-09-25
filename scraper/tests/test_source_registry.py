@@ -4,13 +4,13 @@ from dataclasses import replace
 
 import pytest
 
-from gutenberg2zim.core.ports import CatalogPort
-from gutenberg2zim.sources import registry
-from gutenberg2zim.sources.opentextbooks.catalog import OpenTextbookLibraryCatalog
-from gutenberg2zim.sources.opentextbooks.metadata import OpenTextbookLibraryMetadata
-from gutenberg2zim.sources.registry import get_source
-from gutenberg2zim.sources.wikisource.catalog import WikisourceCatalog
-from gutenberg2zim.sources.wikisource.metadata import WikisourceMetadata
+from papers2zim.core.ports import CatalogPort
+from papers2zim.sources import registry
+from papers2zim.sources.opentextbooks.catalog import OpenTextbookLibraryCatalog
+from papers2zim.sources.opentextbooks.metadata import OpenTextbookLibraryMetadata
+from papers2zim.sources.registry import get_source
+from papers2zim.sources.wikisource.catalog import WikisourceCatalog
+from papers2zim.sources.wikisource.metadata import WikisourceMetadata
 
 
 @pytest.fixture

@@ -2,10 +2,10 @@
 
 from unittest.mock import MagicMock
 
-from gutenberg2zim.core.exporters.nojs_exporter import generate_noscript_pages
-from gutenberg2zim.core.index_builder import IndexBuilder
-from gutenberg2zim.core.models import CollectionRef, Creator, Work
-from gutenberg2zim.core.work_store import WorkStore
+from papers2zim.core.exporters.nojs_exporter import generate_noscript_pages
+from papers2zim.core.index_builder import IndexBuilder
+from papers2zim.core.models import CollectionRef, Creator, Work
+from papers2zim.core.work_store import WorkStore
 
 
 def _item_call(assembler: MagicMock, path: str):

@@ -5,7 +5,7 @@ from types import SimpleNamespace
 import pytest
 from bs4 import BeautifulSoup
 
-from gutenberg2zim.sources.gutenberg.epub_optimize import (
+from papers2zim.sources.gutenberg.epub_optimize import (
     _process_epub_html,
     _process_epub_ncx,
 )

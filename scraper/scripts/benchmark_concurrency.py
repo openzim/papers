@@ -12,7 +12,7 @@ import argparse
 import time
 from collections.abc import Callable
 
-from gutenberg2zim.core.concurrency import parallel_map
+from papers2zim.core.concurrency import parallel_map
 
 CONCURRENCY_LEVELS = (1, 2, 4, 8, 16, 24, 32)
 

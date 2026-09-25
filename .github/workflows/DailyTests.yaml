@@ -13,23 +13,23 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Build the Docker image
-        run: docker build -t gutenberg .
+        run: docker build -t papers .
 
       - name: Build small integration ZIMs
         run: |
           mkdir -p output
-          docker run --rm -v "$PWD/output:/output" gutenberg gutenberg2zim \
-            --source gutenberg \
+          docker run --rm -v "$PWD/output:/output" papers papers2zim \
+            --source papers \
             --output /output \
-            --zim-file /output/gutenberg-integration.zim \
-            --zim-name gutenberg_integration_test \
-            --zim-title "Gutenberg Test" \
-            --zim-desc "One Project Gutenberg book for integration testing" \
+            --zim-file /output/papers-integration.zim \
+            --zim-name papers_integration_test \
+            --zim-title "Papers Test" \
+            --zim-desc "One Project Papers book for integration testing" \
             --books 11 \
             --formats html \
             --no-index \
             --overwrite
-          docker run --rm -v "$PWD/output:/output" gutenberg gutenberg2zim \
+          docker run --rm -v "$PWD/output:/output" papers papers2zim \
             --source opentextbooks \
             --output /output \
             --zim-file /output/opentextbooks-integration.zim \
@@ -44,7 +44,7 @@ jobs:
       - name: Run zimcheck
         run: |
           docker run --rm -v "$PWD/output:/output" \
-            ghcr.io/openzim/zim-tools:3.8.0 zimcheck /output/gutenberg-integration.zim
+            ghcr.io/openzim/zim-tools:3.8.0 zimcheck /output/papers-integration.zim
           docker run --rm -v "$PWD/output:/output" \
             ghcr.io/openzim/zim-tools:3.8.0 zimcheck /output/opentextbooks-integration.zim
 
@@ -54,7 +54,7 @@ jobs:
             -v "$PWD/scraper/tests-integration:/src/scraper/tests-integration:ro" \
             -v "$PWD/output:/output:ro" \
             -e ZIM_DIRECTORY=/output \
-            gutenberg \
+            papers \
             bash -c "pip install --no-cache-dir pytest && pytest -v /src/scraper/tests-integration"
 
       - name: Archive integration ZIMs
