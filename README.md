@@ -123,6 +123,9 @@ The Open Textbook Library-specific options are:
 
 ### Wikisource
 
+> [!WARNING]
+> Wikisource support is experimental at this stage, there are known issues.
+
 Select Wikisource with `--source=wikisource` (or `--source=WS`).
 
 Wikisource is organised per language, so `--languages` is required: the scraper reads the ["ready for export" OPDS feeds](https://ws-export.wmcloud.org/opds/) published by [ws-export](https://ws-export.wmcloud.org) for each requested language and downloads each book as an EPUB. The supported language codes are the ones listed on the [ws-export OPDS index](https://ws-export.wmcloud.org/opds/); pass them to `--languages`.

@@ -10,3 +10,6 @@ as of 2.0.0.
 
 - initial version of papers scraper, a fork a gutenberg scraper with support for multiple sources and a brand new Vue.JS UI
 - Add author biographies and portraits from Wikipedia with `--with-author-details` (#513)
+## [1.0.0] - 2026-09-25
+
+- initial version of `papers` scraper, successor of `gutenberg` scraper with support for multiple sources and a brand new Vue.JS UI
