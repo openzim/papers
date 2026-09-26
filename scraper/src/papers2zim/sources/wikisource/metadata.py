@@ -64,7 +64,6 @@ class WikisourceMetadata(MetadataPort):
             ],
             source_url=extra.get("source_url"),
             extra={
-                "issued": extra.get("issued"),
                 "wikisource_page": extra.get("page"),
             },
         )

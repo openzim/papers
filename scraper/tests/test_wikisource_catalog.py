@@ -97,7 +97,6 @@ def test_discover_parses_feed_entries_into_work_refs():
     assert first.extra["language"] == "en"
     assert first.extra["license"] == "http://creativecommons.org/licenses/by-sa/3.0"
     assert first.extra["author"] == "A. Writer"
-    assert first.extra["issued"] == "1913"
     assert first.extra["source_url"] == "https://en.wikisource.org/wiki/First_Book"
     formats = {name: url for name, _mt, url in first.extra["formats"]}
     assert "epub" in formats

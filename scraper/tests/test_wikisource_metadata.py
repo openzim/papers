@@ -20,7 +20,6 @@ def _ref() -> WorkRef:
             "language": "en",
             "license": "http://creativecommons.org/licenses/by-sa/3.0",
             "source_url": "https://en.wikisource.org/wiki/First_Book",
-            "issued": "1913",
             "page": "First_Book",
             "lang": "en",
             "formats": [
