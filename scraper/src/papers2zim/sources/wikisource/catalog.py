@@ -164,7 +164,6 @@ class WikisourceCatalog(CatalogPort):
             "language": _text(entry, "language") or lang,
             "license": _text(entry, "rights"),
             "source_url": source,
-            "issued": _text(entry, "issued"),
             "page": page,
             "lang": lang,
             "formats": formats,
