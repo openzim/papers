@@ -20,6 +20,7 @@ as of 2.0.0.
 ### Changed
 
 - UI: replace book grid borders with rounded card backgrounds, highlighted on hover, in book grid, book list, book carousel and author carousel
+- Gutenberg: prefer the cover declared by the downloaded EPUB over Project Gutenberg's ~200px `cover.medium.jpg` thumbnail, which yields sharper covers without an extra download; the thumbnail stays as fallback (#56)
 
 ### Fixed
 
