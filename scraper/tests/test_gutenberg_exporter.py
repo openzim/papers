@@ -8,6 +8,7 @@ from PIL import Image
 
 from papers2zim.core.models import Work
 from papers2zim.sources.gutenberg.exporter import (
+    COVER_MAX_WIDTH,
     export_book,
     handle_book_files,
     is_cover_asset,
@@ -179,6 +180,79 @@ def test_export_book_still_uses_icon_linked_html_cover():
     assembler.add_alias.assert_called_once_with(
         path="covers/11_cover_image.webp", title="", target="11_icon.webp"
     )
+
+
+def _stored_cover(assembler):
+    """Return the bytes stored for the ZIM cover path."""
+    path = "covers/11_cover_image.webp"
+    for call in assembler.add_item_for.call_args_list:
+        if call.kwargs.get("path") == path:
+            return call.kwargs["content"]
+    return None
+
+
+def test_export_book_prefers_embedded_epub_cover_over_mirror(make_epub):
+    work = _work()
+    assembler = MagicMock()
+    engine = MagicMock()
+    with patch("papers2zim.sources.gutenberg.exporter.download_book_cover") as download:
+        export_book(
+            work=work,
+            book_files={"11.epub": make_epub(size=(800, 1200))},
+            formats=["epub"],
+            mirror_url="https://example.com",
+            assembler=assembler,
+            engine=engine,
+            _zim_name="test",
+            _title_search=False,
+        )
+    download.assert_not_called()
+    cover = _stored_cover(assembler)
+    assert Image.open(io.BytesIO(cover)).size == (COVER_MAX_WIDTH, 600)
+
+
+def test_export_book_falls_back_to_mirror_when_epub_cover_is_undeclared(make_epub):
+    work = _work()
+    assembler = MagicMock()
+    engine = MagicMock()
+    with patch(
+        "papers2zim.sources.gutenberg.exporter.download_book_cover",
+        return_value=_image_bytes("JPEG"),
+    ) as download:
+        export_book(
+            work=work,
+            book_files={"11.epub": make_epub(declared=False)},
+            formats=["epub"],
+            mirror_url="https://example.com",
+            assembler=assembler,
+            engine=engine,
+            _zim_name="test",
+            _title_search=False,
+        )
+    download.assert_called_once()
+    assert _stored_cover(assembler) is not None
+
+
+def test_export_book_falls_back_to_mirror_when_no_epub_is_present():
+    work = _work()
+    assembler = MagicMock()
+    engine = MagicMock()
+    with patch(
+        "papers2zim.sources.gutenberg.exporter.download_book_cover",
+        return_value=_image_bytes("JPEG"),
+    ) as download:
+        export_book(
+            work=work,
+            book_files={"11.pdf": b"%PDF-1.4 fake"},
+            formats=["pdf"],
+            mirror_url="https://example.com",
+            assembler=assembler,
+            engine=engine,
+            _zim_name="test",
+            _title_search=False,
+        )
+    download.assert_called_once()
+    assert _stored_cover(assembler) is not None
 
 
 def test_export_book_prefers_bundled_cover_over_mismatched_icon_link():

@@ -18,16 +18,29 @@ from papers2zim.constants import logger
 from papers2zim.core.rewriters.image_rewriter import ImageProcessor
 
 
-def extract_cover(content: bytes, format_name: str) -> bytes | None:
-    """Extract and WebP-encode a cover image from a downloaded book file."""
+def extract_cover(
+    content: bytes,
+    format_name: str,
+    *,
+    max_width: int | None = None,
+    declared_only: bool = False,
+) -> bytes | None:
+    """Extract and WebP-encode a cover image from a downloaded book file.
+
+    max_width scales the result down (never up) before encoding.
+    declared_only restricts EPUB covers to the image the package explicitly
+    declares as its cover, instead of falling back to the first image found.
+    """
     try:
         if format_name == "pdf":
             image = _pdf_first_page(content)
         elif format_name == "epub":
-            image = _epub_cover(content)
+            image = _epub_cover(content, declared_only=declared_only)
         else:
             return None
-        return ImageProcessor.optimize_image_content(image) if image else None
+        if not image:
+            return None
+        return ImageProcessor.optimize_image_content(image, max_width=max_width)
     except Exception as exc:
         logger.debug("Could not extract %s cover: %s", format_name, exc)
         return None
@@ -44,7 +57,7 @@ def _pdf_first_page(content: bytes) -> bytes | None:
         document.close()
 
 
-def _epub_cover(content: bytes) -> bytes | None:
+def _epub_cover(content: bytes, *, declared_only: bool = False) -> bytes | None:
     with zipfile.ZipFile(io.BytesIO(content)) as archive:
         parser = etree.XMLParser(resolve_entities=False, no_network=True)
         container = etree.fromstring(archive.read("META-INF/container.xml"), parser)
@@ -67,7 +80,7 @@ def _epub_cover(content: bytes) -> bytes | None:
             None,
         )
         cover_item = manifest.get(cover_id) if cover_id else None
-        if cover_item is None:
+        if cover_item is None and not declared_only:
             cover_item = next(
                 (
                     item
@@ -76,7 +89,7 @@ def _epub_cover(content: bytes) -> bytes | None:
                 ),
                 None,
             )
-        if cover_item is None:
+        if cover_item is None and not declared_only:
             cover_item = next(
                 (
                     item

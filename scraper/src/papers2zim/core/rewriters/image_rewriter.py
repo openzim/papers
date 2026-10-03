@@ -8,6 +8,7 @@ from dataclasses import asdict
 from pathlib import Path
 
 from bs4 import BeautifulSoup
+from PIL.Image import Resampling
 from PIL.Image import open as pilopen
 from zimscraperlib.image.optimization import OptimizeWebpOptions
 
@@ -58,9 +59,17 @@ class ImageProcessor:
         return filename
 
     @staticmethod
-    def optimize_image_content(file_content: bytes) -> bytes:
-        """Convert and optimize image content to WebP format."""
+    def optimize_image_content(
+        file_content: bytes, max_width: int | None = None
+    ) -> bytes:
+        """Convert and optimize image content to WebP format.
+
+        When max_width is set, images wider than that are scaled down
+        (never up) before conversion.
+        """
         dst = io.BytesIO()
         with pilopen(io.BytesIO(file_content)) as image:
+            if max_width is not None and image.width > max_width:
+                image.thumbnail((max_width, image.height), Resampling.LANCZOS)
             image.save(dst, format="WEBP", **default_webp_options)
         return dst.getvalue()
