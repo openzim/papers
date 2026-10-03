@@ -34,20 +34,28 @@ def test_subjects_are_stored_for_opentextbooks():
     assert config.source_options["subjects"] == ["Mathematics", "Business - Accounting"]
 
 
-def test_with_author_details_is_opt_in_for_gutenberg():
+def test_with_author_bio_and_portrait_are_opt_in_for_gutenberg():
     config = build_scrape_config({"--source": "gutenberg"})
-    assert "with_author_details" not in config.source_options
+    assert "with_author_bio" not in config.source_options
+    assert "with_author_portrait" not in config.source_options
 
     config = build_scrape_config(
-        {"--source": "gutenberg", "--with-author-details": True}
+        {
+            "--source": "gutenberg",
+            "--with-author-bio": True,
+            "--with-author-portrait": True,
+        }
     )
-    assert config.source_options["with_author_details"] is True
+    assert config.source_options["with_author_bio"] is True
+    assert config.source_options["with_author_portrait"] is True
 
 
-def test_with_author_details_is_rejected_for_opentextbooks():
+def test_with_author_bio_and_portrait_are_rejected_for_opentextbooks():
+    with pytest.raises(CriticalError, match="belongs to --source gutenberg"):
+        build_scrape_config({"--source": "opentextbooks", "--with-author-bio": True})
     with pytest.raises(CriticalError, match="belongs to --source gutenberg"):
         build_scrape_config(
-            {"--source": "opentextbooks", "--with-author-details": True}
+            {"--source": "opentextbooks", "--with-author-portrait": True}
         )
 
 

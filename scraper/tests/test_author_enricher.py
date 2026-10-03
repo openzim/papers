@@ -191,3 +191,111 @@ def test_enrich_authors_handles_empty_store():
 
     engine.fetch_bytes.assert_not_called()
     assembler.add_item_for.assert_not_called()
+
+
+def test_enrich_creator_skips_bio_when_with_bio_is_false():
+    engine = MagicMock(name="engine")
+    engine.fetch_bytes.side_effect = [SUMMARY_JSON, _jpeg_bytes()]
+    assembler = MagicMock(name="assembler")
+
+    enriched = enrich_creator(
+        _arrow_creator(), engine, assembler, with_bio=False, with_portrait=True
+    )
+
+    assert "bio" not in enriched.extra
+    assert enriched.extra["portrait_path"] == "authors/68.webp"
+    assembler.add_item_for.assert_called_once()
+
+
+def test_enrich_creator_skips_portrait_when_with_portrait_is_false():
+    engine = MagicMock(name="engine")
+    engine.fetch_bytes.return_value = SUMMARY_JSON
+    assembler = MagicMock(name="assembler")
+
+    enriched = enrich_creator(
+        _arrow_creator(), engine, assembler, with_bio=True, with_portrait=False
+    )
+
+    assert enriched.extra["bio"] == "A short biography."
+    assert "portrait_path" not in enriched.extra
+    assembler.add_item_for.assert_not_called()
+
+
+def test_enrich_creator_skips_everything_when_both_disabled():
+    engine = MagicMock(name="engine")
+    assembler = MagicMock(name="assembler")
+
+    enriched = enrich_creator(
+        _arrow_creator(), engine, assembler, with_bio=False, with_portrait=False
+    )
+
+    assert "bio" not in enriched.extra
+    assert "portrait_path" not in enriched.extra
+    engine.fetch_bytes.assert_not_called()
+    assembler.add_item_for.assert_not_called()
+
+
+def test_enrich_authors_fetches_portrait_only_when_with_bio_is_false():
+    engine = MagicMock(name="engine")
+    engine.fetch_bytes.side_effect = [SUMMARY_JSON, _jpeg_bytes()]
+    assembler = MagicMock(name="assembler")
+
+    store = _store_with_creator(_arrow_creator())
+
+    enrich_authors(
+        store, engine, assembler, with_bio=False, with_portrait=True, concurrency=1
+    )
+
+    creator = store.works[0].creators[0]
+    assert "bio" not in creator.extra
+    assert creator.extra["portrait_path"] == "authors/68.webp"
+
+
+def test_enrich_authors_fetches_bio_only_when_with_portrait_is_false():
+    engine = MagicMock(name="engine")
+    engine.fetch_bytes.return_value = SUMMARY_JSON
+    assembler = MagicMock(name="assembler")
+
+    store = _store_with_creator(_arrow_creator())
+
+    enrich_authors(
+        store, engine, assembler, with_bio=True, with_portrait=False, concurrency=1
+    )
+
+    creator = store.works[0].creators[0]
+    assert creator.extra["bio"] == "A short biography."
+    assert "portrait_path" not in creator.extra
+    assembler.add_item_for.assert_not_called()
+
+
+def test_enrich_authors_fetches_both_when_both_enabled():
+    engine = MagicMock(name="engine")
+    engine.fetch_bytes.side_effect = [SUMMARY_JSON, _jpeg_bytes()]
+    assembler = MagicMock(name="assembler")
+
+    store = _store_with_creator(_arrow_creator())
+
+    enrich_authors(
+        store, engine, assembler, with_bio=True, with_portrait=True, concurrency=1
+    )
+
+    creator = store.works[0].creators[0]
+    assert creator.extra["bio"] == "A short biography."
+    assert creator.extra["portrait_path"] == "authors/68.webp"
+
+
+def test_enrich_authors_skips_all_when_both_disabled():
+    engine = MagicMock(name="engine")
+    assembler = MagicMock(name="assembler")
+
+    store = _store_with_creator(_arrow_creator())
+
+    enrich_authors(
+        store, engine, assembler, with_bio=False, with_portrait=False, concurrency=1
+    )
+
+    creator = store.works[0].creators[0]
+    assert "bio" not in creator.extra
+    assert "portrait_path" not in creator.extra
+    engine.fetch_bytes.assert_not_called()
+    assembler.add_item_for.assert_not_called()

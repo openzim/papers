@@ -20,8 +20,9 @@ as of 2.0.0.
 ### Changed
 
 - UI: replace book grid borders with rounded card backgrounds, highlighted on hover, in book grid, book list, book carousel and author carousel
+- Gutenberg: replace `--with-author-details` with `--with-author-bio` and `--with-author-portrait` (#66)
 
-### Fixed
+### Fixed
 
 - Promote Wikisource `issued` to standard `published` metadata (#10)
 - Wikisource: stop offering the withdrawn `xhtml` format, and fail early when a requested format is not offered by ws-export (#11)
