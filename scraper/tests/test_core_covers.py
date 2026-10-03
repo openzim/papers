@@ -33,11 +33,13 @@ def test_epub_cover_decodes_manifest_href_before_archive_lookup():
 
 def test_extract_cover_scales_result_down_to_max_width(make_epub):
     cover = extract_cover(make_epub(size=(640, 960)), "epub", max_width=400)
+    assert cover is not None
     assert Image.open(io.BytesIO(cover)).size == (400, 600)
 
 
 def test_extract_cover_never_upscales_to_reach_max_width(make_epub):
     cover = extract_cover(make_epub(size=(64, 96)), "epub", max_width=400)
+    assert cover is not None
     assert Image.open(io.BytesIO(cover)).size == (64, 96)
 
 
