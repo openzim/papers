@@ -20,8 +20,9 @@ as of 2.0.0.
 ### Changed
 
 - UI: replace book grid borders with rounded card backgrounds, highlighted on hover, in book grid, book list, book carousel and author carousel
+- Gutenberg: replace `--with-author-details` with `--with-author-bio` and `--with-author-portrait` (#66)
 
-### Fixed
+### Fixed
 
 - Promote Wikisource `issued` to standard `published` metadata (#10)
 - Wikisource: stop offering the withdrawn `xhtml` format, and fail early when a requested format is not offered by ws-export (#11)
@@ -29,7 +30,6 @@ as of 2.0.0.
 - Fix UI browser language detection: use all preferred browser languages and stop persisting the auto-detected language (#50)
 - UI: sort collections alphabetically by display name in sidebar (#48)
 - Gutenberg: prefer the bundled cover asset over a `<link rel="icon">` href, which PG sometimes mistags with an unrelated illustration (#49)
-- Gutenberg: fetch only author portraits without biographies for non-English ZIMs (#66)
 
 ## [1.0.0] - 2026-09-25
 

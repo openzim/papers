@@ -1,8 +1,8 @@
 """Author details enrichment for Gutenberg works (bio + portrait).
 
-When the `--with-author-details` option is enabled, the Gutenberg pipeline
-enriches every author with a short biography and a portrait sourced from
-Wikipedia.
+When the `--with-author-bio` and/or `--with-author-portrait` options are
+enabled, the Gutenberg pipeline enriches every author with a short biography
+and/or a portrait sourced from Wikipedia.
 
 The pivot from a Gutenberg author id to its Wikipedia article is the
 `pgterms:webpage` link that Project Gutenberg curates inside the author
@@ -77,20 +77,17 @@ def fetch_author_summary(engine: DownloadEngine, title: str) -> dict | None:
     return summary
 
 
-def is_english(lang: str) -> bool:
-    """Check if language code represents English."""
-    clean = lang.strip().lower()
-    return clean in ("en", "eng") or clean.startswith(("en-", "en_"))
-
-
 def enrich_creator(
     creator: Creator,
     engine: DownloadEngine,
     assembler: ZimAssembler,
     *,
     with_bio: bool = True,
+    with_portrait: bool = True,
 ) -> Creator:
-    """Return `creator` enriched with bio and portrait when available."""
+    """Return `creator` enriched with bio and/or portrait when available."""
+    if not with_bio and not with_portrait:
+        return creator
     title = wikipedia_title(creator)
     if not title:
         return creator
@@ -103,25 +100,26 @@ def enrich_creator(
     if with_bio and isinstance(extract, str) and extract.strip():
         extra["bio"] = extract
 
-    image = summary.get("thumbnail") or summary.get("originalimage")
-    source = image.get("source") if image else None
-    if isinstance(source, str) and source:
-        portrait_path = PORTRAIT_PATH_TEMPLATE.format(id=creator.id)
-        try:
-            data = engine.fetch_bytes(source)
-            # Wikipedia serves a raster thumbnail; store it as WebP like covers
-            data = ImageProcessor.optimize_image_content(data)
-            assembler.add_item_for(
-                path=portrait_path,
-                content=data,
-                mimetype="image/webp",
-                is_front=False,
-            )
-            extra["portrait_path"] = portrait_path
-        except (requests.RequestException, OSError, ValueError) as exc:
-            logger.warning(
-                f"Failed to fetch or store portrait for {creator.name}: {exc}"
-            )
+    if with_portrait:
+        image = summary.get("thumbnail") or summary.get("originalimage")
+        source = image.get("source") if image else None
+        if isinstance(source, str) and source:
+            portrait_path = PORTRAIT_PATH_TEMPLATE.format(id=creator.id)
+            try:
+                data = engine.fetch_bytes(source)
+                # Wikipedia serves a raster thumbnail; store it as WebP like covers
+                data = ImageProcessor.optimize_image_content(data)
+                assembler.add_item_for(
+                    path=portrait_path,
+                    content=data,
+                    mimetype="image/webp",
+                    is_front=False,
+                )
+                extra["portrait_path"] = portrait_path
+            except (requests.RequestException, OSError, ValueError) as exc:
+                logger.warning(
+                    f"Failed to fetch or store portrait for {creator.name}: {exc}"
+                )
 
     return replace(creator, extra=extra) if extra != dict(creator.extra) else creator
 
@@ -131,9 +129,14 @@ def enrich_authors(
     engine: DownloadEngine,
     assembler: ZimAssembler,
     *,
+    with_bio: bool = True,
+    with_portrait: bool = True,
     concurrency: int,
 ) -> None:
-    """Fetch bio and portrait for every author that has a Wikipedia page."""
+    """Fetch bio and/or portrait for every author that has a Wikipedia page."""
+    if not with_bio and not with_portrait:
+        return
+
     works = list(store.works)
     unique: dict[str, Creator] = {}
     for work in works:
@@ -143,19 +146,17 @@ def enrich_authors(
     creators = list(unique.values())
     logger.info(f"Enriching {len(creators)} author(s) from Wikipedia")
 
-    languages = {
-        lang.strip().lower()
-        for work in works
-        for lang in work.languages
-        if lang.strip()
-    }
-    with_bio = not (len(languages) == 1 and not is_english(next(iter(languages))))
-
     results: dict[str, Creator] = {}
     results_lock = Lock()
 
     def enrich_entry(creator: Creator) -> None:
-        enriched = enrich_creator(creator, engine, assembler, with_bio=with_bio)
+        enriched = enrich_creator(
+            creator,
+            engine,
+            assembler,
+            with_bio=with_bio,
+            with_portrait=with_portrait,
+        )
         with results_lock:
             results[creator.id] = enriched
 

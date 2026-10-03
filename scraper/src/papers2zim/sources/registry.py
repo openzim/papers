@@ -90,7 +90,8 @@ GUTENBERG_PROFILE = SourceProfile(
     handle_cli_action=gutenberg_cli.handle_cli_action,
     pipeline_options=lambda mirror_url, _cache_dir, source_options, languages: {
         "mirror_url": mirror_url,
-        "with_author_details": bool(source_options.get("with_author_details")),
+        "with_author_bio": bool(source_options.get("with_author_bio")),
+        "with_author_portrait": bool(source_options.get("with_author_portrait")),
         "languages": languages,
     },
     metadata_options=lambda _cache_dir: {},

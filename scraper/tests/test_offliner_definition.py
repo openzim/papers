@@ -22,7 +22,11 @@ def test_recipe_defines_supported_sources_and_source_specific_filters():
             {
                 "title": "Project Gutenberg",
                 "value": "gutenberg",
-                "dependents": ["lcc_shelves", "with_author_details"],
+                "dependents": [
+                    "lcc_shelves",
+                    "with_author_bio",
+                    "with_author_portrait",
+                ],
             },
             {
                 "title": "Open Textbook Library",
@@ -36,7 +40,13 @@ def test_recipe_defines_supported_sources_and_source_specific_filters():
             },
         ],
     }
-    assert {"lcc_shelves", "subjects", "otl_ids", "with_author_details"}.issubset(flags)
+    assert {
+        "lcc_shelves",
+        "subjects",
+        "otl_ids",
+        "with_author_bio",
+        "with_author_portrait",
+    }.issubset(flags)
 
 
 def test_recipe_uses_enum_choices_for_supported_formats():
@@ -63,17 +73,26 @@ def test_recipe_exposes_custom_zim_tags():
     assert {"metadata": "Tags", "flag": "zim_tags"} in definition["zimMetadata"]
 
 
-def test_with_author_details_is_a_pg_only_boolean_flag():
+def test_with_author_bio_and_portrait_are_pg_only_boolean_flags():
     definition = json.loads(DEFINITION_PATH.read_text(encoding="utf-8"))
     flags = definition["flags"]
 
-    assert flags["with_author_details"] == {
+    assert flags["with_author_bio"] == {
         "type": "boolean",
         "required": False,
-        "title": "With author details",
+        "title": "With author biography",
         "description": (
-            "Add author details (biography and portrait) fetched from the English "
-            "Wikipedia. Project Gutenberg source only for now."
+            "Add author biography fetched from the English Wikipedia. "
+            "Project Gutenberg source only for now."
+        ),
+    }
+    assert flags["with_author_portrait"] == {
+        "type": "boolean",
+        "required": False,
+        "title": "With author portrait",
+        "description": (
+            "Add author portrait fetched from the English Wikipedia. "
+            "Project Gutenberg source only for now."
         ),
     }
 
@@ -82,7 +101,9 @@ def test_with_author_details_is_a_pg_only_boolean_flag():
         for choice in flags["source"]["choices"]
         if choice["value"] == "gutenberg"
     ]
-    assert "with_author_details" in gutenberg_choices[0]["dependents"]
+    assert "with_author_bio" in gutenberg_choices[0]["dependents"]
+    assert "with_author_portrait" in gutenberg_choices[0]["dependents"]
     for choice in flags["source"]["choices"]:
         if choice["value"] != "gutenberg":
-            assert "with_author_details" not in choice["dependents"]
+            assert "with_author_bio" not in choice["dependents"]
+            assert "with_author_portrait" not in choice["dependents"]
