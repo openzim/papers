@@ -208,6 +208,7 @@ def test_export_book_prefers_embedded_epub_cover_over_mirror(make_epub):
         )
     download.assert_not_called()
     cover = _stored_cover(assembler)
+    assert cover is not None
     assert Image.open(io.BytesIO(cover)).size == (COVER_MAX_WIDTH, 600)
 
 
