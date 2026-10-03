@@ -77,10 +77,18 @@ def fetch_author_summary(engine: DownloadEngine, title: str) -> dict | None:
     return summary
 
 
+def is_english(lang: str) -> bool:
+    """Check if language code represents English."""
+    clean = lang.strip().lower()
+    return clean in ("en", "eng") or clean.startswith(("en-", "en_"))
+
+
 def enrich_creator(
     creator: Creator,
     engine: DownloadEngine,
     assembler: ZimAssembler,
+    *,
+    with_bio: bool = True,
 ) -> Creator:
     """Return `creator` enriched with bio and portrait when available."""
     title = wikipedia_title(creator)
@@ -92,7 +100,7 @@ def enrich_creator(
 
     extra = dict(creator.extra)
     extract = summary.get("extract")
-    if isinstance(extract, str) and extract.strip():
+    if with_bio and isinstance(extract, str) and extract.strip():
         extra["bio"] = extract
 
     image = summary.get("thumbnail") or summary.get("originalimage")
@@ -135,11 +143,19 @@ def enrich_authors(
     creators = list(unique.values())
     logger.info(f"Enriching {len(creators)} author(s) from Wikipedia")
 
+    languages = {
+        lang.strip().lower()
+        for work in works
+        for lang in work.languages
+        if lang.strip()
+    }
+    with_bio = not (len(languages) == 1 and not is_english(next(iter(languages))))
+
     results: dict[str, Creator] = {}
     results_lock = Lock()
 
     def enrich_entry(creator: Creator) -> None:
-        enriched = enrich_creator(creator, engine, assembler)
+        enriched = enrich_creator(creator, engine, assembler, with_bio=with_bio)
         with results_lock:
             results[creator.id] = enriched
 

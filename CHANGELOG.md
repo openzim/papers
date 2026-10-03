@@ -29,6 +29,7 @@ as of 2.0.0.
 - Fix UI browser language detection: use all preferred browser languages and stop persisting the auto-detected language (#50)
 - UI: sort collections alphabetically by display name in sidebar (#48)
 - Gutenberg: prefer the bundled cover asset over a `<link rel="icon">` href, which PG sometimes mistags with an unrelated illustration (#49)
+- Gutenberg: fetch only author portraits without biographies for non-English ZIMs (#66)
 
 ## [1.0.0] - 2026-09-25
 

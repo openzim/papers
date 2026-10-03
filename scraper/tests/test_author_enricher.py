@@ -12,6 +12,7 @@ from papers2zim.sources.gutenberg.author_enricher import (
     enrich_authors,
     enrich_creator,
     fetch_author_summary,
+    is_english,
     wikipedia_title,
 )
 
@@ -191,3 +192,104 @@ def test_enrich_authors_handles_empty_store():
 
     engine.fetch_bytes.assert_not_called()
     assembler.add_item_for.assert_not_called()
+
+
+def test_is_english_detects_english_codes():
+    assert is_english("en")
+    assert is_english("eng")
+    assert is_english("en-US")
+    assert is_english("en_GB")
+    assert is_english("EN")
+    assert not is_english("fr")
+    assert not is_english("de")
+    assert not is_english("es")
+
+
+def test_enrich_creator_skips_bio_when_with_bio_is_false():
+    engine = MagicMock(name="engine")
+    engine.fetch_bytes.side_effect = [SUMMARY_JSON, _jpeg_bytes()]
+    assembler = MagicMock(name="assembler")
+
+    enriched = enrich_creator(_arrow_creator(), engine, assembler, with_bio=False)
+
+    assert "bio" not in enriched.extra
+    assert enriched.extra["portrait_path"] == "authors/68.webp"
+    assembler.add_item_for.assert_called_once()
+
+
+def test_enrich_authors_single_non_english_language_fetches_portrait_only():
+    engine = MagicMock(name="engine")
+    engine.fetch_bytes.side_effect = [SUMMARY_JSON, _jpeg_bytes()]
+    assembler = MagicMock(name="assembler")
+
+    store = WorkStore()
+    store.add(
+        Work(
+            id="1",
+            source="gutenberg",
+            title="Les Misérables",
+            creators=[_arrow_creator()],
+            languages=["fr"],
+        )
+    )
+
+    enrich_authors(store, engine, assembler, concurrency=1)
+
+    creator = store.works[0].creators[0]
+    assert "bio" not in creator.extra
+    assert creator.extra["portrait_path"] == "authors/68.webp"
+
+
+def test_enrich_authors_english_language_fetches_bio_and_portrait():
+    engine = MagicMock(name="engine")
+    engine.fetch_bytes.side_effect = [SUMMARY_JSON, _jpeg_bytes()]
+    assembler = MagicMock(name="assembler")
+
+    store = WorkStore()
+    store.add(
+        Work(
+            id="1",
+            source="gutenberg",
+            title="Pride and Prejudice",
+            creators=[_arrow_creator()],
+            languages=["en"],
+        )
+    )
+
+    enrich_authors(store, engine, assembler, concurrency=1)
+
+    creator = store.works[0].creators[0]
+    assert creator.extra["bio"] == "A short biography."
+    assert creator.extra["portrait_path"] == "authors/68.webp"
+
+
+def test_enrich_authors_multiple_languages_fetches_bio_and_portrait():
+    engine = MagicMock(name="engine")
+    engine.fetch_bytes.side_effect = [SUMMARY_JSON, _jpeg_bytes()]
+    assembler = MagicMock(name="assembler")
+
+    store = WorkStore()
+    store.add(
+        Work(
+            id="1",
+            source="gutenberg",
+            title="Book 1",
+            creators=[_arrow_creator()],
+            languages=["fr"],
+        )
+    )
+    store.add(
+        Work(
+            id="2",
+            source="gutenberg",
+            title="Book 2",
+            creators=[_arrow_creator()],
+            languages=["en"],
+        )
+    )
+
+    enrich_authors(store, engine, assembler, concurrency=1)
+
+    creator = store.works[0].creators[0]
+    assert creator.extra["bio"] == "A short biography."
+    assert creator.extra["portrait_path"] == "authors/68.webp"
