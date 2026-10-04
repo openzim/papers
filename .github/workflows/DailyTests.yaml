@@ -40,6 +40,18 @@ jobs:
             --formats pdf \
             --no-index \
             --overwrite
+          docker run --rm -v "$PWD/output:/output" papers papers2zim \
+            --source wikisource \
+            --languages en \
+            --output /output \
+            --zim-file /output/wikisource-integration.zim \
+            --zim-name wikisource_integration_test \
+            --zim-title "Wikisource Test" \
+            --zim-desc "One Wikisource book for integration testing" \
+            --books 1 \
+            --formats epub \
+            --no-index \
+            --overwrite
 
       - name: Run zimcheck
         run: |
@@ -47,6 +59,8 @@ jobs:
             ghcr.io/openzim/zim-tools:3.8.0 zimcheck /output/gutenberg-integration.zim
           docker run --rm -v "$PWD/output:/output" \
             ghcr.io/openzim/zim-tools:3.8.0 zimcheck /output/opentextbooks-integration.zim
+          docker run --rm -v "$PWD/output:/output" \
+            ghcr.io/openzim/zim-tools:3.8.0 zimcheck /output/wikisource-integration.zim
 
       - name: Run integration test suite
         run: |
