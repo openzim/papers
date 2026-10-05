@@ -46,14 +46,16 @@ class GutenbergPipeline(Pipeline):
         *,
         engine: DownloadEngine,
         mirror_url: str,
-        with_author_details: bool = False,
+        with_author_bio: bool = False,
+        with_author_portrait: bool = False,
         languages: list[str] | None = None,
         **kwargs,
     ):
         super().__init__(**kwargs)
         self.engine = engine
         self.mirror_url = mirror_url
-        self.with_author_details = with_author_details
+        self.with_author_bio = with_author_bio
+        self.with_author_portrait = with_author_portrait
         # Splitting the "P" (language and literature) shelf by language/
         # nationality sub-class (English, French, ...) isn't useful when the
         # whole ZIM is already restricted to a single language.
@@ -66,12 +68,14 @@ class GutenbergPipeline(Pipeline):
 
     def enrich_authors(self) -> None:
         """Fetch a biography and portrait for each author when requested."""
-        if not self.with_author_details:
+        if not self.with_author_bio and not self.with_author_portrait:
             return
         enrich_authors(
             self.store,
             self.engine,
             self.assembler,
+            with_bio=self.with_author_bio,
+            with_portrait=self.with_author_portrait,
             concurrency=self.concurrency,
         )
 
