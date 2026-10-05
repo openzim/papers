@@ -2,6 +2,8 @@
 
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from papers2zim.core.models import CollectionRef, Work
 from papers2zim.core.ports import WorkRef
 from papers2zim.core.progress import ScraperProgress
@@ -83,3 +85,67 @@ def test_single_language_zim_leaves_non_literature_shelf_untouched():
     assert stored.collections == [
         CollectionRef(id="CDEF", name="CDEF", kind=LCC_SHELF_KIND)
     ]
+
+
+def _author_pipeline(requested_languages: list[str] | None) -> GutenbergPipeline:
+    metadata = MagicMock()
+    pipeline = GutenbergPipeline(
+        metadata=metadata,
+        store=WorkStore(),
+        assembler=MagicMock(),
+        progress=ScraperProgress(None),
+        concurrency=1,
+        formats=["epub"],
+        zim_name="test",
+        source_slug="gutenberg",
+        display_name="Project Gutenberg",
+        title_search=False,
+        engine=MagicMock(),
+        mirror_url="https://example.org",
+        with_author_bio=True,
+        with_author_portrait=True,
+        requested_languages=requested_languages,
+    )
+    return pipeline
+
+
+@pytest.mark.parametrize(
+    ("requested_languages", "expected"),
+    [(["fr"], "fr"), (["fra"], "fr"), (["fr", "en"], None), (None, None)],
+)
+def test_enrich_authors_receives_the_single_zim_language(requested_languages, expected):
+    pipeline = _author_pipeline(requested_languages)
+
+    with patch("papers2zim.sources.gutenberg.pipeline.enrich_authors") as enrich:
+        pipeline.enrich_authors()
+
+    assert enrich.call_args.kwargs["language"] == expected
+
+
+def test_enrich_authors_is_skipped_without_author_details():
+    pipeline = _author_pipeline(["fr"])
+    pipeline.with_author_bio = False
+    pipeline.with_author_portrait = False
+
+    with patch("papers2zim.sources.gutenberg.pipeline.enrich_authors") as enrich:
+        pipeline.enrich_authors()
+
+    enrich.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("with_bio", "with_portrait"),
+    [(True, True), (True, False), (False, True)],
+)
+def test_enrich_authors_forwards_both_flags_and_language(with_bio, with_portrait):
+    pipeline = _author_pipeline(["fr"])
+    pipeline.with_author_bio = with_bio
+    pipeline.with_author_portrait = with_portrait
+
+    with patch("papers2zim.sources.gutenberg.pipeline.enrich_authors") as enrich:
+        pipeline.enrich_authors()
+
+    kwargs = enrich.call_args.kwargs
+    assert kwargs["with_bio"] is with_bio
+    assert kwargs["with_portrait"] is with_portrait
+    assert kwargs["language"] == "fr"

@@ -18,10 +18,19 @@ it returns the article's plain-text intro and, when relevant, the portrait
 thumbnail in a single well-defined JSON response, without the parse/query
 boilerplate (templates, revisions, prop selection) the Action API requires.
 
-Author biographies are only fetched from the English Wikipedia for now: the
-REST summary URL is hard-coded to `en.wikipedia.org`, so authors whose
-`pgterms:webpage` points to another language (or to a non-Wikipedia page) are
-silently skipped until multi-language support is added.
+Project Gutenberg curates `pgterms:webpage` in whichever language it happens
+to know best, which is the English Wikipedia even for a book written in
+another language. Enrichment therefore targets the language the ZIM is built
+in first, resolving the matching article through Wikipedia's own interlanguage
+links, and only then falls back to the curated link. The fallback earns its
+keep on its own: a localized article frequently carries no portrait, so the
+English picture is still worth using.
+
+A ZIM spanning several languages has no single author-detail language to
+target, so such a ZIM keeps using the curated link alone.
+
+The Action API is used for that interlanguage lookup alone, the REST summary
+endpoint having no equivalent.
 
 Authors without a Wikipedia link are left untouched, so a scrape never
 depends on Wikipedia being reachable.
@@ -30,6 +39,7 @@ depends on Wikipedia being reachable.
 import json
 import re
 import urllib.parse
+from collections.abc import Iterable
 from dataclasses import replace
 from threading import Lock
 
@@ -38,34 +48,65 @@ import requests
 from papers2zim.constants import logger
 from papers2zim.core.concurrency import parallel_map
 from papers2zim.core.download_engine import DownloadEngine
+from papers2zim.core.language import ISO_MATRIX_REV
 from papers2zim.core.models import Creator
 from papers2zim.core.rewriters.image_rewriter import ImageProcessor
 from papers2zim.core.work_store import WorkStore
 from papers2zim.core.zim_assembler import ZimAssembler
 
-WIKIPEDIA_SUMMARY_URL = "https://en.wikipedia.org/api/rest_v1/page/summary/{title}"
+WIKIPEDIA_SUMMARY_URL = "https://{lang}.wikipedia.org/api/rest_v1/page/summary/{title}"
+
+WIKIPEDIA_LANGLINKS_URL = (
+    "https://{lang}.wikipedia.org/w/api.php?action=query&prop=langlinks"
+    "&titles={title}&lllang={target}&lllimit=1&llprop=lang%7Ctitle"
+    "&format=json&redirects=1"
+)
+
+WIKIPEDIA_ARTICLE_RE = re.compile(
+    r"^https?://(?P<lang>[a-z0-9-]+)\.(?:m\.)?wikipedia\.org/wiki/(?P<title>.+)$",
+    re.I,
+)
 
 PORTRAIT_PATH_TEMPLATE = "authors/{id}.webp"
 
 
-def wikipedia_title(creator: Creator) -> str | None:
-    """Extract the Wikipedia article title from a creator's webpage link."""
+def wikipedia_lang(code: str) -> str:
+    """Return the Wikipedia subdomain code for a Gutenberg language code."""
+    return ISO_MATRIX_REV.get(code, code)
+
+
+def wikipedia_article(creator: Creator) -> tuple[str, str] | None:
+    """Return the (language, title) of the Wikipedia article PG curated."""
     webpage = creator.extra.get("webpage_resource")
     if not webpage:
         return None
-    match = re.match(r"https?://en\.wikipedia\.org/wiki/(.+)", webpage)
+    match = WIKIPEDIA_ARTICLE_RE.match(webpage)
     if not match:
         return None
-    return urllib.parse.unquote(match.group(1))
+    return match["lang"].lower(), urllib.parse.unquote(match["title"])
 
 
-def fetch_author_summary(engine: DownloadEngine, title: str) -> dict | None:
+def zim_language(languages: Iterable[str] | None) -> str | None:
+    """Return the Wikipedia code for a ZIM built in one single language.
+
+    A ZIM spanning several languages has no single author-detail language to
+    target, so nothing is returned and the curated link is used as-is.
+    """
+    requested = [language for language in languages or [] if language]
+    if len(requested) != 1:
+        return None
+    return wikipedia_lang(requested[0])
+
+
+def fetch_author_summary(engine: DownloadEngine, lang: str, title: str) -> dict | None:
     """Return the Wikipedia REST summary JSON for `title`, or None on failure."""
-    url = WIKIPEDIA_SUMMARY_URL.format(title=urllib.parse.quote(title, safe="()"))
+    url = WIKIPEDIA_SUMMARY_URL.format(
+        lang=lang, title=urllib.parse.quote(title, safe="()")
+    )
     try:
         response = engine.fetch_bytes(url)
     except requests.RequestException as exc:
-        logger.warning(f"Failed to fetch Wikipedia summary for {title}: {exc}")
+        logger.warning(f"Failed to fetch {lang} Wikipedia summary for {title}: {exc}")
         return None
     try:
         summary = json.loads(response)
@@ -77,6 +118,81 @@ def fetch_author_summary(engine: DownloadEngine, title: str) -> dict | None:
     return summary
 
 
+def fetch_langlink_title(
+    engine: DownloadEngine, lang: str, title: str, target: str
+) -> str | None:
+    """Return the `target`-language title a Wikipedia article links to."""
+    url = WIKIPEDIA_LANGLINKS_URL.format(
+        lang=lang,
+        title=urllib.parse.quote(title, safe="()"),
+        target=urllib.parse.quote(target),
+    )
+    try:
+        response = engine.fetch_bytes(url)
+    except requests.RequestException as exc:
+        logger.warning(f"Failed to fetch {target} link for {title}: {exc}")
+        return None
+    try:
+        payload = json.loads(response)
+    except ValueError:
+        logger.warning(f"Invalid JSON in {target} link lookup for {title}")
+        return None
+    pages = payload.get("query", {}).get("pages", {})
+    if not isinstance(pages, dict):
+        return None
+    for page in pages.values():
+        for langlink in page.get("langlinks", []):
+            linked = langlink.get("title") or langlink.get("*")
+            if isinstance(linked, str) and linked:
+                return linked
+    return None
+
+
+def article_candidates(
+    engine: DownloadEngine, article: tuple[str, str], language: str | None
+) -> list[tuple[str, str]]:
+    """Return the articles to try for an author, preferred one first."""
+    lang, title = article
+    candidates = []
+    if language and language != lang:
+        localized = fetch_langlink_title(engine, lang, title, language)
+        if localized:
+            candidates.append((language, localized))
+    candidates.append((lang, title))
+    return candidates
+
+
+def store_portrait(
+    creator: Creator,
+    engine: DownloadEngine,
+    assembler: ZimAssembler,
+    source: str,
+) -> bool:
+    """Download and store a portrait for `creator`, True once stored."""
+    portrait_path = PORTRAIT_PATH_TEMPLATE.format(id=creator.id)
+    try:
+        data = engine.fetch_bytes(source)
+        # Wikipedia serves a raster thumbnail; store it as WebP like covers
+        data = ImageProcessor.optimize_image_content(data)
+    except (requests.RequestException, OSError, ValueError) as exc:
+        logger.warning(f"Failed to fetch or store portrait for {creator.name}: {exc}")
+        return False
+    assembler.add_item_for(
+        path=portrait_path,
+        content=data,
+        mimetype="image/webp",
+        is_front=False,
+    )
+    return True
+
+
+def portrait_source(summary: dict) -> str | None:
+    """Return the portrait URL a Wikipedia summary points at, if any."""
+    image = summary.get("thumbnail") or summary.get("originalimage")
+    source = image.get("source") if isinstance(image, dict) else None
+    return source if isinstance(source, str) and source else None
+
+
 def enrich_creator(
     creator: Creator,
     engine: DownloadEngine,
@@ -84,42 +200,34 @@ def enrich_creator(
     *,
     with_bio: bool = True,
     with_portrait: bool = True,
+    language: str | None = None,
 ) -> Creator:
     """Return `creator` enriched with bio and/or portrait when available."""
     if not with_bio and not with_portrait:
         return creator
-    title = wikipedia_title(creator)
-    if not title:
-        return creator
-    summary = fetch_author_summary(engine, title)
-    if summary is None:
+    article = wikipedia_article(creator)
+    if not article:
         return creator
 
     extra = dict(creator.extra)
-    extract = summary.get("extract")
-    if with_bio and isinstance(extract, str) and extract.strip():
-        extra["bio"] = extract
+    has_bio = not with_bio
+    has_portrait = not with_portrait
 
-    if with_portrait:
-        image = summary.get("thumbnail") or summary.get("originalimage")
-        source = image.get("source") if image else None
-        if isinstance(source, str) and source:
-            portrait_path = PORTRAIT_PATH_TEMPLATE.format(id=creator.id)
-            try:
-                data = engine.fetch_bytes(source)
-                # Wikipedia serves a raster thumbnail; store it as WebP like covers
-                data = ImageProcessor.optimize_image_content(data)
-                assembler.add_item_for(
-                    path=portrait_path,
-                    content=data,
-                    mimetype="image/webp",
-                    is_front=False,
-                )
-                extra["portrait_path"] = portrait_path
-            except (requests.RequestException, OSError, ValueError) as exc:
-                logger.warning(
-                    f"Failed to fetch or store portrait for {creator.name}: {exc}"
-                )
+    for lang, title in article_candidates(engine, article, language):
+        if has_bio and has_portrait:
+            break
+        summary = fetch_author_summary(engine, lang, title)
+        if not summary:
+            continue
+        if not has_bio:
+            extract = summary.get("extract")
+            if isinstance(extract, str) and extract.strip():
+                extra["bio"] = extract
+                has_bio = True
+        if not has_portrait and (source := portrait_source(summary)):
+            if store_portrait(creator, engine, assembler, source):
+                extra["portrait_path"] = PORTRAIT_PATH_TEMPLATE.format(id=creator.id)
+                has_portrait = True
 
     return replace(creator, extra=extra) if extra != dict(creator.extra) else creator
 
@@ -132,6 +240,7 @@ def enrich_authors(
     with_bio: bool = True,
     with_portrait: bool = True,
     concurrency: int,
+    language: str | None = None,
 ) -> None:
     """Fetch bio and/or portrait for every author that has a Wikipedia page."""
     if not with_bio and not with_portrait:
@@ -144,7 +253,10 @@ def enrich_authors(
             unique.setdefault(creator.id, creator)
 
     creators = list(unique.values())
-    logger.info(f"Enriching {len(creators)} author(s) from Wikipedia")
+    logger.info(
+        f"Enriching {len(creators)} author(s) from Wikipedia"
+        + (f", preferring {language}" if language else "")
+    )
 
     results: dict[str, Creator] = {}
     results_lock = Lock()
@@ -156,6 +268,7 @@ def enrich_authors(
             assembler,
             with_bio=with_bio,
             with_portrait=with_portrait,
+            language=language,
         )
         with results_lock:
             results[creator.id] = enriched
