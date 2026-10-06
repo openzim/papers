@@ -19,7 +19,7 @@ from papers2zim.core.exporters.html_reader_controls import (
 from papers2zim.core.models import CollectionRef
 from papers2zim.core.pipeline import Pipeline
 from papers2zim.core.ports import WorkRef
-from papers2zim.sources.gutenberg.author_enricher import enrich_authors
+from papers2zim.sources.gutenberg.author_enricher import enrich_authors, zim_language
 from papers2zim.sources.gutenberg.catalog import (
     LCC_SHELF_KIND,
     collapse_literature_shelf,
@@ -77,6 +77,7 @@ class GutenbergPipeline(Pipeline):
             with_bio=self.with_author_bio,
             with_portrait=self.with_author_portrait,
             concurrency=self.concurrency,
+            language=zim_language(self.requested_languages),
         )
 
     def process_ref(self, ref: WorkRef) -> None:
