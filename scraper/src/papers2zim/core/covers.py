@@ -67,6 +67,11 @@ def _epub_cover(content: bytes) -> bytes | None:
             None,
         )
         cover_item = manifest.get(cover_id) if cover_id else None
+        if cover_item is not None and not cover_item.get("media-type", "").startswith(
+            "image/"
+        ):
+            cover_item = None
+
         if cover_item is None:
             cover_item = next(
                 (
