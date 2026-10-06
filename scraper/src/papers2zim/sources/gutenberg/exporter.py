@@ -4,6 +4,7 @@ import re
 from functools import partial
 
 from papers2zim.constants import logger
+from papers2zim.core.covers import extract_cover
 from papers2zim.core.download_engine import DownloadEngine
 from papers2zim.core.epub_optimizer import optimize_epub_bytes
 from papers2zim.core.models import Work
@@ -26,6 +27,32 @@ from papers2zim.sources.gutenberg.rewriter import (
 )
 
 _COVER_BASENAME_RE = re.compile(r"^(?:cover|\d+-cover)\.(?:jpe?g|png|webp)$", re.I)
+
+COVER_MAX_WIDTH = 400
+
+
+def _embedded_epub_cover(book_files: dict[str, bytes], work: Work) -> bytes | None:
+    """Return the WebP-encoded cover declared by the downloaded EPUB, if any.
+
+    Project Gutenberg only publishes a roughly 200px-wide
+    ``pg{id}.cover.medium.jpg`` thumbnail, while the EPUB ships the same
+    artwork at full resolution. Preferring the embedded image avoids a mirror
+    round-trip and keeps the cover unambiguously part of the work itself,
+    which is what Project Gutenberg's own distribution policy asks for.
+
+    Only a cover the EPUB explicitly declares is used: unlike the generic
+    fallback, an undeclared first image is often a decorative ornament and
+    would be worse than the mirror thumbnail.
+    """
+    epub_content = book_files.get(fname_for(work, "epub"))
+    if not epub_content:
+        return None
+    return extract_cover(
+        epub_content,
+        "epub",
+        max_width=COVER_MAX_WIDTH,
+        declared_only=True,
+    )
 
 
 def is_cover_asset(work_id: str, filename: str) -> bool:
@@ -68,13 +95,19 @@ def export_book(
             target=html_cover_path,
         )
     else:
-        # No HTML cover - download from mirror
-        cover_image = download_book_cover(mirror_url, work, engine)
+        # No HTML cover: the EPUB carries the same artwork as the mirror's
+        # thumbnail at full resolution, so prefer it and skip the round-trip.
+        cover_image = _embedded_epub_cover(book_files, work)
 
         if cover_image:
-            logger.debug(f"Using downloaded cover for book #{work.id}")
-            # the mirror serves JPEG; convert to WebP to match cover_path/mimetype
-            cover_image = ImageProcessor.optimize_image_content(cover_image)
+            logger.debug(f"Using embedded EPUB cover for book #{work.id}")
+        else:
+            cover_image = download_book_cover(mirror_url, work, engine)
+            if cover_image:
+                logger.debug(f"Using downloaded cover for book #{work.id}")
+                cover_image = ImageProcessor.optimize_image_content(cover_image)
+
+        if cover_image:
             assembler.add_item_for(
                 path=cover_path,
                 content=cover_image,
