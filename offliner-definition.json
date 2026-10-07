@@ -29,7 +29,9 @@
         {
           "title": "Wikisource",
           "value": "wikisource",
-          "dependents": []
+          "dependents": [
+            "wikisource_pages"
+          ]
         }
       ]
     },
@@ -153,6 +155,12 @@
       "required": false,
       "title": "Textbook IDs (Open Textbook Library only)",
       "description": "Comma-separated exact Open Textbook Library record IDs. Cannot be combined with Books."
+    },
+    "wikisource_pages": {
+      "type": "string",
+      "required": false,
+      "title": "Page names (Wikisource only)",
+      "description": "Comma-separated Wikisource page names, as in the page URL (e.g. The_Time_Machine). Write a comma inside a name as %2C. Cannot be combined with Books."
     },
     "with_author_bio": {
       "type": "boolean",

@@ -135,7 +135,14 @@ docker run -v $(pwd)/output:/output ghcr.io/openzim/papers \
   papers2zim --source=wikisource -l en,fr
 ```
 
-Wikisource adds no source-specific options; use `--languages` to choose the wikis and `--books` to select books by catalog position.
+To select specific books, pass their page names as they appear in the Wikisource URL (`https://en.wikisource.org/wiki/The_Time_Machine` → `The_Time_Machine`):
+
+```bash
+docker run -v $(pwd)/output:/output ghcr.io/openzim/papers \
+  papers2zim --source=wikisource -l en --wikisource-pages=The_Time_Machine
+```
+
+Spaces and underscores are interchangeable, and percent-encoded names are accepted. A comma inside a page name must be written as `%2C`. Only books in the ws-export feed of the requested languages can be selected. `--books` also works but selects by position in the feed, which changes from day to day; `--wikisource-pages` and `--books` cannot be used together.
 
 ## Command-Line Options
 
@@ -192,6 +199,12 @@ Wikisource adds no source-specific options; use `--languages` to choose the wiki
 --otl-ids=<ids>                     Exact Open Textbook Library record IDs
 --list-subjects                     List Open Textbook Library subjects and exit
 --refresh-catalog                   Refresh the Open Textbook Library CSV catalog and exit
+```
+
+### Wikisource Options
+
+```text
+--wikisource-pages=<pages>          Wikisource page names, as in the page URL
 ```
 
 ### Caching

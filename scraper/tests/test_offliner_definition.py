@@ -36,7 +36,7 @@ def test_recipe_defines_supported_sources_and_source_specific_filters():
             {
                 "title": "Wikisource",
                 "value": "wikisource",
-                "dependents": [],
+                "dependents": ["wikisource_pages"],
             },
         ],
     }
@@ -44,6 +44,7 @@ def test_recipe_defines_supported_sources_and_source_specific_filters():
         "lcc_shelves",
         "subjects",
         "otl_ids",
+        "wikisource_pages",
         "with_author_bio",
         "with_author_portrait",
     }.issubset(flags)

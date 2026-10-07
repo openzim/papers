@@ -57,6 +57,11 @@ def work_id(lang: str, page: str) -> str:
     return f"{lang}_{slug}-{digest}" if slug else f"{lang}_{digest}"
 
 
+def page_key(page: str) -> str:
+    """Normalize a page name so URL and display forms compare equal."""
+    return unquote(page).strip().replace(" ", "_")
+
+
 class WikisourceCatalog(CatalogPort):
     """Discover Wikisource books from ws-export's per-language OPDS feeds."""
 
@@ -96,7 +101,11 @@ class WikisourceCatalog(CatalogPort):
                     f"ws-export offers: {', '.join(sorted(advertised_formats))}."
                 )
 
-        selected = self._select_positions(refs, filters.book_ids)
+        pages = filters.options.get("pages")
+        if pages:
+            selected = self._select_pages(refs, pages)
+        else:
+            selected = self._select_positions(refs, filters.book_ids)
         logger.info(
             "  Selected %s Wikisource books from %s catalog entries (languages: %s)",
             len(selected),
@@ -190,6 +199,20 @@ class WikisourceCatalog(CatalogPort):
             "lang": lang,
             "formats": formats,
         }
+
+    @staticmethod
+    def _select_pages(refs: list[WorkRef], pages: list[str]) -> list[WorkRef]:
+        wanted = {page_key(page) for page in pages}
+        selected = [ref for ref in refs if page_key(ref.extra["page"]) in wanted]
+        found = {page_key(ref.extra["page"]) for ref in selected}
+        for page in pages:
+            if page_key(page) not in found:
+                logger.warning(
+                    "Wikisource page %s is not in the ws-export feed for the "
+                    "requested languages and formats, skipping",
+                    page,
+                )
+        return selected
 
     @staticmethod
     def _select_positions(
