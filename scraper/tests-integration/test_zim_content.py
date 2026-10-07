@@ -17,10 +17,7 @@ class ZimExpectation:
     title: str
     source_slug: str
     source_creator: str
-    # None for sources whose catalog order is not stable (Wikisource's OPDS
-    # feed reorders as books join it), so --books 1 picks a different work
-    # over time; the test then checks whichever single work was selected.
-    work_id: str | None
+    work_id: str
     format_name: str
     mimetype: str
 
@@ -49,7 +46,7 @@ ZIM_EXPECTATIONS = (
         title="Wikisource Test",
         source_slug="wikisource",
         source_creator="wikisource.org",
-        work_id=None,
+        work_id="en_tis-sixty-years-since-9cd9266e",
         format_name="epub",
         mimetype="application/epub+zip",
     ),
@@ -100,7 +97,7 @@ def test_zim_contains_the_selected_work(zim: Archive, expected: ZimExpectation):
 
     assert config["source"]["slug"] == expected.source_slug
     assert books["totalCount"] == 1
-    work_id = expected.work_id or books["books"][0]["id"]
+    work_id = expected.work_id
     assert books["books"][0]["id"] == work_id
     assert books["books"][0]["availableFormats"] == [expected.format_name]
     book = _read_json(zim, f"books/{work_id}.json")

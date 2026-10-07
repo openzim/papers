@@ -48,7 +48,7 @@ jobs:
             --zim-name wikisource_integration_test \
             --zim-title "Wikisource Test" \
             --zim-desc "One Wikisource book for integration testing" \
-            --books 1 \
+            --wikisource-pages %27Tis_Sixty_Years_Since \
             --formats epub \
             --no-index \
             --overwrite

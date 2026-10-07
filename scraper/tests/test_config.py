@@ -99,6 +99,42 @@ def test_otl_ids_and_books_cannot_be_combined():
         )
 
 
+def test_wikisource_pages_are_stored_for_wikisource():
+    config = build_scrape_config(
+        {
+            "--source": "wikisource",
+            "--wikisource-pages": "The_Time_Machine, %27Tis Sixty Years Since,,"
+            "Frankenstein%2C_or_the_Modern_Prometheus",
+        }
+    )
+
+    assert config.source_options["pages"] == [
+        "The_Time_Machine",
+        "'Tis_Sixty_Years_Since",
+        "Frankenstein,_or_the_Modern_Prometheus",
+    ]
+    assert config.books is None
+    assert config.is_selection is True
+
+
+def test_wikisource_pages_and_books_cannot_be_combined():
+    with pytest.raises(CriticalError, match="either --books or --wikisource-pages"):
+        build_scrape_config(
+            {
+                "--source": "wikisource",
+                "--books": "1",
+                "--wikisource-pages": "The_Time_Machine",
+            }
+        )
+
+
+def test_wikisource_pages_are_rejected_for_gutenberg():
+    with pytest.raises(CriticalError, match="--wikisource-pages belongs"):
+        build_scrape_config(
+            {"--source": "gutenberg", "--wikisource-pages": "The_Time_Machine"}
+        )
+
+
 def test_otl_only_arguments_are_rejected_for_gutenberg():
     with pytest.raises(CriticalError, match="--list-subjects belongs"):
         build_scrape_config({"--source": "gutenberg", "--list-subjects": True})

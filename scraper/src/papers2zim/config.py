@@ -188,7 +188,7 @@ def build_scrape_config(arguments: dict) -> ScrapeConfig:
         zim_tags=(arguments.get("--zim-tags") or "").strip() or None,
         publisher=publisher,
         overwrite=overwrite,
-        is_selection=bool(books or collections),
+        is_selection=bool(books or collections or source_options.get("pages")),
         title_search=title_search,
         with_fulltext_index=with_fulltext_index,
         stats_filename=stats_filename,
