@@ -1,13 +1,7 @@
 """Tests for sources.wikisource.metadata."""
 
-from papers2zim.core.download_engine import DownloadEngine
 from papers2zim.core.ports import WorkRef
 from papers2zim.sources.wikisource.metadata import WikisourceMetadata
-
-
-class StubEngine(DownloadEngine):
-    def __init__(self):
-        pass
 
 
 def _ref() -> WorkRef:
@@ -40,7 +34,7 @@ def _ref() -> WorkRef:
 
 
 def _metadata() -> WikisourceMetadata:
-    return WikisourceMetadata("https://ws-export.wmcloud.org", engine=StubEngine())
+    return WikisourceMetadata()
 
 
 def test_fetch_maps_the_feed_entry_into_a_work():
