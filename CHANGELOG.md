@@ -19,6 +19,7 @@ as of 2.0.0.
 - Wikisource: select books by page name with `--wikisource-pages`, stable across feed updates unlike `--books` positions (#73)
 - Cache optimized EPUB and HTML images under an S3 bucket (`--optimization-cache`), keyed by the input image content so Project Gutenberg's frequent file rebuilds no longer defeat the cache (#32)
 - One More Library: add the `onemorelibrary` source (aliases `OML`), scraping public-domain EPUB/PDF books with `--categories` and `--oml-ids` filters (#94)
+- Wikisource: add book descriptions, sourced from each work's Wikidata item, since the ws-export OPDS feed carries none (#21)
 
 ### Changed
 

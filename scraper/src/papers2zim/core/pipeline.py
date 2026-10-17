@@ -154,6 +154,14 @@ class Pipeline(ABC):
         exporters are built, so enriched data flows through the normal path.
         """
 
+    def enrich_descriptions(self) -> None:
+        """Optional post-processing hook to fill in missing work descriptions.
+
+        Runs alongside `enrich_authors`, after popularity is computed and
+        before the derived indexes and exporters are built, so descriptions
+        flow through the normal path.
+        """
+
     def run(self, refs: list[WorkRef]) -> None:
         """Orchestrate processing of discovered works and final exports"""
         self.setup()
@@ -197,6 +205,7 @@ class Pipeline(ABC):
 
         self.compute_flames()
         self.enrich_authors()
+        self.enrich_descriptions()
 
         # Derived indexes (authors, per-author stats, search entries) built
         # once and shared by all exporters

@@ -71,6 +71,15 @@ def test_fetch_gives_the_same_author_id_for_the_same_name():
     assert works[0].creators[0].id == works[1].creators[0].id
 
 
+def test_fetch_passes_the_feed_language_through():
+    ref = _ref()
+    ref.extra["lang"] = "fr"
+
+    (work,) = list(_metadata().fetch([ref]))
+
+    assert work.extra["wikisource_lang"] == "fr"
+
+
 def test_fetch_tolerates_a_missing_author():
     ref = _ref()
     ref.extra["author"] = None

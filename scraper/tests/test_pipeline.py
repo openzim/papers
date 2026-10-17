@@ -43,6 +43,9 @@ class DummyPipeline(Pipeline):
     def enrich_authors(self) -> None:
         self.calls.append("enrich")
 
+    def enrich_descriptions(self) -> None:
+        self.calls.append("enrich_descriptions")
+
 
 def build_pipeline(calls: list[str], store: WorkStore) -> DummyPipeline:
     metadata = MagicMock(name="metadata")
@@ -80,6 +83,7 @@ def test_run_calls_hooks_in_order_and_stores_works():
     assert calls[0] == "setup"
     assert sorted(calls[1:]) == [
         "enrich",
+        "enrich_descriptions",
         "export",
         "process:1",
         "process:2",
@@ -90,7 +94,8 @@ def test_run_calls_hooks_in_order_and_stores_works():
         index for index, call in enumerate(calls) if call.startswith("process")
     ]
     assert calls.index("enrich") > max(process_idxs)
-    assert calls.index("export") > calls.index("enrich")
+    assert calls.index("enrich_descriptions") > calls.index("enrich")
+    assert calls.index("export") > calls.index("enrich_descriptions")
 
     # works were stored and flames were computed from their popularity
     assert len(store.works) == 3
