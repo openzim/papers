@@ -52,5 +52,6 @@ class WikisourceMetadata(MetadataPort):
             published=extra.get("issued"),
             extra={
                 "wikisource_page": extra.get("page"),
+                "wikisource_lang": extra.get("lang"),
             },
         )

@@ -16,6 +16,7 @@ from papers2zim.core.models import Cover, Work
 from papers2zim.core.pipeline import Pipeline
 from papers2zim.core.ports import WorkRef
 from papers2zim.core.utils import archive_name_for
+from papers2zim.sources.wikisource.description import enrich_work_descriptions
 from papers2zim.sources.wikisource.resolver import WikisourceFormatResolver
 
 
@@ -26,6 +27,10 @@ class WikisourcePipeline(Pipeline):
         super().__init__(**kwargs)
         self.engine = engine
         self.resolver = WikisourceFormatResolver()
+
+    def enrich_descriptions(self) -> None:
+        """Fill in missing book descriptions from Wikidata."""
+        enrich_work_descriptions(self.store, self.engine)
 
     def process_ref(self, ref: WorkRef) -> None:
         works = list(self.metadata.fetch([ref]))
