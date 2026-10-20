@@ -272,9 +272,7 @@ def build_zimfile(
         ]
         pipeline = profile.pipeline_class(
             metadata=profile.metadata_class(
-                mirror_url,
-                engine=engine,
-                **profile.metadata_options(config.cache_dir),
+                **profile.metadata_options(mirror_url, engine, config.cache_dir),
             ),
             store=work_store,
             assembler=assembler,

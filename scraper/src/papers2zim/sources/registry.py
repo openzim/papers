@@ -17,6 +17,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from papers2zim.core.download_engine import DownloadEngine
 from papers2zim.core.pipeline import Pipeline
 from papers2zim.core.ports import MetadataPort
 from papers2zim.core.utils import critical_error
@@ -62,9 +63,10 @@ class SourceProfile:
     pipeline_options: Callable[
         [str, Path | None, dict[str, Any], list[str]], dict[str, Any]
     ]
-    metadata_options: Callable[[Path | None], dict[str, Any]]
-    # Constructor signatures are source-specific (sources take their own
-    # extra kwargs on top of the base ones), hence Callable[..., ...]
+    metadata_options: Callable[[str, DownloadEngine, Path | None], dict[str, Any]]
+    # Constructor signatures are source-specific, hence Callable[..., ...]:
+    # metadata kwargs come from metadata_options, pipeline kwargs come from the
+    # orchestrator plus pipeline_options.
     metadata_class: Callable[..., MetadataPort]
     pipeline_class: Callable[..., Pipeline]
 
@@ -94,7 +96,10 @@ GUTENBERG_PROFILE = SourceProfile(
         "with_author_portrait": bool(source_options.get("with_author_portrait")),
         "languages": languages,
     },
-    metadata_options=lambda _cache_dir: {},
+    metadata_options=lambda mirror_url, engine, _cache_dir: {
+        "mirror_url": mirror_url,
+        "engine": engine,
+    },
     metadata_class=GutenbergRdfMetadata,
     pipeline_class=GutenbergPipeline,
 )
@@ -121,7 +126,11 @@ OPEN_TEXTBOOK_LIBRARY_PROFILE = SourceProfile(
     pipeline_options=lambda _mirror_url, cache_dir, _source_options, _languages: {
         "cache_dir": cache_dir
     },
-    metadata_options=lambda cache_dir: {"cache_dir": cache_dir},
+    metadata_options=lambda mirror_url, engine, cache_dir: {
+        "base_url": mirror_url,
+        "engine": engine,
+        "cache_dir": cache_dir,
+    },
     metadata_class=OpenTextbookLibraryMetadata,
     pipeline_class=OpenTextbookLibraryPipeline,
 )
@@ -146,7 +155,7 @@ WIKISOURCE_PROFILE = SourceProfile(
     parse_cli_options=wikisource_cli.parse_options,
     handle_cli_action=wikisource_cli.handle_cli_action,
     pipeline_options=lambda _mirror_url, _cache_dir, _source_options, _languages: {},
-    metadata_options=lambda _cache_dir: {},
+    metadata_options=lambda _mirror_url, _engine, _cache_dir: {},
     metadata_class=WikisourceMetadata,
     pipeline_class=WikisourcePipeline,
 )

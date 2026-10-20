@@ -8,14 +8,9 @@ this port only maps a `WorkRef` into a `Work` - there is no per-book fetch.
 import hashlib
 from collections.abc import Iterable, Iterator
 
-from papers2zim.core.download_engine import DownloadEngine
 from papers2zim.core.models import Creator, Format, Work
 from papers2zim.core.ports import MetadataPort, WorkRef
-from papers2zim.sources.wikisource.catalog import (
-    BASE_URL,
-    WIKISOURCE_SOURCE,
-    slugify,
-)
+from papers2zim.sources.wikisource.catalog import WIKISOURCE_SOURCE, slugify
 
 
 def author_id(name: str) -> str:
@@ -27,15 +22,6 @@ def author_id(name: str) -> str:
 
 class WikisourceMetadata(MetadataPort):
     """Maps discovered `WorkRef`s into `Work`s using the parsed feed data."""
-
-    def __init__(
-        self,
-        base_url: str = BASE_URL,
-        *,
-        engine: DownloadEngine,
-    ):
-        self._base_url = base_url.rstrip("/")
-        self._engine = engine
 
     def fetch(self, refs: Iterable[WorkRef]) -> Iterator[Work]:
         for ref in refs:
