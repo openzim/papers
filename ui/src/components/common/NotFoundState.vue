@@ -15,7 +15,7 @@ defineProps<{
   <v-col cols="12">
     <empty-state :message="message" type="error" />
     <div class="text-center mt-4">
-      <v-btn v-if="listRoute" :to="listRoute" color="primary" variant="elevated" class="mr-2">
+      <v-btn v-if="listRoute" :to="listRoute" color="primary" variant="elevated" class="me-2">
         {{ listLabel || t('common.browseAll') }}
       </v-btn>
       <v-btn to="/" color="primary" variant="outlined">

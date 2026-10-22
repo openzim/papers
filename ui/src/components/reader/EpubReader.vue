@@ -2,7 +2,7 @@
 import 'foliate-js/view.js'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useDisplay } from 'vuetify'
+import { useDisplay, useRtl } from 'vuetify'
 import CarouselArrow from '@/components/common/CarouselArrow.vue'
 import { TYPOGRAPHY } from '@/constants/theme'
 
@@ -23,6 +23,7 @@ interface FoliateViewElement extends HTMLElement {
 }
 
 const props = defineProps<{ src: string }>()
+const { isRtl } = useRtl()
 
 const reader = ref<FoliateViewElement | null>(null)
 const loading = ref(true)
@@ -119,6 +120,7 @@ onBeforeUnmount(() => {
       <div
         v-if="tocOpen"
         class="epub-reader__toc-drawer"
+        :class="{ 'epub-reader__toc-drawer--rtl': isRtl }"
         role="dialog"
         :aria-label="t('reader.tableOfContents')"
       >
@@ -182,14 +184,14 @@ onBeforeUnmount(() => {
         </button>
         <div class="epub-reader__arrow epub-reader__arrow--previous">
           <carousel-arrow
-            direction="left"
+            direction="prev"
             :ariaLabel="t('reader.previousSection')"
             @click="previousSection"
           />
         </div>
         <div class="epub-reader__arrow epub-reader__arrow--next">
           <carousel-arrow
-            direction="right"
+            direction="next"
             :ariaLabel="t('reader.nextSection')"
             @click="nextSection"
           />
@@ -261,12 +263,12 @@ onBeforeUnmount(() => {
 
 .epub-reader__toc ul {
   list-style: none;
-  padding-left: 0;
+  padding-inline-start: 0;
   margin: 0;
 }
 
 .epub-reader__toc ul ul {
-  padding-left: 0.75rem;
+  padding-inline-start: 0.75rem;
 }
 
 .epub-reader__toc button {
@@ -283,7 +285,7 @@ onBeforeUnmount(() => {
   font-size: v-bind(TYPOGRAPHY.BODY_SIZE);
   font-weight: v-bind(TYPOGRAPHY.BODY_WEIGHT);
   line-height: 1.4;
-  text-align: left;
+  text-align: start;
 }
 
 .epub-reader__toc button:hover {
@@ -308,11 +310,11 @@ onBeforeUnmount(() => {
 }
 
 .epub-reader__arrow--previous {
-  left: 0.5rem;
+  inset-inline-start: 0.5rem;
 }
 
 .epub-reader__arrow--next {
-  right: 0.5rem;
+  inset-inline-end: 0.5rem;
 }
 
 .epub-reader--small {
@@ -380,7 +382,7 @@ onBeforeUnmount(() => {
 }
 
 .epub-reader--small .epub-reader__toc-panel ul ul {
-  padding-left: 0.75rem;
+  padding-inline-start: 0.75rem;
 }
 
 .epub-reader--small .epub-reader__toc-panel li button {
@@ -395,7 +397,7 @@ onBeforeUnmount(() => {
   font-family: v-bind(TYPOGRAPHY.FONT_FAMILY);
   font-size: v-bind(TYPOGRAPHY.BODY_SIZE);
   line-height: 1.4;
-  text-align: left;
+  text-align: start;
 }
 
 .epub-reader--small .epub-reader__toc-panel li button:hover {
@@ -410,7 +412,7 @@ onBeforeUnmount(() => {
   position: absolute;
   z-index: 3;
   top: 0.5rem;
-  left: 0.5rem;
+  inset-inline-start: 0.5rem;
   display: block;
   display: flex;
   flex-direction: column;
@@ -433,11 +435,11 @@ onBeforeUnmount(() => {
 }
 
 .epub-reader--small .epub-reader__arrow--previous {
-  left: 0.25rem;
+  inset-inline-start: 0.25rem;
 }
 
 .epub-reader--small .epub-reader__arrow--next {
-  right: 0.25rem;
+  inset-inline-end: 0.25rem;
 }
 
 .epub-reader--small .epub-reader__arrow :deep(.carousel-arrow) {
@@ -463,6 +465,11 @@ onBeforeUnmount(() => {
 .epub-reader-drawer-enter-from .epub-reader__toc-panel,
 .epub-reader-drawer-leave-to .epub-reader__toc-panel {
   transform: translateX(100%);
+}
+
+.epub-reader__toc-drawer--rtl.epub-reader-drawer-enter-from .epub-reader__toc-panel,
+.epub-reader__toc-drawer--rtl.epub-reader-drawer-leave-to .epub-reader__toc-panel {
+  transform: translateX(-100%);
 }
 
 .epub-reader--tablet {

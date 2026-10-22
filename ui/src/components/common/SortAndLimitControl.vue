@@ -194,7 +194,7 @@ if (typeof document !== 'undefined') {
   font-size: 0.875rem;
   font-weight: 500;
   color: rgb(var(--v-theme-text));
-  text-align: left;
+  text-align: start;
 }
 
 .dropdown__trigger:hover {

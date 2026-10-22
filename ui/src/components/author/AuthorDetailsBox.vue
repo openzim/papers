@@ -40,7 +40,7 @@ function shiftRight() {
   <div class="author-details">
     <div class="author-arrow" v-if="!mobile">
       <carousel-arrow
-        direction="left"
+        direction="prev"
         :disabled="!hasPrevious"
         :ariaLabel="t('common.previous')"
         @click="shiftLeft"
@@ -51,7 +51,7 @@ function shiftRight() {
 
     <div class="author-arrow" v-if="!mobile">
       <carousel-arrow
-        direction="right"
+        direction="next"
         :disabled="!hasNext"
         :ariaLabel="t('common.next')"
         @click="shiftRight"

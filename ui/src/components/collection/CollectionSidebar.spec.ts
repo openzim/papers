@@ -47,7 +47,7 @@ describe('CollectionSidebar', () => {
     const allCountSpan = allBtn.find('.collection-sidebar__count')
     expect(allCountSpan.exists()).toBe(true)
 
-    // The space is handled by CSS margin-left, so the textContent is just the count
+    // The space is handled by CSS margin-inline-start, so the textContent is just the count
     expect(allCountSpan.element.textContent).toBe('(10)')
 
     const allParentSpan = allBtn.findAll('span')[0]
@@ -65,7 +65,7 @@ describe('CollectionSidebar', () => {
     const historyCountSpan = historyBtn.find('.collection-sidebar__count')
     expect(historyCountSpan.exists()).toBe(true)
 
-    // The space is handled by CSS margin-left, so the textContent is just the count
+    // The space is handled by CSS margin-inline-start, so the textContent is just the count
     expect(historyCountSpan.element.textContent).toBe('(2)')
 
     const historyParentSpan = historyBtn.findAll('span')[0]

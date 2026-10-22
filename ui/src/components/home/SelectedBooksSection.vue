@@ -123,7 +123,7 @@ function goToAuthor(id: string) {
 
 .selected-books-section__featured {
   margin-top: v-bind(LAYOUT.BOOK_CARD_MARGIN);
-  margin-left: v-bind(LAYOUT.BOOK_CARD_MARGIN);
+  margin-inline-start: v-bind(LAYOUT.BOOK_CARD_MARGIN);
   flex: 0 0 30%;
   display: flex;
   flex-direction: column;
@@ -145,7 +145,7 @@ function goToAuthor(id: string) {
   color: #ffffff;
   opacity: 0.9;
   margin: 0 0 1rem;
-  text-align: left;
+  text-align: start;
   width: 100%;
   padding: 0rem;
 }
@@ -176,7 +176,7 @@ function goToAuthor(id: string) {
   font-weight: v-bind(TYPOGRAPHY.CAPTION_WEIGHT);
   color: v-bind(THEME_COLORS.FORMAT);
   margin: auto 0 0.5rem;
-  text-align: left;
+  text-align: start;
   width: 100%;
 }
 
@@ -186,7 +186,7 @@ function goToAuthor(id: string) {
   border: none;
   cursor: pointer;
   padding: 0;
-  text-align: left;
+  text-align: start;
   width: 100%;
 }
 
@@ -210,7 +210,7 @@ function goToAuthor(id: string) {
   -webkit-box-orient: vertical;
   overflow: hidden;
   word-break: break-word;
-  text-align: left;
+  text-align: start;
 }
 
 .featured-book__author {
@@ -219,7 +219,7 @@ function goToAuthor(id: string) {
   font-weight: v-bind(TYPOGRAPHY.BODY_WEIGHT);
   color: v-bind(THEME_COLORS.AUTHOR_FOCUS);
   margin: 0;
-  text-align: left;
+  text-align: start;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

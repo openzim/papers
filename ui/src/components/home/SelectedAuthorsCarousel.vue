@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { useDisplay } from 'vuetify'
+import { useDisplay, useRtl } from 'vuetify'
 import type { AuthorPreview } from '@/types'
 import AuthorAvatar from '@/components/author/AuthorAvatar.vue'
 import CarouselArrow from '@/components/common/CarouselArrow.vue'
@@ -21,12 +21,15 @@ const hasPrevious = ref(false)
 const hasNext = ref(false)
 
 const { mobile } = useDisplay()
+const { isRtl } = useRtl()
 
 function updateScrollState() {
   const track = trackRef.value
   if (!track) return
-  hasPrevious.value = track.scrollLeft > 0
-  hasNext.value = track.scrollLeft + track.clientWidth < track.scrollWidth - 1
+  const maxScroll = track.scrollWidth - track.clientWidth
+  const scrollFromStart = isRtl.value ? Math.abs(track.scrollLeft) : track.scrollLeft
+  hasPrevious.value = scrollFromStart > 1
+  hasNext.value = scrollFromStart < maxScroll - 1
 }
 
 function scrollByCard(direction: 1 | -1) {
@@ -34,14 +37,15 @@ function scrollByCard(direction: 1 | -1) {
   if (!track) return
   const card = track.querySelector('.selected-authors-carousel__card-wrapper')
   const cardWidth = card ? card.clientWidth : track.clientWidth / 5
-  track.scrollBy({ left: direction * cardWidth, behavior: 'smooth' })
+  const scrollSign = isRtl.value ? -1 : 1
+  track.scrollBy({ left: direction * scrollSign * cardWidth, behavior: 'smooth' })
 }
 
-function shiftLeft() {
+function shiftPrevious() {
   scrollByCard(-1)
 }
 
-function shiftRight() {
+function shiftNext() {
   scrollByCard(1)
 }
 
@@ -63,8 +67,8 @@ function goToAuthors() {
 }
 
 const arrows = [
-  { direction: 'left', ariaKey: 'common.scrollLeft', onClick: () => shiftLeft(), order: 0 },
-  { direction: 'right', ariaKey: 'common.scrollRight', onClick: () => shiftRight(), order: 2 }
+  { direction: 'prev', ariaKey: 'common.previous', onClick: () => shiftPrevious(), order: 0 },
+  { direction: 'next', ariaKey: 'common.next', onClick: () => shiftNext(), order: 2 }
 ] as const
 </script>
 
@@ -87,7 +91,7 @@ const arrows = [
           >
             <carousel-arrow
               :direction="arrow.direction"
-              :disabled="arrow.direction === 'left' ? !hasPrevious : !hasNext"
+              :disabled="arrow.direction === 'prev' ? !hasPrevious : !hasNext"
               :ariaLabel="t(arrow.ariaKey)"
               @click="arrow.onClick"
             />
@@ -135,8 +139,7 @@ const arrows = [
   border-bottom: 0.5px solid rgb(var(--v-theme-grid));
   background-color: rgb(var(--v-theme-bgd2));
   width: 100vw;
-  margin-left: calc(50% - 50vw);
-  margin-right: calc(50% - 50vw);
+  margin-inline: calc(50% - 50vw);
 }
 
 .selected-authors-carousel__inner {

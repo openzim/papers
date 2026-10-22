@@ -137,7 +137,7 @@ const collectionDisplayName = computed(() => {
 
         <!-- Desktop: flames + author on same row, above description -->
         <div class="flames-author-row flames-author-row--desktop mb-6">
-          <fire-rating :flames="book.flames" class="mr-3" />
+          <fire-rating :flames="book.flames" class="me-3" />
           <router-link
             v-if="book.author?.id"
             :to="`/author/${book.author.id}`"
@@ -386,7 +386,7 @@ const collectionDisplayName = computed(() => {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  border-right: 1px solid rgb(var(--v-theme-grid));
+  border-inline-end: 1px solid rgb(var(--v-theme-grid));
 }
 
 .info-cell {
@@ -538,7 +538,7 @@ const collectionDisplayName = computed(() => {
   font-size: v-bind(TYPOGRAPHY.SMALL_SIZE);
   color: rgb(var(--v-theme-text));
   opacity: 0.5;
-  margin-left: 0.5rem;
+  margin-inline-start: 0.5rem;
 }
 
 .author-name:hover,

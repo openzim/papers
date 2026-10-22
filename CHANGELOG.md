@@ -31,6 +31,8 @@ as of 2.0.0.
 
 ### Fixed
 
+- UI: switch layout disposition to RTL when an RTL language is selected, and convert physical margins/paddings to logical properties (#86)
+
 - Promote Wikisource `issued` to standard `published` metadata (#10)
 - Wikisource: stop offering the withdrawn `xhtml` format, and fail early when a requested format is not offered by ws-export (#11)
 - About page: render the introduction and mission paragraphs a source declares, instead of a fixed number, so a source with no mission no longer prints raw translation keys (#18, #19)

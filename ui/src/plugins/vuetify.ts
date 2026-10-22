@@ -1,6 +1,9 @@
 import 'vuetify/styles'
 import '@mdi/font/css/materialdesignicons.css'
 import { createVuetify, type ThemeDefinition } from 'vuetify'
+import { createVueI18nAdapter } from 'vuetify/locale/adapters/vue-i18n'
+import { useI18n } from 'vue-i18n'
+import { i18n, supportedLanguages } from '@/plugins/i18n'
 import { THEME_COLORS } from '@/constants/theme'
 
 async function loadVuetify() {
@@ -93,7 +96,16 @@ async function loadVuetify() {
     }
   }
 
+  const rtl: Record<string, boolean> = {}
+  for (const lang of supportedLanguages) {
+    rtl[lang.code] = lang.rtl
+  }
+
   return createVuetify({
+    locale: {
+      adapter: createVueI18nAdapter({ i18n, useI18n }),
+      rtl
+    },
     theme: {
       defaultTheme: 'light',
       variations: {

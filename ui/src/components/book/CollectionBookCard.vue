@@ -75,7 +75,7 @@ const { t } = useI18n()
 
 .collection-book-info {
   min-height: calc(v-bind(TYPOGRAPHY.H3_SIZE) * 1.4 * 3 + v-bind(TYPOGRAPHY.CAPTION_SIZE) * 1.4);
-  margin-right: -1rem;
+  margin-inline-end: -1rem;
 }
 
 .collection-book-title {

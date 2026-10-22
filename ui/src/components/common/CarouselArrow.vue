@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { CAROUSEL_ARROW_SIZES } from '@/constants/theme'
+import { useRtl } from 'vuetify'
 
-defineProps<{
-  direction: 'left' | 'right'
+const props = defineProps<{
+  direction: 'left' | 'right' | 'prev' | 'next'
   disabled?: boolean
   ariaLabel: string
   beigeShadow?: boolean
@@ -11,6 +13,16 @@ defineProps<{
 defineEmits<{
   click: []
 }>()
+
+const { isRtl } = useRtl()
+
+const icon = computed(() => {
+  const isBack = props.direction === 'left' || props.direction === 'prev'
+  if (isBack) {
+    return isRtl.value ? 'mdi-chevron-right' : 'mdi-chevron-left'
+  }
+  return isRtl.value ? 'mdi-chevron-left' : 'mdi-chevron-right'
+})
 </script>
 
 <template>
@@ -21,7 +33,7 @@ defineEmits<{
     :aria-label="ariaLabel"
     @click="$emit('click')"
   >
-    <v-icon :icon="`mdi-chevron-${direction}`" class="arrow-icon" />
+    <v-icon :icon="icon" class="arrow-icon" />
   </button>
 </template>
 

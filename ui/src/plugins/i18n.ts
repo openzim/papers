@@ -82,7 +82,7 @@ const defaultLanguage: Language =
   matchBrowserLanguage(getBrowserLanguages(), supportedLanguages) ||
   supportedLanguages.find((lang) => lang.code === 'en')!
 
-const i18n = createI18n({
+export const i18n = createI18n({
   legacy: false,
   locale: defaultLanguage.code,
   fallbackLocale: 'en',
