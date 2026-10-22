@@ -19,6 +19,14 @@
           ]
         },
         {
+          "title": "One More Library",
+          "value": "onemorelibrary",
+          "dependents": [
+            "categories",
+            "oml_ids"
+          ]
+        },
+        {
           "title": "Open Textbook Library",
           "value": "opentextbooks",
           "dependents": [
@@ -149,6 +157,18 @@
       "required": false,
       "title": "Subjects (Open Textbook Library only)",
       "description": "Comma-separated Open Textbook Library subjects to include. Do not use with Project Gutenberg."
+    },
+    "categories": {
+      "type": "string",
+      "required": false,
+      "title": "Categories (One More Library only)",
+      "description": "Comma-separated One More Library categories to include, given by name or slug. Do not use with other sources."
+    },
+    "oml_ids": {
+      "type": "string",
+      "required": false,
+      "title": "Book IDs (One More Library only)",
+      "description": "Comma-separated exact One More Library book IDs. Cannot be combined with Books."
     },
     "otl_ids": {
       "type": "string",

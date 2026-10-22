@@ -63,10 +63,11 @@ Note: You'll need to install system dependencies (zim-tools) separately. See [CO
 
 ### Scraping Sources
 
-The scraper supports three sources, select a source with `--source`:
+The scraper supports several sources, select a source with `--source`:
 
 `--source=<source>`    Source slug or short name:
-                     gutenberg (PG), opentextbooks (OTL) or wikisource (WS)
+                     gutenberg (PG), onemorelibrary (OML), opentextbooks (OTL)
+                     or wikisource (WS)
                      Default: gutenberg
 
 ### Project Gutenberg
@@ -91,6 +92,39 @@ For example:
 ```bash
 papers2zim --source=gutenberg --lcc-shelves=P,PR,Q
 ```
+
+### One More Library
+
+Select One More Library with `--source=onemorelibrary` (or `--source=OML`).
+
+Books are public-domain works with a per-book Creative Commons license; EPUB and PDF editions are downloaded and made available to the built-in readers.
+
+To scrape one or more categories (given by name or by slug):
+
+```bash
+docker run -v $(pwd)/output:/output ghcr.io/openzim/papers \
+  papers2zim --source=onemorelibrary --categories=Art,Science
+```
+
+To select specific books by ID:
+
+```bash
+docker run -v $(pwd)/output:/output ghcr.io/openzim/papers \
+  papers2zim --source=onemorelibrary --oml-ids=<id1>,<id2>,<id3>
+```
+
+The One More Library-specific options are:
+
+```text
+--categories=<categories>  Comma-separated One More Library categories
+                           (names or slugs)
+--oml-ids=<ids>            Exact One More Library book IDs
+--list-categories          List One More Library categories and exit
+--refresh-oml-catalog      Refresh the One More Library catalog and exit
+```
+
+`--oml-ids` and `--books` cannot be used together. `--refresh-oml-catalog` requires `--cache-dir`.
+Selecting a whole library crawls the entire catalog; use `--cache-dir` to cache it across runs.
 
 ### Open Textbook Library
 
@@ -150,7 +184,8 @@ Spaces and underscores are interchangeable, and percent-encoded names are accept
 
 ```text
 --source=<source>                  Source slug or short name:
-                                   gutenberg (PG), opentextbooks (OTL) or wikisource (WS)
+                                   gutenberg (PG), onemorelibrary (OML),
+                                   opentextbooks (OTL) or wikisource (WS)
                                    Default: gutenberg
 ```
 
@@ -280,6 +315,7 @@ Source implementations live under `scraper/src/papers2zim/sources/`.
 Currently supported sources are:
 
 - **Project Gutenberg** (`gutenberg` / `PG`)
+- **One More Library** (`onemorelibrary` / `OML`)
 - **Open Textbook Library** (`opentextbooks` / `OTL`)
 
 The source registry connects each source implementation to the common pipeline.

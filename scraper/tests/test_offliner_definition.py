@@ -29,6 +29,11 @@ def test_recipe_defines_supported_sources_and_source_specific_filters():
                 ],
             },
             {
+                "title": "One More Library",
+                "value": "onemorelibrary",
+                "dependents": ["categories", "oml_ids"],
+            },
+            {
                 "title": "Open Textbook Library",
                 "value": "opentextbooks",
                 "dependents": ["subjects", "otl_ids"],
@@ -42,6 +47,8 @@ def test_recipe_defines_supported_sources_and_source_specific_filters():
     }
     assert {
         "lcc_shelves",
+        "categories",
+        "oml_ids",
         "subjects",
         "otl_ids",
         "wikisource_pages",
