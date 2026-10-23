@@ -41,6 +41,15 @@ ZIM_EXPECTATIONS = (
         format_name="pdf",
         mimetype="application/pdf",
     ),
+    ZimExpectation(
+        filename="onemorelibrary-integration.zim",
+        title="One More Library Test",
+        source_slug="onemorelibrary",
+        source_creator="onemorelibrary.com",
+        work_id="4077",
+        format_name="epub",
+        mimetype="application/epub+zip",
+    ),
     pytest.param(
         ZimExpectation(
             filename="wikisource-integration.zim",

@@ -5,7 +5,7 @@ instead of ISO codes. The set below is the full list advertised on
 ``/index.php/en/languages``; anything else is reported as unknown.
 """
 
-import unicodedata
+from papers2zim.core.utils import normalize
 
 LANGUAGE_CODES = {
     "english": "en",
@@ -27,7 +27,7 @@ LANGUAGE_CODES = {
 
 def normalize_language_name(name: str) -> str:
     """Normalize a language label so case and Unicode form do not matter."""
-    return unicodedata.normalize("NFC", name).strip().casefold()
+    return (normalize(name) or "").strip().casefold()
 
 
 def language_code(name: str | None) -> str | None:

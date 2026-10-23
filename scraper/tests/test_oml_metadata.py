@@ -49,17 +49,19 @@ BOOK_PAGE = """
   </div>
   <div class="additional attachments files-def"><h2>Book files</h2>
     <div class="row">
-      <a href="https://onemorelibrary.com/index.php?view=download&amp;fid=14599">
-      <span>On the Comparative - EPUB</span><br/>
-      <span class="djc_filesize">epub | 9.72 KB | 440 hits</span></a></div>
-    <div class="row">
-      <a href="https://onemorelibrary.com/index.php?view=download&amp;fid=14598">
-      <span>On the Comparative - PDF</span><br/>
-      <span class="djc_filesize">pdf | 84.21 KB | 1226 hits</span></a></div>
-    <div class="row">
-      <a href="https://onemorelibrary.com/index.php?view=download&amp;fid=14600">
-      <span>On the Comparative - MOBI</span><br/>
-      <span class="djc_filesize">mobi | 20.47 KB | 352 hits</span></a></div>
+      <div class="row">
+        <a href="https://onemorelibrary.com/index.php?view=download&amp;fid=14599">
+        <span>On the Comparative - EPUB</span><br/>
+        <span class="djc_filesize">epub | 9.72 KB | 440 hits</span></a></div>
+      <div class="row">
+        <a href="https://onemorelibrary.com/index.php?view=download&amp;fid=14598">
+        <span>On the Comparative - PDF</span><br/>
+        <span class="djc_filesize">pdf | 84.21 KB | 1226 hits</span></a></div>
+      <div class="row">
+        <a href="https://onemorelibrary.com/index.php?view=download&amp;fid=14600">
+        <span>On the Comparative - MOBI</span><br/>
+        <span class="djc_filesize">mobi | 20.47 KB | 352 hits</span></a></div>
+    </div>
   </div>
   <img id="djc_mainimage"
     src="/components/com_djclassifieds/images/item/2833_main.png" />

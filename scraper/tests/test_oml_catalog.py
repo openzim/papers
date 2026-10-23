@@ -22,12 +22,14 @@ def _card(
 ) -> str:
     return f"""
     <div class="item_box">
-      <div class="item_img"><a href="/index.php/en/books/arts/book/{slug}-{book_id}">
+      <div class="item_img"><a
+        href="/index.php/en/books/arts/book/{category}/{slug}-{book_id}">
         <img src="/components/com_djclassifieds/images/item/{book_id}_{slug}_thm.jpg" />
       </a></div>
       <div class="blog_det">
         <div class="title"><h2>
-          <a href="/index.php/en/books/arts/book/{slug}-{book_id}">{title}</a></h2>
+          <a
+            href="/index.php/en/books/arts/book/{category}/{slug}-{book_id}">{title}</a></h2>
           <span class="type_button">
             <a href="/index.php/en/books?se=1&amp;re=1">English</a></span>
         </div>
@@ -99,6 +101,74 @@ def test_discover_crawls_every_advertised_page():
         f"{LISTING_URL}?start=32",
         f"{LISTING_URL}?start=64",
     ]
+
+
+def test_discover_merges_pagination_windows_revealed_by_later_pages():
+    page0 = _listing(
+        _card(1, "First", "first", "art-232", "A", "Art"),
+        starts=[0, 32, 96],
+    )
+    page32 = _listing(
+        _card(2, "Second", "second", "art-232", "B", "Art"),
+        starts=[0, 32, 64, 96],
+    )
+    page64 = _listing(
+        _card(3, "Third", "third", "art-232", "C", "Art"),
+        starts=[0, 64, 96],
+    )
+    page96 = _listing(
+        _card(4, "Fourth", "fourth", "art-232", "D", "Art"),
+        starts=[0, 96],
+    )
+    engine = StubEngine(
+        {
+            f"{LISTING_URL}?start=0": page0,
+            f"{LISTING_URL}?start=32": page32,
+            f"{LISTING_URL}?start=64": page64,
+            f"{LISTING_URL}?start=96": page96,
+        }
+    )
+    catalog = OnemorelibraryCatalog(engine)
+
+    refs = list(catalog.discover(CatalogFilters()))
+
+    assert [ref.id for ref in refs] == ["1", "2", "3", "4"]
+    assert engine.downloaded == [
+        f"{LISTING_URL}?start=0",
+        f"{LISTING_URL}?start=32",
+        f"{LISTING_URL}?start=64",
+        f"{LISTING_URL}?start=96",
+    ]
+
+
+def test_discover_explicit_ids_and_positions_ignore_language_and_category_filters():
+    html = _listing(
+        _card(10, "First", "first", "art-232", "A", "Art"),
+        _card(20, "Second", "second", "science-204", "B", "Science"),
+    )
+    engine = StubEngine({f"{LISTING_URL}?start=0": html})
+    catalog = OnemorelibraryCatalog(engine)
+
+    assert [
+        ref.id
+        for ref in catalog.discover(
+            CatalogFilters(
+                languages=["fr"],
+                collections=["science"],
+                options={"book_ids": ["10"]},
+            )
+        )
+    ] == ["10"]
+    assert [
+        ref.id
+        for ref in catalog.discover(
+            CatalogFilters(
+                languages=["fr"],
+                collections=["science"],
+                book_ids=["1"],
+            )
+        )
+    ] == ["10"]
 
 
 def test_discover_filters_by_language_and_category():

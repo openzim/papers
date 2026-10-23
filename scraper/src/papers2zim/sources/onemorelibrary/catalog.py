@@ -32,7 +32,7 @@ LISTING_PATH = "/index.php/en/books"
 SUPPORTED_FORMATS = frozenset({"epub", "pdf"})
 MAX_PAGES = 2000
 
-_BOOK_ID_RE = re.compile(r"-(\d+)(?:[/?#]|$)")
+_BOOK_ID_RE = re.compile(r"-(\d+)$")
 
 
 @dataclass(frozen=True, slots=True)
@@ -67,10 +67,6 @@ def _text(node) -> str:
     return " ".join(node.get_text(" ", strip=True).split())
 
 
-def _absolute(base_url: str, href: str | None) -> str | None:
-    return urljoin(base_url.rstrip("/") + "/", href) if href else None
-
-
 def parse_listing(html: str | bytes, base_url: str) -> list[OmlCatalogBook]:
     """Parse the book cards of one listing page."""
     soup = BeautifulSoup(html, "html.parser")
@@ -84,7 +80,7 @@ def parse_listing(html: str | bytes, base_url: str) -> list[OmlCatalogBook]:
         href = title_link.get("href")
         if not isinstance(href, str):
             continue
-        match = _BOOK_ID_RE.search(urlparse(href).path)
+        match = _BOOK_ID_RE.search(urlparse(href).path.rstrip("/").rsplit("/", 1)[-1])
         if match is None:
             continue
 
@@ -115,7 +111,7 @@ def parse_listing(html: str | bytes, base_url: str) -> list[OmlCatalogBook]:
             OmlCatalogBook(
                 id=match.group(1),
                 title=_text(title_link),
-                source_url=_absolute(base_url, href) or "",
+                source_url=urljoin(base_url, href),
                 language=language_code(language_name),
                 language_name=language_name,
                 category_id=category_id,
@@ -123,8 +119,8 @@ def parse_listing(html: str | bytes, base_url: str) -> list[OmlCatalogBook]:
                     _text(category_link) if category_link is not None else None
                 ),
                 author=author,
-                cover_url=_absolute(
-                    base_url, cover_src if isinstance(cover_src, str) else None
+                cover_url=(
+                    urljoin(base_url, cover_src) if isinstance(cover_src, str) else None
                 ),
                 description=(_text(description) if description is not None else None),
             )
@@ -181,6 +177,49 @@ class OnemorelibraryCatalog(CatalogPort):
         books = self._load_catalog()
         total = len(books)
 
+        source_book_ids = {
+            str(book_id) for book_id in filters.options.get("book_ids", [])
+        }
+        positions = {
+            int(book_id)
+            for book_id in filters.book_ids or []
+            if book_id.strip().isdigit()
+        }
+        if source_book_ids:
+            if filters.languages or filters.collections:
+                logger.info(
+                    "Ignoring language/category filters for explicitly requested "
+                    "One More Library book IDs"
+                )
+            selected = [book for book in books if book.id in source_book_ids]
+        elif positions:
+            if filters.languages or filters.collections:
+                logger.info(
+                    "Ignoring language/category filters for explicitly requested "
+                    "One More Library book positions"
+                )
+            selected = [
+                book
+                for position, book in enumerate(books, start=1)
+                if position in positions
+            ]
+        else:
+            selected = self._filter_books(books, filters)
+
+        logger.info(
+            "  Selected %s One More Library books from %s catalog entries"
+            " (languages: %s, categories: %s)",
+            len(selected),
+            total,
+            filters.languages or "all",
+            filters.collections or "all",
+        )
+        return [book.to_ref() for book in selected]
+
+    @staticmethod
+    def _filter_books(
+        books: list[OmlCatalogBook], filters: CatalogFilters
+    ) -> list[OmlCatalogBook]:
         if filters.languages:
             wanted = {language.casefold() for language in filters.languages}
             books = [book for book in books if (book.language or "") in wanted]
@@ -205,35 +244,7 @@ class OnemorelibraryCatalog(CatalogPort):
                     in requested_categories
                 )
             ]
-
-        source_book_ids = {
-            str(book_id) for book_id in filters.options.get("book_ids", [])
-        }
-        positions = {
-            int(book_id)
-            for book_id in filters.book_ids or []
-            if book_id.strip().isdigit()
-        }
-        if source_book_ids:
-            selected = [book for book in books if book.id in source_book_ids]
-        elif positions:
-            selected = [
-                book
-                for position, book in enumerate(books, start=1)
-                if position in positions
-            ]
-        else:
-            selected = books
-
-        logger.info(
-            "  Selected %s One More Library books from %s catalog entries"
-            " (languages: %s, categories: %s)",
-            len(selected),
-            total,
-            filters.languages or "all",
-            filters.collections or "all",
-        )
-        return [book.to_ref() for book in selected]
+        return books
 
     def list_categories(self) -> list[tuple[str, str]]:
         """Return ``(name, id)`` pairs for every category, sorted by name."""
@@ -259,22 +270,31 @@ class OnemorelibraryCatalog(CatalogPort):
 
     def _crawl(self) -> list[OmlCatalogBook]:
         logger.info("Crawling One More Library catalog from %s", self.listing_url)
-        first_page = self._fetch_listing(0)
-        books = parse_listing(first_page, self._base_url)
-        starts = [start for start in _pagination_starts(first_page) if start > 0]
+        books: list[OmlCatalogBook] = []
+        visited: set[int] = set()
+        pending: list[int] = [0]
 
-        if len(starts) > MAX_PAGES:
-            logger.warning(
-                "One More Library advertises %s catalog pages; only the first %s "
-                "will be crawled",
-                len(starts),
-                MAX_PAGES,
-            )
-            starts = starts[:MAX_PAGES]
-
-        for start in starts:
+        while pending and len(visited) < MAX_PAGES:
+            start = pending.pop(0)
+            if start in visited:
+                continue
+            visited.add(start)
             page = self._fetch_listing(start)
             books.extend(parse_listing(page, self._base_url))
+            pending.extend(
+                discovered
+                for discovered in _pagination_starts(page)
+                if discovered not in visited and discovered not in pending
+            )
+            pending.sort()
+
+        if pending:
+            logger.warning(
+                "One More Library advertises more than %s catalog pages; "
+                "only the first %s will be crawled",
+                MAX_PAGES,
+                MAX_PAGES,
+            )
 
         deduplicated: dict[str, OmlCatalogBook] = {}
         for book in books:
@@ -282,7 +302,7 @@ class OnemorelibraryCatalog(CatalogPort):
         logger.info(
             "Discovered %s One More Library books across %s listing pages",
             len(deduplicated),
-            len(starts) + 1,
+            len(visited),
         )
         return list(deduplicated.values())
 

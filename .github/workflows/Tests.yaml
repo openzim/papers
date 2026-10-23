@@ -138,6 +138,17 @@ jobs:
             --formats pdf \
             --no-index \
             --overwrite
+          docker run --rm -v "$PWD/output:/output" papers papers2zim \
+            --source onemorelibrary \
+            --output /output \
+            --zim-file /output/onemorelibrary-integration.zim \
+            --zim-name onemorelibrary_integration_test \
+            --zim-title "One More Library Test" \
+            --zim-desc "One public-domain book from One More Library for integration testing" \
+            --oml-ids 4077 \
+            --formats epub \
+            --no-index \
+            --overwrite
           # wikisource is temporarily disabled: ws-export is unreachable from CI
           # docker run --rm -v "$PWD/output:/output" papers papers2zim \
           #   --source wikisource \
@@ -158,6 +169,8 @@ jobs:
             ghcr.io/openzim/zim-tools:3.8.0 zimcheck /output/gutenberg-integration.zim
           docker run --rm -v "$PWD/output:/output" \
             ghcr.io/openzim/zim-tools:3.8.0 zimcheck /output/opentextbooks-integration.zim
+          docker run --rm -v "$PWD/output:/output" \
+            ghcr.io/openzim/zim-tools:3.8.0 zimcheck /output/onemorelibrary-integration.zim
           # wikisource is temporarily disabled: ws-export is unreachable from CI
           # docker run --rm -v "$PWD/output:/output" \
           #   ghcr.io/openzim/zim-tools:3.8.0 zimcheck /output/wikisource-integration.zim

@@ -41,25 +41,35 @@ def _row_values(soup: BeautifulSoup, container: str) -> dict[str, str]:
     return values
 
 
-def _categories(soup: BeautifulSoup) -> list[CollectionRef]:
+def _additional_details(
+    soup: BeautifulSoup,
+) -> tuple[dict[str, str], list[CollectionRef]]:
+    """Read the ``.additional`` block once, returning its values and categories."""
+    values: dict[str, str] = {}
     collections: list[CollectionRef] = []
     for row in soup.select(".additional .row"):
         label = row.select_one(".row_label")
-        if label is None or _text(label).rstrip(":").strip() != "In categories":
+        value = row.select_one(".row_value")
+        if label is None or value is None:
             continue
-        for link in row.select(".row_value a[href]"):
-            href = link.get("href")
-            if not isinstance(href, str):
-                continue
-            category_id = urlparse(href).path.rstrip("/").rsplit("/", 1)[-1]
-            collections.append(
-                CollectionRef(
-                    id=category_id,
-                    name=_text(link),
-                    kind="category",
+        key = _text(label).rstrip(":").strip()
+        if not key:
+            continue
+        if key == "In categories":
+            for link in value.select("a[href]"):
+                href = link.get("href")
+                if not isinstance(href, str):
+                    continue
+                collections.append(
+                    CollectionRef(
+                        id=urlparse(href).path.rstrip("/").rsplit("/", 1)[-1],
+                        name=_text(link),
+                        kind="category",
+                    )
                 )
-            )
-    return collections
+            continue
+        values[key] = _text(value)
+    return values, collections
 
 
 def _creator(soup: BeautifulSoup) -> Creator | None:
@@ -103,10 +113,12 @@ def _creator(soup: BeautifulSoup) -> Creator | None:
 def _formats(soup: BeautifulSoup, page_url: str) -> tuple[list[Format], int]:
     formats: list[Format] = []
     hits_total = 0
-    for row in soup.select(".attachments .row"):
+    for size_info in soup.select(".attachments .djc_filesize"):
+        row = size_info.find_parent(class_="row")
+        if row is None:
+            continue
         link = row.select_one("a[href*='fid=']")
-        size_info = row.select_one(".djc_filesize")
-        if link is None or size_info is None:
+        if link is None:
             continue
         href = link.get("href")
         if not isinstance(href, str):
@@ -156,7 +168,7 @@ def parse_book_page(
         return None
 
     details = _row_values(soup, ".custom_det")
-    additional = _row_values(soup, ".additional")
+    additional, collections = _additional_details(soup)
     language_node = soup.select_one(".title_top .type_button")
     language_name = (
         _text(language_node)
@@ -168,7 +180,6 @@ def parse_book_page(
         logger.debug("Unknown One More Library language label: %s", language_name)
 
     formats, hits = _formats(soup, source_url)
-    collections = _categories(soup)
     if not collections and ref.extra.get("category_id"):
         collections = [
             CollectionRef(
