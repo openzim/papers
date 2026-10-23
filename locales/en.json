@@ -409,5 +409,45 @@
       "packagedBy": "Packaged by",
       "kiwix": "Kiwix"
     }
+  },
+  "onemorelibrary": {
+    "about": {
+      "attribution": "Book metadata and cover images provided by One More Library.",
+      "introHeading": "About One More Library",
+      "introParagraph1": "One More Library is a free online library of public-domain books.",
+      "introParagraph2": "Its collection spans literature, philosophy, history, science, religion, and many other subjects.",
+      "introParagraph3": "Books are available in several languages and can be read online or downloaded.",
+      "introParagraph4": "This library makes those books available for offline reading.",
+      "missionAuthor": "The One More Library community",
+      "missionHeading": "Free books for everyone",
+      "missionParagraph1": "One More Library exists to make public-domain books available to everyone, in every language, for free.",
+      "missionParagraph2": "The collection is organised by category and language so readers can discover works from many traditions.",
+      "missionParagraph3": "Books are offered in open formats such as EPUB and PDF, which work on most devices and readers.",
+      "missionParagraph4": "Keeping these books available offline helps preserve them for readers today and in the future."
+    },
+    "metadata_defaults": {
+      "title": "One More Library",
+      "description": "Free public-domain books from One More Library"
+    },
+    "nav": {
+      "collections": "Categories"
+    },
+    "home": {
+      "allCollections": "All categories",
+      "mostPopular": "Most popular",
+      "popularCollections": "Popular categories"
+    },
+    "collection": {
+      "allCollections": "All categories"
+    },
+    "book": {
+      "collection": "Category",
+      "sameCollectionBooks": "Books in the same category"
+    },
+    "footer": {
+      "createdBy": "Created by",
+      "packagedBy": "Packaged by",
+      "kiwix": "Kiwix"
+    }
   }
 }

@@ -414,5 +414,45 @@
 			"packagedBy": "Footer text preceding the Kiwix link",
 			"kiwix": "Footer link text pointing to the Kiwix website"
 		}
+	},
+	"onemorelibrary": {
+		"about": {
+			"attribution": "Attribution text shown at the end of the One More Library about page",
+			"introHeading": "Introduction section heading for One More Library",
+			"introParagraph1": "Introduction paragraph 1 for One More Library",
+			"introParagraph2": "Introduction paragraph 2 for One More Library",
+			"introParagraph3": "Introduction paragraph 3 for One More Library",
+			"introParagraph4": "Introduction paragraph 4 for One More Library",
+			"missionAuthor": "Mission author or organisation name",
+			"missionHeading": "Mission section heading for One More Library",
+			"missionParagraph1": "Mission paragraph 1 for One More Library",
+			"missionParagraph2": "Mission paragraph 2 for One More Library",
+			"missionParagraph3": "Mission paragraph 3 for One More Library",
+			"missionParagraph4": "Mission paragraph 4 for One More Library"
+		},
+		"metadata_defaults": {
+			"title": "Default ZIM title used in metadata when no specific title is set",
+			"description": "Default ZIM description used in metadata when no specific description is set"
+		},
+		"nav": {
+			"collections": "Navigation and breadcrumb label for the One More Library categories page"
+		},
+		"home": {
+			"allCollections": "Link label for browsing all One More Library categories",
+			"mostPopular": "Featured-book label for the most popular One More Library book",
+			"popularCollections": "Heading for the popular One More Library categories section"
+		},
+		"collection": {
+			"allCollections": "All One More Library categories link in the sidebar"
+		},
+		"book": {
+			"collection": "Label for the One More Library category field",
+			"sameCollectionBooks": "Heading for the carousel of books in the same One More Library category"
+		},
+		"footer": {
+			"createdBy": "Footer text preceding the source library link",
+			"packagedBy": "Footer text preceding the Kiwix link",
+			"kiwix": "Footer link text pointing to the Kiwix website"
+		}
 	}
 }

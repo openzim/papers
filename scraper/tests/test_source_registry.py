@@ -6,6 +6,8 @@ import pytest
 
 from papers2zim.core.ports import CatalogPort
 from papers2zim.sources import registry
+from papers2zim.sources.onemorelibrary.catalog import OnemorelibraryCatalog
+from papers2zim.sources.onemorelibrary.metadata import OnemorelibraryMetadata
 from papers2zim.sources.opentextbooks.catalog import OpenTextbookLibraryCatalog
 from papers2zim.sources.opentextbooks.metadata import OpenTextbookLibraryMetadata
 from papers2zim.sources.registry import get_source
@@ -35,6 +37,8 @@ def _profile(slug: str, aliases: tuple[str, ...]):
         ("PG", "gutenberg"),
         ("pg", "gutenberg"),
         ("OTL", "opentextbooks"),
+        ("OML", "onemorelibrary"),
+        ("oml", "onemorelibrary"),
         ("WS", "wikisource"),
         ("ws", "wikisource"),
     ),
@@ -72,6 +76,18 @@ def test_opentextbooks_profile_is_registered_with_its_json_adapters():
     assert profile.pipeline_class is not None
 
 
+def test_onemorelibrary_profile_is_registered_with_its_adapters():
+    profile = get_source("onemorelibrary")
+
+    assert profile.display_name == "One More Library"
+    assert profile.default_mirror_url == "https://onemorelibrary.com"
+    assert profile.catalog is OnemorelibraryCatalog
+    assert isinstance(profile.catalog, type)
+    assert issubclass(profile.catalog, CatalogPort)
+    assert profile.metadata_class is OnemorelibraryMetadata
+    assert profile.pipeline_class is not None
+
+
 def test_wikisource_profile_is_registered_with_its_opds_adapters():
     profile = get_source("wikisource")
 
@@ -88,4 +104,5 @@ def test_wikisource_profile_is_registered_with_its_opds_adapters():
 def test_popularity_is_declared_per_source():
     assert get_source("gutenberg").has_popularity is True
     assert get_source("opentextbooks").has_popularity is True
+    assert get_source("onemorelibrary").has_popularity is True
     assert get_source("wikisource").has_popularity is False
