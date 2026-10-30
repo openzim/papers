@@ -116,6 +116,7 @@
 			"backToTop": "Label for the back to top button",
 			"uiLanguage": "Title for the user interface language switcher control",
 			"selectInterfaceLanguage": "Accessible label for the interface language selector",
+			"changeInterfaceLanguage": "Accessible label for the header button that opens the interface language switcher",
 			"filterBy": "Label for filter controls",
 			"filterByTitle": "Label for filtering by a specific field. Parameters: {title} - field name",
 			"gridView": "Label for grid view layout option",

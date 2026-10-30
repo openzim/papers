@@ -27,6 +27,8 @@ describe('AppHeader', () => {
     useMainStore().config = {
       title: 'Test',
       description: null,
+      zimName: 'test',
+      bookLanguages: ['en'],
       source: { slug: 'test', name: 'Test', description: 'Test' },
       theme: { formatIcons: {}, routeLabels: {}, collectionIconStyle: 'classification' },
       features: {
@@ -76,5 +78,19 @@ describe('AppHeader', () => {
     const links = await openDrawerLinks(mountHeader())
 
     expect(links.some((link) => link.attributes('href') === '/collections')).toBe(true)
+  })
+
+  it('always shows the language switcher trigger', () => {
+    setConfigHasMultipleCollections(true)
+
+    const wrapper = mountHeader()
+
+    expect(wrapper.find('[aria-label="common.changeInterfaceLanguage"]').exists()).toBe(true)
+  })
+
+  it('shows the language switcher trigger before config has loaded', () => {
+    const wrapper = mountHeader()
+
+    expect(wrapper.find('[aria-label="common.changeInterfaceLanguage"]').exists()).toBe(true)
   })
 })

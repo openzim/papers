@@ -163,6 +163,8 @@ def test_config_includes_source_theme_and_features():
         "name": "Open Textbook Library",
         "description": "Free textbooks.",
     }
+    assert config["zimName"] == "test"
+    assert config["bookLanguages"] == ["en"]
     assert config["theme"]["formatIcons"] == {"epub": "epub", "pdf": "pdf"}
     assert config["theme"]["routeLabels"]["collections"] == "Subjects"
     assert config["theme"]["collectionIconStyle"] == "subject"
@@ -294,6 +296,66 @@ def test_config_reports_a_source_with_multiple_collections():
     )
 
     assert _config_content(assembler)["features"]["hasMultipleCollections"] is True
+
+
+def test_config_reports_distinct_book_languages_regardless_of_requested_filter():
+    """`bookLanguages` reflects the books actually exported, not the filter.
+
+    A ZIM requested with `--languages` spanning several codes can still end
+    up with books in a single language once combined with other filters (or
+    because the source itself only has that language for the selection) -
+    `bookLanguages` must report what's actually there, not the request.
+    """
+    assembler = MagicMock(name="assembler")
+    store = _store()  # all works are in "en"
+
+    generate_json_files(
+        zim_name="test",
+        formats=["html"],
+        work_store=store,
+        assembler=assembler,
+        display_name="Test Source",
+        indexes=_indexes(store),
+        requested_languages=["en", "fr"],
+    )
+
+    assert _config_content(assembler)["bookLanguages"] == ["en"]
+
+
+def test_config_reports_multiple_distinct_book_languages():
+    assembler = MagicMock(name="assembler")
+    dickens = Creator(id="37", name="Charles Dickens")
+    austen = Creator(id="68", name="Jane Austen")
+    store = WorkStore()
+    store.add(
+        Work(
+            id="1",
+            source="gutenberg",
+            title="Bleak House",
+            creators=[dickens],
+            languages=["en"],
+        )
+    )
+    store.add(
+        Work(
+            id="2",
+            source="gutenberg",
+            title="Emma",
+            creators=[austen],
+            languages=["fr"],
+        )
+    )
+
+    generate_json_files(
+        zim_name="test",
+        formats=["html"],
+        work_store=store,
+        assembler=assembler,
+        display_name="Test Source",
+        indexes=_indexes(store),
+    )
+
+    assert _config_content(assembler)["bookLanguages"] == ["en", "fr"]
 
 
 def test_book_detail_exports_popularity_and_flames():

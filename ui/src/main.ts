@@ -21,7 +21,13 @@ const mainStore = useMainStore(pinia)
 mainStore
   .fetchConfig()
   .then((config) => {
-    return Promise.all([loadI18n(config.source.slug), loadVuetify()])
+    return Promise.all([
+      loadI18n(config.source.slug, {
+        zimName: config.zimName,
+        bookLanguages: config.bookLanguages
+      }),
+      loadVuetify()
+    ])
   })
   .then(([i18n, vuetify]) => {
     const app = createApp(App)

@@ -1,8 +1,18 @@
 import type { PiniaPluginContext } from 'pinia'
 import { createI18n, useI18n, type Composer, type ComposerTranslation } from 'vue-i18n'
 import languageData from '@wikimedia/language-data'
+import uiInterfaceLocales from '@/generated/ui-locales.json'
 
-const LOCALE_STORAGE_KEY = 'papers-ui-locale-choice'
+const LOCALE_STORAGE_PREFIX = 'papers-ui-locale-choice'
+
+// Set once by `loadI18n`; scopes the persisted locale choice to this ZIM so
+// switching the language in one ZIM doesn't affect others served from the
+// same origin, and survives rebuilds that only change the title/content
+let zimId: string | null = null
+
+export function localeStorageKey(): string {
+  return `${LOCALE_STORAGE_PREFIX}:${zimId}`
+}
 
 export type Language = {
   code: string
@@ -20,13 +30,19 @@ const AUTONYM_OVERRIDES: Record<string, string> = {
   enm: 'Middle English'
 }
 
+// Some locale files under `locales/` exist only to supply a source's
+// `metadata_defaults` (ZIM title/description) in that language, with no
+// `common` namespace - i.e. no actual interface translation (e.g. `mul`,
+// used for multi-language ZIMs' metadata, or a handful of book languages
+// nobody has translated the UI chrome into yet). Selecting one of those as
+// the interface language would be a no-op, so only locales with real
+// translated UI strings - precomputed at build time by
+// `scripts/generate-language-names.js` into `ui-locales.json` - are
+// eligible, and only if their file still actually exists.
 function getLocaleCodesFromFiles(): string[] {
-  return Object.keys(localesFiles)
-    .map((path) => {
-      const match = path.match(/\/locales\/([^/]+)\.json$/)
-      return match ? match[1] : null
-    })
-    .filter((code): code is string => code !== null && code !== 'qqq')
+  return (uiInterfaceLocales as string[]).filter(
+    (code) => `../../../locales/${code}.json` in localesFiles
+  )
 }
 
 function buildSupportedLanguages(): Language[] {
@@ -72,7 +88,7 @@ export function matchBrowserLanguage(
   return undefined
 }
 
-function getBrowserLanguages(): readonly string[] {
+export function getBrowserLanguages(): readonly string[] {
   if (typeof navigator === 'undefined') return []
   if (navigator.languages?.length) return navigator.languages
   return navigator.language ? [navigator.language] : []
@@ -81,6 +97,24 @@ function getBrowserLanguages(): readonly string[] {
 const defaultLanguage: Language =
   matchBrowserLanguage(getBrowserLanguages(), supportedLanguages) ||
   supportedLanguages.find((lang) => lang.code === 'en')!
+
+// The browser language and, for a single-language ZIM, the ZIM's own
+// language, pinned as the first entries of the language switcher (and still
+// appearing again in their normal sorted position), deduplicated by code
+export function getPinnedLanguages(bookLanguages: string[] = []): Language[] {
+  const pinned: Language[] = []
+  const browserLanguage = matchBrowserLanguage(getBrowserLanguages(), supportedLanguages)
+  if (browserLanguage) pinned.push(browserLanguage)
+
+  if (bookLanguages.length === 1) {
+    const zimLanguage = matchBrowserLanguage([bookLanguages[0]!], supportedLanguages)
+    if (zimLanguage && !pinned.some((lang) => lang.code === zimLanguage.code)) {
+      pinned.push(zimLanguage)
+    }
+  }
+
+  return pinned
+}
 
 export const i18n = createI18n({
   legacy: false,
@@ -155,7 +189,7 @@ export async function setCurrentLocale(locale: Language, persist = true): Promis
   document.documentElement.setAttribute('dir', locale.rtl ? 'rtl' : 'ltr')
   document.documentElement.setAttribute('lang', locale.code)
   if (persist) {
-    localStorage.setItem(LOCALE_STORAGE_KEY, locale.code)
+    localStorage.setItem(localeStorageKey(), locale.code)
   }
   return true
 }
@@ -164,17 +198,30 @@ export function getCurrentLocale() {
   return i18n.global.locale.value
 }
 
-function getInitialLanguage(): Language {
+export function getInitialLanguage(bookLanguages: string[]): Language {
   const storedLocale =
-    typeof localStorage !== 'undefined' ? localStorage.getItem(LOCALE_STORAGE_KEY) : null
+    typeof localStorage !== 'undefined' ? localStorage.getItem(localeStorageKey()) : null
   if (storedLocale) {
     const storedLanguage = supportedLanguages.find((lang) => lang.code === storedLocale)
     if (storedLanguage) return storedLanguage
   }
+
+  // A ZIM built in a single language defaults to that language over the
+  // browser's, which otherwise makes little sense when browsing content
+  // that isn't even available in the browser's language
+  if (bookLanguages.length === 1) {
+    const zimLanguage = matchBrowserLanguage([bookLanguages[0]!], supportedLanguages)
+    if (zimLanguage) return zimLanguage
+  }
+
   return defaultLanguage
 }
 
-async function loadI18n(sourceNamespace: string) {
+async function loadI18n(
+  sourceNamespace: string,
+  options: { zimName: string; bookLanguages: string[] }
+) {
+  zimId = options.zimName
   setLocaleSource(sourceNamespace)
   const enLocaleMessages = await loadLocaleMessages('en')
   if (enLocaleMessages) {
@@ -182,7 +229,7 @@ async function loadI18n(sourceNamespace: string) {
     loadedLocales.push('en')
   }
 
-  const initialLanguage = getInitialLanguage()
+  const initialLanguage = getInitialLanguage(options.bookLanguages)
   if (initialLanguage.code !== 'en') {
     await setCurrentLocale(initialLanguage, false)
   } else {

@@ -166,6 +166,14 @@ class Config(CamelModel):
     theme: ThemeConfig
     features: FeatureFlags
     content_info: ZimContentInfo
+    # Stable internal ZIM name/slug, independent of `title` (which may change
+    # across rebuilds of the same ZIM); used by the UI to key per-ZIM state
+    # such as the persisted interface language choice.
+    zim_name: str
+    # Distinct language codes actually present across the exported books,
+    # regardless of what `--languages` filter (if any) was requested; the
+    # source of truth for whether this ZIM is single- or multi-language.
+    book_languages: list[str]
 
 
 # Update forward references for Pydantic v2
