@@ -252,6 +252,7 @@ def generate_json_files(
 
     logger.debug("Generating config.json")
     work_titles_by_id = {work.id: work.title for work in all_works}
+    book_languages = sorted({lang for work in all_works for lang in work.languages})
     content_info = ZimContentInfo(
         source=display_name,
         collections=requested_collections or None,
@@ -273,6 +274,8 @@ def generate_json_files(
             description=source_description or display_name,
         ),
         content_info=content_info,
+        zim_name=zim_name,
+        book_languages=book_languages,
         theme=ThemeConfig(
             format_icons={format_name: format_name for format_name in formats},
             route_labels={

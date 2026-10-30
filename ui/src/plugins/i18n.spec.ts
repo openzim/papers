@@ -2,9 +2,17 @@
  * Unit tests for browser language detection and pluralization
  */
 
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { createI18n } from 'vue-i18n'
-import { matchBrowserLanguage, translatePlural, type Language } from './i18n'
+import {
+  matchBrowserLanguage,
+  translatePlural,
+  getPinnedLanguages,
+  getInitialLanguage,
+  localeStorageKey,
+  supportedLanguages,
+  type Language
+} from './i18n'
 
 const languages: Language[] = ['en', 'fr', 'pt', 'pt-br', 'zh', 'zh-hans', 'zh-hant'].map(
   (code) => ({ code, display: code, rtl: false })
@@ -96,5 +104,61 @@ describe('translatePlural', () => {
 
   it('returns the key when the message is missing everywhere', () => {
     expect(translatePlural(makeI18n('en'), 'missing', 1)).toBe('missing')
+  })
+})
+
+// The real `supportedLanguages`/browser-matching behavior, not the mocked
+// list above - resolves against the actual locale files in `locales/*.json`
+function browserMatch() {
+  const browserLanguages = navigator.languages?.length ? navigator.languages : [navigator.language]
+  return matchBrowserLanguage(browserLanguages, supportedLanguages)
+}
+
+describe('getPinnedLanguages', () => {
+  it('pins the browser-matched language', () => {
+    const match = browserMatch()
+    expect(getPinnedLanguages().map((lang) => lang.code)).toEqual(match ? [match.code] : [])
+  })
+
+  it('also pins the ZIM language for a single-language ZIM', () => {
+    const codes = getPinnedLanguages(['fr']).map((lang) => lang.code)
+    expect(codes).toContain('fr')
+  })
+
+  it('does not pin a ZIM language for a multi-language ZIM', () => {
+    const codes = getPinnedLanguages(['fr', 'de']).map((lang) => lang.code)
+    expect(codes).not.toContain('fr')
+    expect(codes).not.toContain('de')
+  })
+
+  it('does not duplicate when the ZIM language matches the browser language', () => {
+    const match = browserMatch()
+    if (!match) return
+    expect(getPinnedLanguages([match.code]).map((lang) => lang.code)).toEqual([match.code])
+  })
+})
+
+describe('getInitialLanguage', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
+  it('falls back to the browser-matched default for a multi-language ZIM', () => {
+    const expected = browserMatch() || supportedLanguages.find((lang) => lang.code === 'en')!
+    expect(getInitialLanguage(['fr', 'de']).code).toBe(expected.code)
+  })
+
+  it('prefers the ZIM language over the browser default for a single-language ZIM', () => {
+    expect(getInitialLanguage(['pt']).code).toBe('pt')
+  })
+
+  it('prefers a stored choice over the ZIM language', () => {
+    localStorage.setItem(localeStorageKey(), 'fr')
+    expect(getInitialLanguage(['pt']).code).toBe('fr')
+  })
+
+  it('ignores an unknown stored locale', () => {
+    localStorage.setItem(localeStorageKey(), 'xx')
+    expect(getInitialLanguage(['pt']).code).toBe('pt')
   })
 })
