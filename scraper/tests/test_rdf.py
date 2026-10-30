@@ -175,6 +175,7 @@ def test_rdf_parser_minimal():
     assert parsed.author_id is None
     assert parsed.first_name is None
     assert parsed.last_name is None
+    assert parsed.suffix is None
     assert parsed.bookshelf is None
     assert not parsed.has_cover
     assert parsed.birth_year is None
@@ -313,32 +314,45 @@ def test_rdf_parser_title_subtitle():
 
 
 @pytest.mark.parametrize(
-    "name, author_id, expected_first_name, expected_last_name",
+    "name, author_id, expected_first_name, expected_last_name, expected_suffix",
     [
         pytest.param(
             "Sullivan, J. W. N. (John William Navin)",
             "58535",
             "J. W. N. (John William Navin)",
             "Sullivan",
+            None,
             id="john_sullivan",
         ),
         pytest.param(
             "John, Joe, Nash",
             "12345",
-            "Nash Joe",
+            "Joe",
             "John",
+            "Nash",
             id="nash_joe_john",
+        ),
+        pytest.param(
+            "Andrews, Henry Cranke, active 1799-1828",
+            "67890",
+            "Henry Cranke",
+            "Andrews",
+            "active 1799-1828",
+            id="andrews_with_suffix",
         ),
         pytest.param(
             "Bob",
             "4567",
             None,
             "Bob",
+            None,
             id="bob",
         ),
     ],
 )
-def test_rdf_parser_author(name, author_id, expected_first_name, expected_last_name):
+def test_rdf_parser_author(
+    name, author_id, expected_first_name, expected_last_name, expected_suffix
+):
     rdf = RdfParser(
         f"""
     {RDF_HEADER}
@@ -362,6 +376,7 @@ def test_rdf_parser_author(name, author_id, expected_first_name, expected_last_n
     assert parsed.gid == 123
     assert parsed.first_name == expected_first_name
     assert parsed.last_name == expected_last_name
+    assert parsed.suffix == expected_suffix
     assert parsed.author_id == author_id
     assert parsed.webpage_resource == "https://en.wikipedia.org/wiki/J._W._N._Sullivan"
 

@@ -38,6 +38,7 @@ as of 2.0.0.
 - UI: sort collections alphabetically by display name in sidebar (#48)
 - Gutenberg: prefer the bundled cover asset over a `<link rel="icon">` href, which PG sometimes mistags with an unrelated illustration (#49)
 - Open Textbook Library: trust the container's system CA store, which includes the `emSign ECC Root CA - G3` issuer of open.umn.edu that `certifi` does not ship, and re-enable the OTL integration tests (#83)
+- Gutenberg: stop scrambling author names with a free-text suffix (e.g. "active 1799-1828"), displaying it in parentheses after the name instead of folding it into the first name (#64)
 
 ## [1.0.0] - 2026-09-25
 

@@ -36,6 +36,7 @@ class RdfParser:
         self.author_id = None
         self.first_name = None
         self.last_name = None
+        self.suffix = None
 
         self.bookshelf = None
         self.lcc_shelf = None
@@ -106,11 +107,10 @@ class RdfParser:
         # the <dcterms:creator> or <marcrel:com> node only return
         # "anonymous" or "unknown". For the case that it's only one word
         # `self.last_name` will be null.
-        # Because of a rare edge case that the field of the parsed
-        # author's name
-        # has more than one comma we will join the first name in reverse,
-        # starting
-        # with the second item.
+        # PG names are "Last, First" (MARC/library convention). Some names
+        # carry extra comma-separated segments beyond last/first (e.g.
+        # "Andrews, Henry Cranke, active 1799-1828"); we keep that free text
+        # as a suffix rather than folding it into the first name.
         author_tag = soup.find("dcterms:creator") or soup.find("marcrel:com")
         if author_tag:
             author_about_tag = author_tag.find("pgterms:agent")
@@ -124,13 +124,13 @@ class RdfParser:
             author_name_tag = author_tag.find("pgterms:name")
             if isinstance(author_name_tag, Tag):  # pragma: no branch
                 author_name = clean_marc_notation(author_name_tag.text)
-                author_name_elements = author_name.split(",")
+                last_name, *rest = author_name.split(",")
 
-                if len(author_name_elements) > 1:
-                    self.first_name = " ".join(
-                        [element.strip() for element in author_name_elements[:0:-1]]
-                    )
-                self.last_name = author_name_elements[0]
+                if rest:
+                    self.first_name = rest[0].strip()
+                if len(rest) > 1:
+                    self.suffix = ", ".join(element.strip() for element in rest[1:])
+                self.last_name = last_name
 
             webpage_tag = author_tag.find("pgterms:webpage")
             if isinstance(webpage_tag, Tag):
@@ -193,22 +193,32 @@ def clean_marc_notation(text: str) -> str:
     return re.sub(r"\$[a-z]\s*", "", text) if text else text
 
 
-def format_author_name(last_name: str | None, first_names: str | None) -> str:
-    """Formatted author name, sanitized for use as a filename component"""
+def format_author_name(
+    last_name: str | None, first_names: str | None, suffix: str | None = None
+) -> str:
+    """Formatted author name, sanitized for use as a filename component
+
+    `suffix` is PG's free-text trailing comma segment(s) (e.g. "active
+    1799-1828"), shown in parentheses after the name rather than folded into
+    the first name.
+    """
 
     def sanitize(text: str) -> str:
         return text.strip().replace("/", "-")[:230]
 
     if not first_names and not last_name:
-        return sanitize("Anonymous")
+        name = "Anonymous"
+    elif not first_names:
+        name = str(last_name)
+    elif not last_name:
+        name = first_names
+    else:
+        name = f"{first_names} {last_name}"
 
-    if not first_names:
-        return sanitize(str(last_name))
+    if suffix:
+        name = f"{name} ({suffix})"
 
-    if not last_name:
-        return sanitize(first_names)
-
-    return sanitize(f"{first_names} {last_name}")
+    return sanitize(name)
 
 
 def _parse_year(value: str | None) -> int | None:
@@ -224,10 +234,11 @@ def _work_from_parser(parser: RdfParser) -> Work:
     if parser.author_id:
         last_name = normalize(parser.last_name) if parser.last_name else None
         first_names = normalize(parser.first_name) if parser.first_name else None
+        suffix = normalize(parser.suffix) if parser.suffix else None
         creators.append(
             Creator(
                 id=parser.author_id,
-                name=format_author_name(last_name or "Unknown", first_names),
+                name=format_author_name(last_name or "Unknown", first_names, suffix),
                 sort_name=last_name,
                 birth_date=_parse_year(parser.birth_year),
                 death_date=_parse_year(parser.death_year),
