@@ -24,7 +24,7 @@ def test_collection_pages_use_configured_label_and_collection_name():
             id="42",
             source="opentextbooks",
             title="Book",
-            creators=[Creator(id="1", name="Author")],
+            creators=[Creator(id="1", display_name="Author")],
             collections=[CollectionRef(id="Computer/Science", name="Computer Science")],
         )
     )
@@ -58,7 +58,7 @@ def test_book_format_links_are_url_encoded():
             id="11",
             source="gutenberg",
             title="Alice's Adventures in Wonderland",
-            creators=[Creator(id="1", name="Lewis Carroll")],
+            creators=[Creator(id="1", display_name="Lewis Carroll")],
         )
     )
 
@@ -80,7 +80,7 @@ def test_author_page_renders_bio_portrait_and_wikipedia_link():
     assembler = MagicMock(name="assembler")
     creator = Creator(
         id="68",
-        name="Jane Austen",
+        display_name="Jane Austen",
         extra={
             "webpage_resource": "https://en.wikipedia.org/wiki/Jane_Austen",
             "bio": "An English novelist.",

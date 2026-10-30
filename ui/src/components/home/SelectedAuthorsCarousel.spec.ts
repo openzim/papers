@@ -11,8 +11,7 @@ import type { AuthorPreview } from '@/types'
 const author = (overrides: Partial<AuthorPreview>): AuthorPreview => ({
   id: 'austen-jane',
   name: 'Jane Austen',
-  firstName: 'Jane',
-  lastName: 'Austen',
+  sortName: 'Austen',
   bookCount: 42,
   ...overrides
 })

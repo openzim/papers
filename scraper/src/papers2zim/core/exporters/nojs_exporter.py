@@ -218,7 +218,7 @@ def generate_noscript_pages(
             content=author_html,
             mimetype="text/html",
             is_front=False,
-            title=creator.name,
+            title=creator.display_name,
             auto_index=False,
         )
 

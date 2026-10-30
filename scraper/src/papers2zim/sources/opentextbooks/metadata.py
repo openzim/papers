@@ -19,7 +19,7 @@ from papers2zim.constants import logger
 from papers2zim.core.download_engine import DownloadEngine, is_fatal_http_error
 from papers2zim.core.models import CollectionRef, Creator, Format, Work
 from papers2zim.core.ports import MetadataPort, WorkRef
-from papers2zim.core.utils import atomic_write_text
+from papers2zim.core.utils import atomic_write_text, author_sort_key
 from papers2zim.sources.opentextbooks.catalog import OTL_SOURCE, normalize_language
 
 # OTL format type -> media type (only the downloadable formats matter;
@@ -42,13 +42,12 @@ def _creator_from_contributor(contributor: dict[str, Any]) -> Creator:
     if contributor.get("corporate"):
         # corporate contributors carry the organisation name in last_name
         name = last or first or "Unknown"
-        return Creator(id=str(contributor["id"]), name=name, sort_name=name)
-    name = " ".join(part for part in (first, last) if part) or "Unknown"
+        return Creator(id=str(contributor["id"]), display_name=name, sort_name=name)
+    display_name = " ".join(part for part in (first, last) if part) or "Unknown"
     return Creator(
         id=str(contributor["id"]),
-        name=name,
-        sort_name=last,
-        extra={"first_names": first or None},
+        display_name=display_name,
+        sort_name=author_sort_key(last, first),
     )
 
 

@@ -10,8 +10,7 @@ import type { AuthorDetail, AuthorPreview } from '@/types'
 const createAuthor = (overrides?: Partial<AuthorDetail>): AuthorDetail => ({
   id: 'austen-jane',
   name: 'Jane Austen',
-  firstName: 'Jane',
-  lastName: 'Austen',
+  sortName: 'Austen',
   birthYear: '1775',
   deathYear: '1817',
   bookCount: 42,

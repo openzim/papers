@@ -8,8 +8,8 @@ import type { BookPreview } from './Book'
 export interface AuthorPreview {
   id: string
   name: string
-  firstName: string | null
-  lastName: string
+  /** Opaque sort key (last name, then first name, ...); not for display. */
+  sortName: string
   bookCount: number
   totalPopularity?: number
   portraitPath?: string | null

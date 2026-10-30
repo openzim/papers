@@ -62,12 +62,11 @@ def tmp_output_dir(tmp_path):
 def mock_creator():
     return Creator(
         id="3485",
-        name="James Richardson",
-        sort_name="Richardson",
+        display_name="James Richardson",
+        sort_name="Richardson, James",
         birth_date=1806,
         death_date=1851,
         extra={
-            "first_names": "James",
             "birth_year_raw": "1806",
             "death_year_raw": "1851",
         },

@@ -15,8 +15,7 @@ const books: BookPreview[] = [
     author: {
       id: 'author-1',
       name: 'First Author',
-      firstName: 'First',
-      lastName: 'Author',
+      sortName: 'Author',
       bookCount: 1,
       totalPopularity: 10
     },
@@ -32,8 +31,7 @@ const books: BookPreview[] = [
     author: {
       id: 'author-2',
       name: 'Second Author',
-      firstName: 'Second',
-      lastName: 'Author',
+      sortName: 'Author',
       bookCount: 1,
       totalPopularity: 100
     },

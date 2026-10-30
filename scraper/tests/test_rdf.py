@@ -6,8 +6,10 @@ from papers2zim.core.download_engine import DownloadEngine
 from papers2zim.sources.gutenberg.metadata import (
     RdfParseError,
     RdfParser,
+    _work_from_parser,
     clean_marc_notation,
     fetch_book_metadata,
+    format_author_name,
 )
 
 RDF_HEADER = """
@@ -379,6 +381,71 @@ def test_rdf_parser_author(
     assert parsed.suffix == expected_suffix
     assert parsed.author_id == author_id
     assert parsed.webpage_resource == "https://en.wikipedia.org/wiki/J._W._N._Sullivan"
+
+
+@pytest.mark.parametrize(
+    "last_name, first_name, suffix, expected",
+    [
+        pytest.param(
+            "Andrews", "Henry Cranke", None, "Henry Cranke Andrews", id="plain"
+        ),
+        pytest.param(
+            "Andrews",
+            "Henry Cranke",
+            "active 1799-1828",
+            "Henry Cranke Andrews (active 1799-1828)",
+            id="with_suffix",
+        ),
+        pytest.param(None, None, None, "Anonymous", id="anonymous"),
+        pytest.param("Bob", None, None, "Bob", id="last_name_only"),
+        pytest.param(None, "Bob", None, "Bob", id="first_name_only"),
+        pytest.param(
+            None,
+            None,
+            "active 1799-1828",
+            "Anonymous (active 1799-1828)",
+            id="suffix_without_name",
+        ),
+        pytest.param(
+            "A" * 300,
+            None,
+            None,
+            "A" * 230,
+            id="truncated_to_230_chars",
+        ),
+        pytest.param(
+            "Doctors/Nurses",
+            "Without",
+            None,
+            "Without Doctors-Nurses",
+            id="slash_sanitized",
+        ),
+    ],
+)
+def test_format_author_name(last_name, first_name, suffix, expected):
+    assert format_author_name(last_name, first_name, suffix) == expected
+
+
+def test_work_from_parser_builds_display_name_and_sort_name_for_suffixed_author():
+    rdf = RdfParser(
+        f"""
+    {RDF_HEADER}
+    <dcterms:creator>
+      <pgterms:agent rdf:about="2009/agents/9999">
+        <pgterms:name>Andrews, Henry Cranke, active 1799-1828</pgterms:name>
+      </pgterms:agent>
+    </dcterms:creator>
+    <dcterms:rights>Public domain in the USA.</dcterms:rights>
+    <pgterms:downloads>1</pgterms:downloads>
+  </pgterms:ebook>
+</rdf:RDF>
+""",
+        1,
+    )
+    work = _work_from_parser(rdf.parse())
+    creator = work.creators[0]
+    assert creator.display_name == "Henry Cranke Andrews (active 1799-1828)"
+    assert creator.sort_name == "Andrews, Henry Cranke, active 1799-1828"
 
 
 def test_rdf_parser_title_missing_license():

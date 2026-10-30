@@ -6,6 +6,7 @@
 
 import { describe, it, expect } from 'vitest'
 import {
+  compareAuthorNames,
   formatAuthorLifespan,
   formatLanguages,
   formatScrapeDate,
@@ -14,6 +15,34 @@ import {
   normalizeImagePath,
   normalizeZimPath
 } from './format-utils'
+
+describe('compareAuthorNames', () => {
+  it('sorts by last name first', () => {
+    const smith = { sortName: 'Smith, Zoe', name: 'Zoe Smith' }
+    const andrews = { sortName: 'Andrews, Amy', name: 'Amy Andrews' }
+    expect(compareAuthorNames(andrews, smith)).toBeLessThan(0)
+    expect(compareAuthorNames(smith, andrews)).toBeGreaterThan(0)
+  })
+
+  it('breaks ties on first name when last names match', () => {
+    const alice = { sortName: 'Clarke, Alice', name: 'Alice Clarke' }
+    const bob = { sortName: 'Clarke, Bob', name: 'Bob Clarke' }
+    expect(compareAuthorNames(alice, bob)).toBeLessThan(0)
+    expect(compareAuthorNames(bob, alice)).toBeGreaterThan(0)
+  })
+
+  it('breaks ties on a disambiguating suffix when last and first names match', () => {
+    const older = { sortName: 'Smith, John, 1850-1900', name: 'John Smith (1850-1900)' }
+    const younger = { sortName: 'Smith, John, 1950-2000', name: 'John Smith (1950-2000)' }
+    expect(compareAuthorNames(older, younger)).toBeLessThan(0)
+  })
+
+  it('falls back to the full name when the sort key ties', () => {
+    const a = { sortName: 'Clarke, Alice', name: 'Alice Clarke (editor)' }
+    const b = { sortName: 'Clarke, Alice', name: 'Alice Clarke (translator)' }
+    expect(compareAuthorNames(a, b)).toBeLessThan(0)
+  })
+})
 
 describe('formatAuthorLifespan', () => {
   it.each([

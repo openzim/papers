@@ -108,8 +108,8 @@ class IndexBuilder:
         for work in works:
             creator = primary_creator(work)
             parts = [
-                work.description or f"Book by {creator.name}",
-                f"by {creator.name}",
+                work.description or f"Book by {creator.display_name}",
+                f"by {creator.display_name}",
             ]
             if work.subtitle:
                 parts.insert(0, work.subtitle)
@@ -126,7 +126,7 @@ class IndexBuilder:
 
         for creator in authors:
             creator_works = by_author.get(creator.id, [])
-            parts = [f"Author: {creator.name}"]
+            parts = [f"Author: {creator.display_name}"]
             birth_year = creator_birth_year(creator)
             death_year = creator_death_year(creator)
             if birth_year or death_year:
@@ -139,7 +139,7 @@ class IndexBuilder:
                 if len(creator_works) > MAX_WORKS_IN_ENTRY:
                     parts.append(f"and {len(creator_works) - MAX_WORKS_IN_ENTRY} more")
             yield IndexEntry(
-                title=creator.name,
+                title=creator.display_name,
                 content=". ".join(parts) + ".",
                 fname=f"author_{creator.id}",
                 route=f"author/{creator.id}",
@@ -154,7 +154,7 @@ class IndexBuilder:
             ]
             if collection_works:
                 entries = [
-                    f"{work.title} by {primary_creator(work).name}"
+                    f"{work.title} by {primary_creator(work).display_name}"
                     for work in collection_works[:MAX_WORKS_IN_ENTRY]
                 ]
                 parts.append("Books: " + ", ".join(entries))

@@ -13,7 +13,7 @@ from papers2zim.constants import logger
 from papers2zim.core.download_engine import DownloadEngine, fetch_bytes_with_retry
 from papers2zim.core.models import CollectionRef, Cover, Creator, Work
 from papers2zim.core.ports import DownloadRequest, MetadataPort, WorkRef
-from papers2zim.core.utils import normalize
+from papers2zim.core.utils import author_sort_key, normalize
 from papers2zim.sources.gutenberg.catalog import (
     GUTENBERG_SOURCE,
     LCC_SHELF_KIND,
@@ -194,7 +194,7 @@ def clean_marc_notation(text: str) -> str:
 
 
 def format_author_name(
-    last_name: str | None, first_names: str | None, suffix: str | None = None
+    last_name: str | None, first_name: str | None, suffix: str | None = None
 ) -> str:
     """Formatted author name, sanitized for use as a filename component
 
@@ -206,14 +206,14 @@ def format_author_name(
     def sanitize(text: str) -> str:
         return text.strip().replace("/", "-")[:230]
 
-    if not first_names and not last_name:
+    if not first_name and not last_name:
         name = "Anonymous"
-    elif not first_names:
+    elif not first_name:
         name = str(last_name)
     elif not last_name:
-        name = first_names
+        name = first_name
     else:
-        name = f"{first_names} {last_name}"
+        name = f"{first_name} {last_name}"
 
     if suffix:
         name = f"{name} ({suffix})"
@@ -233,17 +233,18 @@ def _work_from_parser(parser: RdfParser) -> Work:
     creators = []
     if parser.author_id:
         last_name = normalize(parser.last_name) if parser.last_name else None
-        first_names = normalize(parser.first_name) if parser.first_name else None
+        first_name = normalize(parser.first_name) if parser.first_name else None
         suffix = normalize(parser.suffix) if parser.suffix else None
         creators.append(
             Creator(
                 id=parser.author_id,
-                name=format_author_name(last_name or "Unknown", first_names, suffix),
-                sort_name=last_name,
+                display_name=format_author_name(
+                    last_name or "Unknown", first_name, suffix
+                ),
+                sort_name=author_sort_key(last_name, first_name, suffix),
                 birth_date=_parse_year(parser.birth_year),
                 death_date=_parse_year(parser.death_year),
                 extra={
-                    "first_names": first_names,
                     "birth_year_raw": parser.birth_year,
                     "death_year_raw": parser.death_year,
                     "webpage_resource": parser.webpage_resource,
@@ -253,7 +254,11 @@ def _work_from_parser(parser: RdfParser) -> Work:
     else:
         # No author, use Anonymous
         creators.append(
-            Creator(id=ANONYMOUS_CREATOR_ID, name="Anonymous", sort_name="Anonymous")
+            Creator(
+                id=ANONYMOUS_CREATOR_ID,
+                display_name="Anonymous",
+                sort_name="Anonymous",
+            )
         )
 
     collections = []

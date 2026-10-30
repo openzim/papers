@@ -77,7 +77,7 @@ def primary_creator(work: Work) -> Creator:
     if work.creators:
         return work.creators[0]
     # Reserved non-numeric id: cannot collide with a real source creator id.
-    return Creator(id="anonymous", name="Anonymous", sort_name="Anonymous")
+    return Creator(id="anonymous", display_name="Anonymous", sort_name="Anonymous")
 
 
 def work_creators(work: Work) -> list[Creator]:
@@ -105,9 +105,7 @@ def creator_template_context(creator: Creator) -> SimpleNamespace:
     """Template-friendly view of a Creator"""
     return SimpleNamespace(
         id=creator.id,
-        name=creator.name,
-        first_names=creator.extra.get("first_names"),
-        last_name=creator.sort_name,
+        name=creator.display_name,
         birth_year=creator_birth_year(creator),
         death_year=creator_death_year(creator),
         portrait_path=creator.extra.get("portrait_path"),
@@ -143,6 +141,19 @@ def critical_error(message) -> NoReturn:
 
 def normalize(text: str | None = None) -> str | None:
     return None if text is None else unicodedata.normalize("NFC", text)
+
+
+def author_sort_key(
+    last_name: str | None, first_name: str | None = None, suffix: str | None = None
+) -> str | None:
+    """Opaque sort key ordering by last name, then first name, then suffix
+
+    Not meant for display: callers with a structured last/first name (and,
+    for Gutenberg, a free-text suffix) use this so two creators sharing a
+    last name still sort correctly by first name instead of comparing equal.
+    """
+    parts = [part for part in (last_name, first_name, suffix) if part]
+    return ", ".join(parts) if parts else None
 
 
 def get_zim_name(languages, formats, is_selection, prefix: str):
