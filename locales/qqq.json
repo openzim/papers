@@ -53,6 +53,16 @@
 			"booksIn": "Heading for books in a collection. Parameters: {collection} - collection name",
 			"allCollections": "All collections link in sidebar"
 		},
+		"licenses": {
+			"termBy": "Name of the Creative Commons \"Attribution\" license element (reusers must credit the author). Joined with the other elements of the license to form its name, e.g. \"Attribution-ShareAlike\"",
+			"termNc": "Name of the Creative Commons \"NonCommercial\" license element (no commercial use). Joined with the other elements of the license to form its name, e.g. \"Attribution-NonCommercial\"",
+			"termNd": "Name of the Creative Commons \"NoDerivatives\" license element (no modified versions). Joined with the other elements of the license to form its name, e.g. \"Attribution-NoDerivatives\"",
+			"termSa": "Name of the Creative Commons \"ShareAlike\" license element (derivatives must use the same license). Joined with the other elements of the license to form its name, e.g. \"Attribution-ShareAlike\"",
+			"termSeparator": "Text placed between the elements of a Creative Commons license name, e.g. the hyphen in \"Attribution-ShareAlike\"",
+			"ccName": "Name of a versioned Creative Commons license, followed in the interface by its short code such as \"(CC BY-SA 3.0)\". Parameters: {terms} - license elements joined by the separator, e.g. \"Attribution-ShareAlike\", {version} - license version, e.g. \"3.0\"",
+			"ccNameUnversioned": "Name of a Creative Commons license whose version is not known, followed in the interface by its short code such as \"(CC BY-SA)\". Parameters: {terms} - license elements joined by the separator, e.g. \"Attribution-ShareAlike\"",
+			"cc0Name": "Name of the Creative Commons CC0 1.0 Universal public domain dedication"
+		},
 		"zimInfo": {
 			"trigger": "Accessible label for the header button that opens the ZIM information dialog",
 			"title": "Title of the dialog showing the filters used to build this ZIM",
@@ -408,6 +418,46 @@
 		"book": {
 			"collection": "Label for the Wikisource collection field",
 			"sameCollectionBooks": "Heading for the carousel of books in the same Wikisource collection"
+		},
+		"footer": {
+			"createdBy": "Footer text preceding the source library link",
+			"packagedBy": "Footer text preceding the Kiwix link",
+			"kiwix": "Footer link text pointing to the Kiwix website"
+		}
+	},
+	"onemorelibrary": {
+		"about": {
+			"attribution": "Attribution text shown at the end of the One More Library about page",
+			"introHeading": "Introduction section heading for One More Library",
+			"introParagraph1": "Introduction paragraph 1 for One More Library",
+			"introParagraph2": "Introduction paragraph 2 for One More Library",
+			"introParagraph3": "Introduction paragraph 3 for One More Library",
+			"introParagraph4": "Introduction paragraph 4 for One More Library",
+			"missionAuthor": "Mission author or organisation name",
+			"missionHeading": "Mission section heading for One More Library",
+			"missionParagraph1": "Mission paragraph 1 for One More Library",
+			"missionParagraph2": "Mission paragraph 2 for One More Library",
+			"missionParagraph3": "Mission paragraph 3 for One More Library",
+			"missionParagraph4": "Mission paragraph 4 for One More Library"
+		},
+		"metadata_defaults": {
+			"title": "Default ZIM title used in metadata when no specific title is set",
+			"description": "Default ZIM description used in metadata when no specific description is set"
+		},
+		"nav": {
+			"collections": "Navigation and breadcrumb label for the One More Library categories page"
+		},
+		"home": {
+			"allCollections": "Link label for browsing all One More Library categories",
+			"mostPopular": "Featured-book label for the most popular One More Library book",
+			"popularCollections": "Heading for the popular One More Library categories section"
+		},
+		"collection": {
+			"allCollections": "All One More Library categories link in the sidebar"
+		},
+		"book": {
+			"collection": "Label for the One More Library category field",
+			"sameCollectionBooks": "Heading for the carousel of books in the same One More Library category"
 		},
 		"footer": {
 			"createdBy": "Footer text preceding the source library link",

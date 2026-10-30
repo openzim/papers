@@ -28,6 +28,7 @@ export interface Book extends Omit<BookPreview, 'author'> {
   subtitle: string | null
   author: Author // Full author instead of preview
   license: string
+  licenseId?: string | null // Creative Commons identifier (e.g. "CC-BY-SA-3.0") when license names one
   formats: BookFormat[]
   description: string | null
   published: string | null

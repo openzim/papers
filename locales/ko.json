@@ -85,7 +85,7 @@
 			"loadingBook": "책 정보를 불러오는 중...",
 			"loadingAuthor": "저자 정보를 불러오는 중...",
 			"loadingItems": "{type} 불러오는 중...",
-			"showing": "다음 결과 갯수 표시 중:",
+			"showing": "다음 결과 개수 표시 중:",
 			"of": "/",
 			"search": "검색",
 			"sortBy": "정렬 기준",

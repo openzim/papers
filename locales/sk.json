@@ -11,12 +11,15 @@
 		"nav": {
 			"home": "Domov",
 			"authors": "Autori",
+			"collections": "Zbierky",
 			"about": "O projekte",
 			"books": "Knihy"
 		},
 		"home": {
 			"allAuthors": "Všetci autori",
+			"allCollections": "Všetky zbierky",
 			"discoverAllBooks": "Objavte všetky knihy",
+			"popularCollections": "Obľúbené zbierky",
 			"selectedAuthors": "Vybraní autori",
 			"selectedBooks": "Vybrané knihy"
 		},
@@ -25,6 +28,8 @@
 			"downloads": "stiahnutí",
 			"downloadCount": "Počet stiahnutí",
 			"languages": "Jazyk(y)",
+			"collection": "Zbierka",
+			"published": "Vydané",
 			"license": "Licencia",
 			"licensePd": "Voľné dielo v USA.",
 			"licenseCopyright": "Chránené autorským právom. Podrobnosti nájdete v poznámke o autorských právach v tejto knihe.",
@@ -32,10 +37,12 @@
 			"worksAvailable": "Dostupné diela",
 			"unknown": "Neznáme",
 			"cover": "Obálka knihy",
+			"coverAlt": "Obálka diela {title}",
 			"coverLabel": "(obálka)",
 			"anonymous": "Anonym",
 			"various": "Rôzni",
 			"download": "Stiahnuť",
+			"sameCollectionBooks": "Knihy z rovnakej zbierky",
 			"view": "Zobraziť"
 		},
 		"author": {
@@ -43,7 +50,13 @@
 			"viewAuthor": "Zobraziť autora: {name} ({bookCount})",
 			"wikipediaSource": "Zdroj: Wikipédia"
 		},
+		"collection": {
+			"booksIn": "Knihy v zbierke {collection}",
+			"allCollections": "Všetky zbierky"
+		},
 		"zimInfo": {
+			"trigger": "Informácie o tomto ZIM",
+			"title": "Informácie o tomto ZIM",
 			"source": "Zdroj",
 			"collections": {
 				"one": "Zbierka",
@@ -53,10 +66,28 @@
 				"one": "Kniha",
 				"other": "Knihy"
 			},
+			"language": {
+				"one": "Jazyk",
+				"other": "Jazyky"
+			},
 			"formats": {
 				"one": "Formát",
 				"other": "Formáty"
-			}
+			},
+			"dateScraped": "Dátum stiahnutia obsahu"
+		},
+		"reader": {
+			"close": "Zavrieť čítačku",
+			"closeTableOfContents": "Zavrieť obsah",
+			"contents": "Obsah",
+			"epub": "Čítačka EPUB",
+			"nextSection": "Ďalšia časť",
+			"pdf": "Čítačka PDF",
+			"previousSection": "Predchádzajúca časť",
+			"tableOfContents": "Obsah",
+			"toggleTableOfContents": "Zobraziť alebo skryť obsah",
+			"unableToOpenEpub": "EPUB sa nedá otvoriť.",
+			"unableToOpenPdf": "PDF sa nedá otvoriť."
 		},
 		"common": {
 			"loading": "Načítava sa...",
@@ -73,6 +104,7 @@
 			"mainLanguages": "Hlavné jazyky",
 			"otherLanguages": "Ostatné jazyky",
 			"anyCatalog": "Vyberte katalóg",
+			"backToTop": "Späť nahor",
 			"uiLanguage": "Jazyk rozhrania",
 			"selectInterfaceLanguage": "Vyberte jazyk rozhrania",
 			"filterBy": "Filtrovať podľa",
@@ -93,6 +125,7 @@
 			"next": "Ďalej",
 			"previous": "Predchádzajúce",
 			"readMore": "Čítať viac",
+			"showMore": "Zobraziť viac",
 			"scrollLeft": "Posunúť doľava",
 			"scrollRight": "Posunúť doprava",
 			"showLess": "Zobraziť menej",
@@ -101,16 +134,20 @@
 		"messages": {
 			"noBooks": "Nenašli sa žiadne knihy.",
 			"noAuthors": "Nenašli sa žiadni autori.",
+			"noCollections": "Nenašli sa žiadne zbierky.",
 			"noBooksForAuthor": "Pre tohto autora nie sú dostupné žiadne knihy.",
+			"noBooksInCollection": "V tejto zbierke nie sú dostupné žiadne knihy.",
 			"noLanguages": "Nie sú dostupné žiadne jazyky.",
 			"noFormats": "Nie sú dostupné žiadne formáty.",
 			"notFoundBook": "Kniha sa nenašla. Kniha, ktorú hľadáte, neexistuje alebo bola odstránená.",
 			"notFoundAuthor": "Autor sa nenašiel. Autor, ktorého hľadáte, neexistuje alebo bol odstránený.",
+			"notFoundCollection": "Zbierka sa nenašla. Zbierka, ktorú hľadáte, neexistuje alebo bola odstránená.",
 			"noAuthorsForLetter": "Pre písmeno {letter} sa nenašli žiadni autori."
 		},
 		"itemTypes": {
 			"books": "kniha | knihy",
-			"authors": "autor | autori"
+			"authors": "autor | autori",
+			"collections": "zbierka | zbierky"
 		}
 	},
 	"gutenberg": {
@@ -206,6 +243,217 @@
 			"PS": "Americká literatúra",
 			"PT": "Nemecká, holandská, flámska, afrikánska, škandinávska, staronórska, staroislandská, moderná islandská, faerská, dánska, nórska a švédska literatúra",
 			"PZ": "Beletria a literatúra pre mládež"
+		}
+	},
+	"opentextbooks": {
+		"about": {
+			"attribution": "Informácie poskytla knižnica Open Textbook Library.",
+			"introHeading": "O knižnici Open Textbook Library",
+			"introParagraph1": "Open Textbook Library je zbierka učebníc s otvorenou licenciou určených pre vysokoškolské vzdelávanie.",
+			"introParagraph2": "Jej učebnice možno bezplatne čítať, sťahovať a upravovať v súlade s ich licenciami.",
+			"introParagraph3": "Zbierka pomáha pedagógom nájsť kvalitné učebné materiály bez toho, aby študentom vznikli náklady.",
+			"introParagraph4": "Táto knižnica sprístupňuje tieto učebnice na čítanie offline.",
+			"missionHeading": "Otvorené vzdelávanie",
+			"missionAuthor": "Open Textbook Library",
+			"missionParagraph1": "Otvorené učebnice robia kvalitné učebné materiály dostupnejšími.",
+			"missionParagraph2": "Vyučujúcim dávajú väčší výber pri voľbe študijných materiálov.",
+			"missionParagraph3": "Pomáhajú študentom ponechať si knihy a používať ich bez prekážok v prístupe.",
+			"missionParagraph4": "Otvorené licencie umožňujú vzdelávacie materiály široko zdieľať.",
+			"missionParagraph5": "Vyučujúcim tiež umožňujú prispôsobiť knihy vlastným kurzom.",
+			"missionParagraph6": "Vďaka úpravám môže učebnica lepšie zodpovedať miestnym potrebám výučby a učenia.",
+			"missionParagraph7": "Open Textbook Library zhromažďuje tieto materiály na jednom mieste.",
+			"missionParagraph8": "Jej zbierka podporuje výučbu a učenie v rôznych predmetoch.",
+			"missionParagraph9": "Knihy vytvárajú a udržiavajú autori, pedagógovia a inštitúcie.",
+			"missionParagraph10": "Recenzie od vyučujúcich pomáhajú pedagógom posúdiť, či učebnicu zaradiť do výučby.",
+			"missionParagraph11": "Otvorené učebnice možno používať v tlačenej podobe, online aj offline.",
+			"missionParagraph12": "Podporujú študentov, ktorí potrebujú spoľahlivý prístup k študijným materiálom.",
+			"missionParagraph13": "Podporujú pedagógov, ktorí chcú zlepšovať a zdieľať učebné zdroje.",
+			"missionParagraph14": "Podporujú inštitúcie, ktoré sa snažia znížiť náklady na vysokoškolské vzdelávanie.",
+			"missionParagraph15": "Otvorené vzdelávanie stojí na spolupráci a voľnej výmene poznatkov.",
+			"missionParagraph16": "Táto zbierka pomáha tieto poznatky ľahšie objaviť a využiť.",
+			"missionParagraph17": "Každý sa môže z otvorených vzdelávacích zdrojov učiť a prispievať do nich."
+		},
+		"nav": {
+			"collections": "Predmety"
+		},
+		"home": {
+			"allCollections": "Všetky predmety",
+			"mostPopular": "Najviac recenzované",
+			"popularCollections": "Obľúbené predmety"
+		},
+		"collection": {
+			"booksIn": "Knihy v predmete {collection}",
+			"allCollections": "Všetky predmety"
+		},
+		"messages": {
+			"noCollections": "Nenašli sa žiadne predmety.",
+			"noBooksInCollection": "V tomto predmete nie sú dostupné žiadne knihy.",
+			"notFoundCollection": "Predmet sa nenašiel. Predmet, ktorý hľadáte, neexistuje alebo bol odstránený."
+		},
+		"itemTypes": {
+			"collections": "predmet | predmety"
+		},
+		"footer": {
+			"createdBy": "Vytvorené",
+			"packagedBy": "Balené",
+			"kiwix": "Kiwix"
+		},
+		"book": {
+			"collection": "Predmet",
+			"sameCollectionBooks": "Knihy z rovnakého predmetu"
+		},
+		"collections": {
+			"2": "Obchod",
+			"3": "Informatika",
+			"4": "Spoločenské vedy – ekonómia",
+			"5": "Vzdelávanie",
+			"6": "Humanitné vedy",
+			"7": "Matematika",
+			"8": "Prírodné vedy",
+			"9": "Spoločenské vedy",
+			"10": "Študijný úspech",
+			"11": "Právo",
+			"13": "Inžinierstvo a technika",
+			"16": "Žurnalistika, mediálne štúdiá a komunikácia",
+			"17": "Medicína",
+			"18": "Obchod – účtovníctvo",
+			"19": "Obchod – financie",
+			"20": "Obchod – ľudské zdroje",
+			"21": "Obchod – manažment",
+			"22": "Obchod – marketing",
+			"23": "Informatika – informačné systémy",
+			"24": "Vzdelávanie – kurikulum a výučba",
+			"25": "Vzdelávanie – dištančné vzdelávanie",
+			"26": "Vzdelávanie – primárne vzdelávanie",
+			"27": "Vzdelávanie – vysokoškolské vzdelávanie",
+			"28": "Vzdelávanie – sekundárne vzdelávanie",
+			"29": "Humanitné vedy – umenie",
+			"30": "Humanitné vedy – história",
+			"31": "Humanitné vedy – jazyky",
+			"32": "Humanitné vedy – lingvistika",
+			"33": "Humanitné vedy – literatúra, rétorika a poézia",
+			"34": "Humanitné vedy – filozofia",
+			"35": "Matematika – aplikovaná",
+			"36": "Matematika – čistá",
+			"37": "Prírodné vedy – biológia",
+			"38": "Prírodné vedy – chémia",
+			"39": "Prírodné vedy – fyzika",
+			"40": "Spoločenské vedy – antropológia",
+			"41": "Spoločenské vedy – geografia",
+			"42": "Spoločenské vedy – psychológia",
+			"43": "Spoločenské vedy – sociológia",
+			"44": "Prírodné vedy – vedy o Zemi",
+			"45": "Spoločenské vedy – politológia",
+			"46": "Spoločenské vedy – kultúrne a etnické štúdiá",
+			"47": "Spoločenské vedy – rodové štúdiá a štúdiá sexuality",
+			"51": "Humanitné vedy – náboženstvo",
+			"53": "Inžinierstvo a technika – stavebníctvo",
+			"54": "Inžinierstvo a technika – elektrotechnika",
+			"56": "Inžinierstvo a technika – strojárstvo",
+			"57": "Vzdelávanie – predškolské vzdelávanie",
+			"59": "Informatika – programovacie jazyky",
+			"61": "Informatika – databázy",
+			"62": "Právo – občianske právo",
+			"63": "Právo – trestné právo",
+			"64": "Právo – zmluvné právo",
+			"65": "Právo – procesné právo",
+			"66": "Právo – vlastnícke právo",
+			"67": "Právo – správne právo",
+			"68": "Právo – ústavné právo",
+			"69": "Medicína – výživa",
+			"72": "Medicína – ošetrovateľstvo",
+			"76": "Žurnalistika, mediálne štúdiá a komunikácia – žurnalistika nových médií",
+			"82": "Matematika – štatistika",
+			"83": "Matematika – algebra",
+			"84": "Matematika – matematická analýza (kalkulus)",
+			"85": "Matematika – geometria a trigonometria",
+			"86": "Matematika – analýza",
+			"89": "Humanitné vedy – hudba",
+			"90": "Spoločenské vedy – knihovníctvo a muzeológia"
+		},
+		"metadata_defaults": {
+			"title": "Open Textbook Library",
+			"description": "Bezplatné, recenzované učebnice s otvorenou licenciou"
+		}
+	},
+	"wikisource": {
+		"about": {
+			"attribution": "Text poskytol Wikizdroj, slobodná knižnica.",
+			"introHeading": "O Wikizdroji",
+			"introParagraph1": "Wikizdroj je slobodná online knižnica zdrojových textov, ktorú môže ktokoľvek vylepšovať.",
+			"introParagraph2": "Jeho dobrovoľníci prepisujú a korigujú knihy, dokumenty a ďalšie publikované diela.",
+			"introParagraph3": "Texty pochádzajú z voľných diel a zdrojov so slobodnou licenciou.",
+			"introParagraph4": "Táto knižnica sprístupňuje tieto texty na čítanie offline.",
+			"missionAuthor": "Komunita Wikizdroja",
+			"missionHeading": "Naše poslanie",
+			"missionParagraph1": "Wikizdroj existuje na to, aby sprístupnil slobodné zdrojové texty všetkým, v každom jazyku, bezplatne a navždy.",
+			"missionParagraph2": "Zdrojový text je dielo publikované ako voľné dielo alebo uvoľnené pod slobodnou licenciou, ktoré kopírujeme s absolútnou vernosťou originálu. Naše texty sú korigované a overené, aby sa na to, čo čítajú, mohli spoľahnúť vedci, študenti aj prekladatelia.",
+			"missionParagraph3": "Všetko, čo vytvoríme, má slobodnú licenciu a ktokoľvek to môže opätovne použiť, šíriť a ďalej na tom stavať, offline aj online.",
+			"missionParagraph4": "Knižnicu budujú a udržiavajú dobrovoľníci a prispievať môže ktokoľvek. Tým, že tieto texty udržiavame otvorené, úplné a dostupné offline, pomáhame ich zachovať pre dnešných čitateľov aj pre ďalšie generácie."
+		},
+		"metadata_defaults": {
+			"title": "Knižnica Wikizdroja",
+			"description": "Slobodné zdrojové texty z Wikizdroja"
+		},
+		"nav": {
+			"collections": "Zbierky"
+		},
+		"home": {
+			"allCollections": "Všetky zbierky",
+			"mostPopular": "Najobľúbenejšie",
+			"popularCollections": "Obľúbené zbierky"
+		},
+		"collection": {
+			"allCollections": "Všetky zbierky"
+		},
+		"book": {
+			"collection": "Zbierka",
+			"sameCollectionBooks": "Knihy z rovnakej zbierky"
+		},
+		"footer": {
+			"createdBy": "Vytvorené",
+			"packagedBy": "Balené",
+			"kiwix": "Kiwix"
+		}
+	},
+	"onemorelibrary": {
+		"about": {
+			"attribution": "Metadáta kníh a obrázky obálok poskytuje One More Library.",
+			"introHeading": "O knižnici One More Library",
+			"introParagraph1": "One More Library je bezplatná online knižnica voľných diel.",
+			"introParagraph2": "Jej zbierka zahŕňa literatúru, filozofiu, históriu, vedu, náboženstvo a mnoho ďalších oblastí.",
+			"introParagraph3": "Knihy sú dostupné vo viacerých jazykoch a dajú sa čítať online alebo stiahnuť.",
+			"introParagraph4": "Táto knižnica sprístupňuje tieto knihy na čítanie offline.",
+			"missionAuthor": "Komunita One More Library",
+			"missionHeading": "Bezplatné knihy pre každého",
+			"missionParagraph1": "One More Library existuje preto, aby sprístupnila voľné diela každému, v každom jazyku a zadarmo.",
+			"missionParagraph2": "Zbierka je usporiadaná podľa kategórií a jazykov, aby čitatelia mohli objavovať diela z mnohých tradícií.",
+			"missionParagraph3": "Knihy sa ponúkajú v otvorených formátoch, ako sú EPUB a PDF, ktoré fungujú na väčšine zariadení a čítačiek.",
+			"missionParagraph4": "Dostupnosť týchto kníh offline pomáha zachovať ich pre dnešných aj budúcich čitateľov."
+		},
+		"metadata_defaults": {
+			"title": "One More Library",
+			"description": "Bezplatné voľné diela z One More Library"
+		},
+		"nav": {
+			"collections": "Kategórie"
+		},
+		"home": {
+			"allCollections": "Všetky kategórie",
+			"mostPopular": "Najobľúbenejšie",
+			"popularCollections": "Obľúbené kategórie"
+		},
+		"collection": {
+			"allCollections": "Všetky kategórie"
+		},
+		"book": {
+			"collection": "Kategória",
+			"sameCollectionBooks": "Knihy v rovnakej kategórii"
+		},
+		"footer": {
+			"createdBy": "Vytvorila",
+			"packagedBy": "Zabalil",
+			"kiwix": "Kiwix"
 		}
 	}
 }

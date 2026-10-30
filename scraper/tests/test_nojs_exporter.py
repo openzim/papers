@@ -102,3 +102,49 @@ def test_author_page_renders_bio_portrait_and_wikipedia_link():
     assert "authors/68.webp" in page
     assert "An English novelist." in page
     assert "en.wikipedia.org/wiki/Jane_Austen" in page
+
+
+def _book_page(license_text: str | None) -> str:
+    assembler = MagicMock(name="assembler")
+    store = WorkStore()
+    store.add(
+        Work(
+            id="7",
+            source="wikisource",
+            title="Old Book",
+            creators=[Creator(id="1", name="Author")],
+            license=license_text,
+        )
+    )
+
+    generate_noscript_pages(
+        formats=["html"],
+        work_store=store,
+        assembler=assembler,
+        display_name="Wikisource",
+        indexes=IndexBuilder(store).build(display_name="Wikisource"),
+    )
+
+    return _item_call(assembler, "noscript/book_7.html").kwargs["content"]
+
+
+def test_book_page_shows_a_creative_commons_license_as_a_link():
+    page = _book_page("http://creativecommons.org/licenses/by-sa/3.0")
+
+    assert 'href="https://creativecommons.org/licenses/by-sa/3.0/"' in page
+    assert "Creative Commons Attribution-ShareAlike 3.0 (CC BY-SA 3.0)" in page
+    assert "http://creativecommons.org/licenses/by-sa/3.0<" not in page
+
+
+def test_book_page_shows_an_unversioned_creative_commons_license_without_link():
+    page = _book_page("Attribution-NonCommercial-ShareAlike")
+
+    assert "Creative Commons Attribution-NonCommercial-ShareAlike (CC BY-NC-SA)" in page
+    assert "creativecommons.org" not in page
+
+
+def test_book_page_shows_other_licenses_as_the_source_gave_them():
+    page = _book_page("Public domain in the USA.")
+
+    assert "Public domain in the USA." in page
+    assert "creativecommons.org" not in page

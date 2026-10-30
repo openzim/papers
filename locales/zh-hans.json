@@ -13,12 +13,15 @@
 		"nav": {
 			"home": "主页",
 			"authors": "作者",
+			"collections": "合集",
 			"about": "关于",
 			"books": "书籍"
 		},
 		"home": {
 			"allAuthors": "所有作者",
+			"allCollections": "所有合集",
 			"discoverAllBooks": "探索所有书籍",
+			"popularCollections": "热门合集",
 			"selectedAuthors": "精选作者",
 			"selectedBooks": "精选书籍"
 		},
@@ -27,6 +30,8 @@
 			"downloads": "下载",
 			"downloadCount": "下载次数",
 			"languages": "语言",
+			"collection": "合集",
+			"published": "出版时间",
 			"license": "许可协议",
 			"licensePd": "在美国属于公共领域。",
 			"licenseCopyright": "受版权保护。详情请阅读本书内的版权声明。",
@@ -34,15 +39,57 @@
 			"worksAvailable": "现有作品",
 			"unknown": "未知",
 			"cover": "书籍封面",
+			"coverAlt": "{title}封面",
 			"coverLabel": "（封面）",
 			"anonymous": "匿名作者",
 			"various": "多位作者",
 			"download": "下载",
+			"sameCollectionBooks": "同一合集的书籍",
 			"view": "查看"
 		},
 		"author": {
 			"bookCount": "{n}本书 | {n}本书",
-			"viewAuthor": "查看作者：{name}（{bookCount}）"
+			"viewAuthor": "查看作者：{name}（{bookCount}）",
+			"wikipediaSource": "来源：维基百科"
+		},
+		"collection": {
+			"booksIn": "{collection}中的书籍",
+			"allCollections": "所有合集"
+		},
+		"zimInfo": {
+			"trigger": "有关此ZIM的信息",
+			"title": "有关此ZIM的信息",
+			"source": "来源",
+			"collections": {
+				"one": "合集",
+				"other": "合集"
+			},
+			"books": {
+				"one": "书籍",
+				"other": "书籍"
+			},
+			"language": {
+				"one": "语言",
+				"other": "语言"
+			},
+			"formats": {
+				"one": "格式",
+				"other": "格式"
+			},
+			"dateScraped": "爬取日期"
+		},
+		"reader": {
+			"close": "关闭阅读器",
+			"closeTableOfContents": "关闭目录",
+			"contents": "目录",
+			"epub": "EPUB阅读器",
+			"nextSection": "下一节",
+			"pdf": "PDF阅读器",
+			"previousSection": "上一节",
+			"tableOfContents": "目录",
+			"toggleTableOfContents": "开关目录",
+			"unableToOpenEpub": "无法打开EPUB。",
+			"unableToOpenPdf": "无法打开PDF。"
 		},
 		"common": {
 			"loading": "正在加载…",
@@ -59,6 +106,7 @@
 			"mainLanguages": "主要语言",
 			"otherLanguages": "其他语言",
 			"anyCatalog": "选择目录",
+			"backToTop": "返回顶部",
 			"uiLanguage": "界面语言",
 			"selectInterfaceLanguage": "选择界面语言",
 			"filterBy": "筛选条件",
@@ -75,9 +123,11 @@
 			"navigateTo": "导航至",
 			"navigateToItem": "导航至 {item}",
 			"close": "关闭",
+			"all": "全部",
 			"next": "下一页",
 			"previous": "上一页",
 			"readMore": "阅读更多",
+			"showMore": "显示更多",
 			"scrollLeft": "向左滚动",
 			"scrollRight": "向右滚动",
 			"showLess": "显示更少",
@@ -86,16 +136,20 @@
 		"messages": {
 			"noBooks": "表格内没有可用数据",
 			"noAuthors": "未找到作者。",
-			"noBooksForAuthor": "该作者暂无作品可供查阅。",
+			"noCollections": "未找到合集。",
+			"noBooksForAuthor": "此作者暂无书籍。",
+			"noBooksInCollection": "此合集中暂无书籍。",
 			"noLanguages": "没有可用的语言。",
 			"noFormats": "暂无可用格式。",
-			"notFoundBook": "找不到书籍。您要查找的书籍不存在或已被移除。",
+			"notFoundBook": "未找到书籍。您要查找的书籍不存在或已被移除。",
 			"notFoundAuthor": "未找到作者。您要查找的作者不存在或已被删除。",
+			"notFoundCollection": "未找到合集。您要查找的合集不存在或已被删除。",
 			"noAuthorsForLetter": "未找到信件{letter}的作者。"
 		},
 		"itemTypes": {
 			"books": "书籍|书籍",
-			"authors": "作者|作者"
+			"authors": "作者|作者",
+			"collections": "合集|合集"
 		}
 	},
 	"gutenberg": {
@@ -146,13 +200,14 @@
 			"sameCollectionBooks": "同一书架的书籍"
 		},
 		"footer": {
-			"createdBy": "创建者",
-			"packagedBy": "打包者",
+			"createdBy": "创建者为",
+			"packagedBy": "打包者为",
 			"kiwix": "Kiwix"
 		},
 		"collections": {
 			"A": "总类",
 			"B": "哲学、心理学、宗教",
+			"CDEF": "历史",
 			"C": "历史辅助科学",
 			"D": "世界历史以及欧洲、亚洲、非洲、澳大利亚、新西兰等地的历史",
 			"E": "美洲历史",
@@ -190,6 +245,217 @@
 			"PS": "美国文学",
 			"PT": "德语、荷兰语、佛兰德语、南非荷兰语、斯堪的纳维亚语、古挪威语、古冰岛语、古挪威语、现代冰岛语、法罗语、丹麦语、挪威语和瑞典文学",
 			"PZ": "小说和青少年纯文学"
+		}
+	},
+	"opentextbooks": {
+		"about": {
+			"attribution": "信息由开放教科书图书馆提供。",
+			"introHeading": "关于开放教科书图书馆",
+			"introParagraph1": "开放教科书图书馆是一套供高等教育使用的开放许可教科书合集。",
+			"introParagraph2": "根据许可协议，其教科书可以自由访问、下载和改编。",
+			"introParagraph3": "该合集可帮助教育工作者发现优质的学习资料，而不会给学生增加经济负担。",
+			"introParagraph4": "本图书馆提供这些教科书以供离线阅读。",
+			"missionHeading": "开放教育",
+			"missionAuthor": "开放教科书图书馆",
+			"missionParagraph1": "开放教科书使高质量的学习资料更容易获取。",
+			"missionParagraph2": "它们让教师在选择课程材料时能有更多选择。",
+			"missionParagraph3": "它们帮助学生不受障碍地保存和使用书籍。",
+			"missionParagraph4": "开放许可允许教育资料广泛分享。",
+			"missionParagraph5": "它们还允许教师根据自己的课程改编书籍。",
+			"missionParagraph6": "改编可以使教科书更符合当地的教学和学习需求。",
+			"missionParagraph7": "开放教科书图书馆将这些资料集中在一处。",
+			"missionParagraph8": "其合集可支持各学科的教学和学习。",
+			"missionParagraph9": "书籍由著者、教育工作者和机构创建并维护。",
+			"missionParagraph10": "来自教师的评价有助于教育工作者评估教材是否适合采用。",
+			"missionParagraph11": "开放式教科书可以通过印刷、在线或离线形式使用。",
+			"missionParagraph12": "它们为需要可靠途径来获取课程资料的学生提供支持。",
+			"missionParagraph13": "它们支持希望改进和分享教学资源的教育工作者。",
+			"missionParagraph14": "它们支持致力于降低高等教育成本的机构。",
+			"missionParagraph15": "开放教育依赖于合作以及知识的自由交换。",
+			"missionParagraph16": "本合集有助于人们更容易地发现和使用相应知识。",
+			"missionParagraph17": "欢迎任何人学习和贡献开放教育资源。"
+		},
+		"nav": {
+			"collections": "主题"
+		},
+		"home": {
+			"allCollections": "所有主题",
+			"mostPopular": "最多评论",
+			"popularCollections": "热门主题"
+		},
+		"collection": {
+			"booksIn": "{collection}中的书籍",
+			"allCollections": "所有主题"
+		},
+		"messages": {
+			"noCollections": "未找到主题。",
+			"noBooksInCollection": "此主题下暂无书籍。",
+			"notFoundCollection": "未找到主题。您要查找的主题不存在或已被删除。"
+		},
+		"itemTypes": {
+			"collections": "主题|主题"
+		},
+		"footer": {
+			"createdBy": "创建者为",
+			"packagedBy": "打包者为",
+			"kiwix": "Kiwix"
+		},
+		"book": {
+			"collection": "主题",
+			"sameCollectionBooks": "同一主题的书籍"
+		},
+		"collections": {
+			"2": "商务",
+			"3": "计算机科学",
+			"4": "社会科学 - 经济学",
+			"5": "教育",
+			"6": "人文科学",
+			"7": "数学",
+			"8": "自然科学",
+			"9": "社会科学",
+			"10": "学生成功",
+			"11": "法律",
+			"13": "工程与技术",
+			"16": "新闻学、媒体研究与传播学",
+			"17": "医学",
+			"18": "商务 - 会计",
+			"19": "商务 - 金融",
+			"20": "商务 - 人力资源",
+			"21": "商务 - 管理",
+			"22": "商务 - 营销",
+			"23": "计算机科学 - 信息系统",
+			"24": "教育 - 课程与教学",
+			"25": "教育 - 远程教育",
+			"26": "教育 - 初等教育",
+			"27": "教育 - 高等教育",
+			"28": "教育 - 中等教育",
+			"29": "人文科学 - 艺术",
+			"30": "人文科学 - 历史",
+			"31": "人文科学 - 语言",
+			"32": "人文学科 - 语言学",
+			"33": "人文科学 - 文学、修辞与诗歌",
+			"34": "人文科学 - 哲学",
+			"35": "数学 - 应用数学",
+			"36": "数学 - 纯粹数学",
+			"37": "自然科学 - 生物学",
+			"38": "自然科学 - 化学",
+			"39": "自然科学 - 物理学",
+			"40": "社会科学 - 人类学",
+			"41": "社会科学 - 地理",
+			"42": "社会科学 - 心理学",
+			"43": "社会科学 - 社会学",
+			"44": "自然科学 - 地球科学",
+			"45": "社会科学 - 政治学",
+			"46": "社会科学 - 文化与民族研究",
+			"47": "社会科学 - 性别与性研究",
+			"51": "人文科学 - 宗教",
+			"53": "工程与技术 - 土木工程",
+			"54": "工程与技术 - 电气工程",
+			"56": "工程与技术 - 机械工程",
+			"57": "教育 - 幼儿教育",
+			"59": "计算机科学 - 编程语言",
+			"61": "计算机科学 - 数据库",
+			"62": "法律 - 民法",
+			"63": "法律 - 刑法",
+			"64": "法律 - 合同法",
+			"65": "法律 - 程序法",
+			"66": "法律 - 物权法",
+			"67": "法律 - 行政法",
+			"68": "法律 - 宪法",
+			"69": "医学 - 营养学",
+			"72": "医学 - 护理学",
+			"76": "新闻学、媒体研究与传播学 - 新媒体新闻学",
+			"82": "数学 - 统计学",
+			"83": "数学 - 代数",
+			"84": "数学 - 微积分",
+			"85": "数学 - 几何与三角",
+			"86": "数学 - 数学分析",
+			"89": "人文科学 - 音乐",
+			"90": "社会科学 - 图书馆学与博物馆学"
+		},
+		"metadata_defaults": {
+			"title": "开放教科书图书馆",
+			"description": "自由、经同行评审、开放许可的教科书"
+		}
+	},
+	"wikisource": {
+		"about": {
+			"attribution": "文本内容由维基文库，自由的图书馆提供。",
+			"introHeading": "关于维基文库",
+			"introParagraph1": "维基文库是一个自由的在线文库，任何人都可以对其改进。",
+			"introParagraph2": "其志愿者负责转录和校对书籍、文件以及其他出版作品。",
+			"introParagraph3": "文本均取自公有领域和自由许可来源。",
+			"introParagraph4": "本图书馆提供这些文本以供离线阅读。",
+			"missionAuthor": "维基文库社群",
+			"missionHeading": "我们的使命",
+			"missionParagraph1": "维基文库存在的目的是让任何人都能以任何语言自由、永久地获取自由来源的文本。",
+			"missionParagraph2": "来源文本是指已发布于公有领域或以自由许可协议发布的作品，我们以绝对忠实于原文的方式进行复制。我们的文本经过校对和验证，因此学者、学生和译者可以信赖其所阅读到的内容。",
+			"missionParagraph3": "我们产出的所有内容均采用自由许可，任何人都可以在线上和线下重复使用、重新分发和在原有基础上创作。",
+			"missionParagraph4": "该图书馆由志愿者建设和维护，任何人都可以贡献内容。通过维持这些文本的开放、完整和离线可用性，我们为当代和后世读者保存了这些内容。"
+		},
+		"metadata_defaults": {
+			"title": "维基文库图书馆",
+			"description": "来自维基文库的自由文本"
+		},
+		"nav": {
+			"collections": "合集"
+		},
+		"home": {
+			"allCollections": "所有合集",
+			"mostPopular": "最受欢迎",
+			"popularCollections": "热门合集"
+		},
+		"collection": {
+			"allCollections": "所有合集"
+		},
+		"book": {
+			"collection": "合集",
+			"sameCollectionBooks": "同一合集的书籍"
+		},
+		"footer": {
+			"createdBy": "创建者为",
+			"packagedBy": "打包者为",
+			"kiwix": "Kiwix"
+		}
+	},
+	"onemorelibrary": {
+		"about": {
+			"attribution": "书籍元数据和封面图像由One More Library提供。",
+			"introHeading": "关于One More Library",
+			"introParagraph1": "One More Library是一个收录公有领域图书的自由在线图书馆。",
+			"introParagraph2": "其合集涵盖文学、哲学、历史、科学、宗教以及许多其他学科。",
+			"introParagraph3": "书籍具有多种语言版本，可供在线阅读或下载。",
+			"introParagraph4": "本图书馆提供这些书籍以供离线阅读。",
+			"missionAuthor": "One More Library社群",
+			"missionHeading": "为任何人提供的自由书籍",
+			"missionParagraph1": "One More Library的宗旨是让任何人都能自由获取各种语言版本的公有领域书籍。",
+			"missionParagraph2": "该合集按分类和语言组织，以使读者可以发现来自多种传统的作品。",
+			"missionParagraph3": "书籍以EPUB和PDF等开放格式提供，可在大多数设备和阅读器上运行。",
+			"missionParagraph4": "离线提供这些书籍有助于为当代和未来的读者保存它们。"
+		},
+		"metadata_defaults": {
+			"title": "One More Library",
+			"description": "来自One More Library的自由公有领域书籍"
+		},
+		"nav": {
+			"collections": "分类"
+		},
+		"home": {
+			"allCollections": "所有分类",
+			"mostPopular": "最受欢迎",
+			"popularCollections": "热门分类"
+		},
+		"collection": {
+			"allCollections": "所有分类"
+		},
+		"book": {
+			"collection": "分类",
+			"sameCollectionBooks": "同一分类的书籍"
+		},
+		"footer": {
+			"createdBy": "创建者为",
+			"packagedBy": "打包者为",
+			"kiwix": "Kiwix"
 		}
 	}
 }

@@ -143,6 +143,7 @@ def _work_to_schema(
         author=_creator_to_schema(primary_creator(work), author_stats),
         languages=work.languages,
         license=work.license or "Public domain in the USA.",
+        license_id=work.license_id,
         popularity=float(work.popularity or 0),
         flames=work.flames or 0,
         primary_collection=primary_collection_id(work),

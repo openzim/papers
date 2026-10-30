@@ -60,7 +60,7 @@ onUnmounted(() => {
 
 .back-to-top {
   position: absolute;
-  right: 1.5rem;
+  inset-inline-end: 1.5rem;
   bottom: 0;
   display: flex;
   align-items: center;
@@ -98,7 +98,7 @@ onUnmounted(() => {
   }
 
   .back-to-top {
-    right: 1rem;
+    inset-inline-end: 1rem;
   }
 }
 

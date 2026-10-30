@@ -74,7 +74,7 @@ const { t } = useI18n()
   display: flex;
   flex-direction: column;
   min-width: 0;
-  padding-left: 1.5rem;
+  padding-inline-start: 1.5rem;
 }
 
 .list-book-title {

@@ -148,7 +148,7 @@ const sortedCollections = computed(() =>
   gap: 0.5rem;
   width: 100%;
   padding: 0.3125rem;
-  text-align: left;
+  text-align: start;
   background: none;
   border: none;
   border-radius: 5px;
@@ -186,7 +186,7 @@ const sortedCollections = computed(() =>
 
 .collection-sidebar__count {
   display: inline-block;
-  margin-left: 0.25rem;
+  margin-inline-start: 0.25rem;
   font-size: v-bind(TYPOGRAPHY.SMALL_SIZE);
   color: rgb(var(--v-theme-text));
   opacity: 0.5;
@@ -218,7 +218,7 @@ const sortedCollections = computed(() =>
   }
 
   .collection-sidebar__toggle-label {
-    text-align: left;
+    text-align: start;
   }
 
   .collection-sidebar__toggle-icon {

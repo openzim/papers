@@ -5,13 +5,14 @@ import { useRoute } from 'vue-router'
 import { useMainStore } from '@/stores/main'
 import { useHasMultipleCollections } from '@/composables/useHasMultipleCollections'
 import { LAYOUT, TYPOGRAPHY } from '@/constants/theme'
-import { useDisplay } from 'vuetify'
+import { useDisplay, useRtl } from 'vuetify'
 import ZimInfoDialog from '@/components/layout/ZimInfoDialog.vue'
 
 const { t } = useI18n()
 const route = useRoute()
 const main = useMainStore()
 const { mobile } = useDisplay()
+const { isRtl } = useRtl()
 const hasMultipleCollections = useHasMultipleCollections()
 
 const drawer = ref(false)
@@ -86,6 +87,7 @@ function isActive(path: string): boolean {
     <div
       v-if="drawer"
       class="nav-drawer"
+      :class="{ 'nav-drawer--rtl': isRtl }"
       role="dialog"
       :aria-label="t('common.mobileNavigationMenu')"
     >
@@ -211,6 +213,11 @@ function isActive(path: string): boolean {
 .slide-enter-from .nav-drawer__panel,
 .slide-leave-to .nav-drawer__panel {
   transform: translateX(100%);
+}
+
+.nav-drawer--rtl.slide-enter-from .nav-drawer__panel,
+.nav-drawer--rtl.slide-leave-to .nav-drawer__panel {
+  transform: translateX(-100%);
 }
 
 .app-header {

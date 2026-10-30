@@ -24,6 +24,10 @@ from papers2zim.sources.gutenberg import catalog as gutenberg_catalog
 from papers2zim.sources.gutenberg import cli as gutenberg_cli
 from papers2zim.sources.gutenberg.metadata import GutenbergRdfMetadata
 from papers2zim.sources.gutenberg.pipeline import GutenbergPipeline
+from papers2zim.sources.onemorelibrary import cli as onemorelibrary_cli
+from papers2zim.sources.onemorelibrary.catalog import OnemorelibraryCatalog
+from papers2zim.sources.onemorelibrary.metadata import OnemorelibraryMetadata
+from papers2zim.sources.onemorelibrary.pipeline import OnemorelibraryPipeline
 from papers2zim.sources.opentextbooks import cli as opentextbooks_cli
 from papers2zim.sources.opentextbooks.catalog import OpenTextbookLibraryCatalog
 from papers2zim.sources.opentextbooks.metadata import OpenTextbookLibraryMetadata
@@ -124,6 +128,33 @@ OPEN_TEXTBOOK_LIBRARY_PROFILE = SourceProfile(
     metadata_options=lambda cache_dir: {"cache_dir": cache_dir},
     metadata_class=OpenTextbookLibraryMetadata,
     pipeline_class=OpenTextbookLibraryPipeline,
+)
+
+ONEMORELIBRARY_PROFILE = SourceProfile(
+    slug="onemorelibrary",
+    aliases=("OML",),
+    locale_namespace="onemorelibrary",
+    display_name="One More Library",
+    source_creator="onemorelibrary.com",
+    zim_tags="_category:books;onemorelibrary",
+    zim_name_prefix="onemorelibrary",
+    tagline="free public-domain books",
+    source_description=("A library of free public-domain books in several languages."),
+    collection_label="Categories",
+    collection_icon_style="classification",
+    has_popularity=True,
+    default_mirror_url="https://onemorelibrary.com",
+    catalog_feed_path="",
+    catalog=OnemorelibraryCatalog,
+    cli_options=onemorelibrary_cli.CLI_OPTIONS,
+    parse_cli_options=onemorelibrary_cli.parse_options,
+    handle_cli_action=onemorelibrary_cli.handle_cli_action,
+    pipeline_options=lambda _mirror_url, cache_dir, _source_options, _languages: {
+        "cache_dir": cache_dir
+    },
+    metadata_options=lambda cache_dir: {"cache_dir": cache_dir},
+    metadata_class=OnemorelibraryMetadata,
+    pipeline_class=OnemorelibraryPipeline,
 )
 
 WIKISOURCE_PROFILE = SourceProfile(
@@ -229,3 +260,4 @@ def get_source(slug: str) -> SourceProfile:
 register_source(GUTENBERG_PROFILE)
 register_source(OPEN_TEXTBOOK_LIBRARY_PROFILE)
 register_source(WIKISOURCE_PROFILE)
+register_source(ONEMORELIBRARY_PROFILE)

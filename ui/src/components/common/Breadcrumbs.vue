@@ -2,7 +2,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { LAYOUT, TYPOGRAPHY } from '@/constants/theme'
-import { useDisplay } from 'vuetify'
+import { useDisplay, useRtl } from 'vuetify'
 
 interface BreadcrumbItem {
   title: string
@@ -15,6 +15,7 @@ const props = defineProps<{
 }>()
 
 const { mobile } = useDisplay()
+const { isRtl } = useRtl()
 
 function truncateToWords(title: string, wordCount: number) {
   const words = title.trim().split(/\s+/)
@@ -40,7 +41,7 @@ const displayItems = computed(() =>
       density="compact"
     >
       <template v-slot:divider>
-        <v-icon icon="mdi-chevron-right" size="small" />
+        <v-icon :icon="isRtl ? 'mdi-chevron-left' : 'mdi-chevron-right'" size="small" />
       </template>
     </v-breadcrumbs>
   </div>

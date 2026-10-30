@@ -95,7 +95,7 @@ describe('NotFoundState', () => {
       expect(listButton.props('to')).toBe('/books')
       expect(listButton.props('variant')).toBe('elevated')
       expect(listButton.props('color')).toBe('primary')
-      expect(listButton.classes()).toContain('mr-2')
+      expect(listButton.classes()).toContain('me-2')
 
       const homeButton = buttons[1]!
       expect(homeButton.text()).toBe('Return to Home')

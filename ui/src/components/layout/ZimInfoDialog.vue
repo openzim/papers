@@ -147,13 +147,13 @@ const dateScrapedValue = computed(() => {
 .zim-info-dialog__close {
   position: absolute;
   top: 0.75rem;
-  right: 0.75rem;
+  inset-inline-end: 0.75rem;
   z-index: 1;
 }
 
 .zim-info-dialog__title {
   /* Keep a long title from running under the close button */
-  padding-right: 3rem;
+  padding-inline-end: 3rem;
   font-family: var(--zim-info-font-family);
   font-size: var(--zim-info-title-size);
   font-weight: var(--zim-info-bold-weight);
@@ -193,7 +193,7 @@ const dateScrapedValue = computed(() => {
 
 .zim-info-dialog__bullets {
   margin: 0;
-  padding-left: 0.8rem;
+  padding-inline-start: 0.8rem;
   list-style: none;
 }
 
@@ -204,7 +204,7 @@ const dateScrapedValue = computed(() => {
 .zim-info-dialog__bullets li::before {
   content: '–';
   position: absolute;
-  left: -0.8rem;
+  inset-inline-start: -0.8rem;
 }
 
 @media (max-width: 767px) {

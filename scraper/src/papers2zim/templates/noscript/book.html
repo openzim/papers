@@ -42,7 +42,13 @@
             {% endif %}
 
             <dt>License</dt>
-            <dd>{{ book.license }}</dd>
+            <dd>
+                {% if book.license_url %}
+                <a href="{{ book.license_url }}" rel="noopener noreferrer">{{ book.license_label }}</a>
+                {% else %}
+                {{ book.license_label }}
+                {% endif %}
+            </dd>
 
         </dl>
     </div>

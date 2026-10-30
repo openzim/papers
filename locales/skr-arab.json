@@ -48,5 +48,20 @@
 			"K": "قنون",
 			"T": "ٹیکنالوجی"
 		}
+	},
+	"onemorelibrary": {
+		"nav": {
+			"collections": "ونکیاں"
+		},
+		"home": {
+			"allCollections": "ساریاں ونکیاں"
+		},
+		"book": {
+			"collection": "ونکی"
+		},
+		"footer": {
+			"createdBy": "بݨاوݨ آلا",
+			"kiwix": "کیویکس"
+		}
 	}
 }

@@ -69,6 +69,9 @@ class Book(BookPreview):
 
     subtitle: str | None = None
     license: str
+    # Creative Commons identifier (e.g. "CC-BY-SA-3.0") when `license` names one;
+    # the UI then shows a localized label and a link instead of `license`
+    license_id: str | None = None
     author: Author
     formats: list[BookFormat]
     description: str | None = None

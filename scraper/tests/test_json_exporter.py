@@ -4,6 +4,8 @@ import json
 import re
 from unittest.mock import MagicMock
 
+import pytest
+
 from papers2zim.core.exporters.json_exporter import generate_json_files
 from papers2zim.core.index_builder import IndexBuilder
 from papers2zim.core.models import CollectionRef, Creator, Work
@@ -404,3 +406,46 @@ def test_book_detail_exports_published():
     )
     detail = json.loads(detail_call.kwargs["content"])
     assert detail["published"] == "c. 1813-1820"
+
+
+@pytest.mark.parametrize(
+    ("source_license", "expected_id"),
+    [
+        ("http://creativecommons.org/licenses/by-sa/3.0", "CC-BY-SA-3.0"),
+        ("Attribution-NonCommercial", "CC-BY-NC"),
+        ("Public domain in the USA.", None),
+        (None, None),
+    ],
+)
+def test_book_detail_exports_license_id(source_license, expected_id):
+    assembler = MagicMock(name="assembler")
+    store = WorkStore()
+    store.add(
+        Work(
+            id="10",
+            source="wikisource",
+            title="Old Book",
+            creators=[Creator(id="1", name="Author")],
+            license=source_license,
+        )
+    )
+
+    generate_json_files(
+        zim_name="test",
+        formats=["pdf"],
+        work_store=store,
+        assembler=assembler,
+        display_name="Wikisource",
+        source_slug="wikisource",
+        indexes=_indexes(store),
+    )
+
+    detail_call = next(
+        call
+        for call in assembler.add_item_for.call_args_list
+        if call.kwargs["path"] == "books/10.json"
+    )
+    detail = json.loads(detail_call.kwargs["content"])
+    assert detail["licenseId"] == expected_id
+    # the source's own text stays available as the fallback
+    assert detail["license"] == (source_license or "Public domain in the USA.")

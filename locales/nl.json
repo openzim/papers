@@ -29,6 +29,7 @@
 			"downloadCount": "Aantal downloads",
 			"languages": "Taal",
 			"collection": "Verzameling",
+			"published": "Gepubliceerd",
 			"license": "Licentie",
 			"licensePd": "Publiek domein in de VS.",
 			"licenseCopyright": "Auteursrechtelijk beschermd. Lees de copyrightvermelding in dit boek voor meer informatie.",
@@ -46,11 +47,34 @@
 		},
 		"author": {
 			"bookCount": "{n} boek | {n} boeken",
-			"viewAuthor": "Auteur bekijken: {name} ({bookCount})"
+			"viewAuthor": "Auteur bekijken: {name} ({bookCount})",
+			"wikipediaSource": "Bron: Wikipedia"
 		},
 		"collection": {
 			"booksIn": "Boeken in {collection}",
 			"allCollections": "Alle verzamelingen"
+		},
+		"zimInfo": {
+			"trigger": "Informatie over deze ZIM",
+			"title": "Informatie over deze ZIM",
+			"source": "Bron",
+			"collections": {
+				"one": "Collectie",
+				"other": "Collecties"
+			},
+			"books": {
+				"one": "Boek",
+				"other": "Boeken"
+			},
+			"language": {
+				"one": "Taal",
+				"other": "Talen"
+			},
+			"formats": {
+				"one": "Formaat",
+				"other": "Formaten"
+			},
+			"dateScraped": "Datum van scrapen"
 		},
 		"reader": {
 			"close": "Leesmodus sluiten",
@@ -70,12 +94,12 @@
 			"loadingBook": "Boekgegevens laden...",
 			"loadingAuthor": "Auteursgegevens laden...",
 			"loadingItems": "{type} laden...",
-			"showing": "Weergegeven:",
+			"showing": "Weergegeven",
 			"of": "van",
 			"search": "Zoek",
 			"sortBy": "Sorteren op",
-			"sortPopularity": "Sorteer boeken op populariteit",
-			"sortTitle": "Sorteer boeken op titel",
+			"sortPopularity": "Populariteit",
+			"sortTitle": "Titel",
 			"chooseLanguage": "Kies een taal...",
 			"mainLanguages": "Belangrijkste talen",
 			"otherLanguages": "Andere talen",
@@ -89,7 +113,7 @@
 			"listView": "Lijstweergave",
 			"browseAll": "Alles bekijken",
 			"browseAllAuthors": "Alle auteurs bekijken",
-			"returnHome": "Ga naar huis",
+			"returnHome": "Terug naar startpagina",
 			"toggleNavigationMenu": "Navigatiemenu in-/uitschakelen",
 			"mainNavigation": "Hoofdnavigatie",
 			"mobileNavigationMenu": "Mobiel navigatiemenu",
@@ -97,6 +121,7 @@
 			"navigateTo": "Navigeren naar",
 			"navigateToItem": "Navigeren naar {item}",
 			"close": "Sluiten",
+			"all": "Alle",
 			"next": "Volgende",
 			"previous": "Vorige",
 			"readMore": "Meer lezen",
@@ -180,6 +205,7 @@
 		"collections": {
 			"A": "Algemene werken",
 			"B": "Filosofie, psychologie, religie",
+			"CDEF": "Geschiedenis",
 			"C": "Historische hulpwetenschappen",
 			"D": "Wereldgeschiedenis en geschiedenis van Europa, Azië, Afrika, Australië, Nieuw-Zeeland, enz.",
 			"E": "Geschiedenis van Amerika",
@@ -252,6 +278,7 @@
 		},
 		"home": {
 			"allCollections": "Alle onderwerpen",
+			"mostPopular": "Meest beoordeeld",
 			"popularCollections": "Populaire onderwerpen"
 		},
 		"collection": {
@@ -347,6 +374,46 @@
 		"metadata_defaults": {
 			"title": "Open Textbook Library",
 			"description": "Gratis, door vakgenoten beoordeelde en onder open licentie uitgegeven studieboeken"
+		}
+	},
+	"wikisource": {
+		"about": {
+			"attribution": "Tekst aangeleverd door Wikisource, de vrije bibliotheek.",
+			"introHeading": "Over Wikisource",
+			"introParagraph1": "Wikisource is een vrije online bibliotheek van bronteksten die iedereen kan verbeteren.",
+			"introParagraph2": "De vrijwilligers ervan transcriberen en proeflezen boeken, documenten en andere gepubliceerde werken.",
+			"introParagraph3": "De teksten zijn afkomstig uit bronnen in het publiek domein en vrij gelicentieerde bronnen.",
+			"introParagraph4": "Deze bibliotheek maakt die teksten beschikbaar om offline te lezen.",
+			"missionAuthor": "De Wikisource-gemeenschap",
+			"missionHeading": "Onze missie",
+			"missionParagraph1": "Wikisource bestaat om vrije bronteksten voor iedereen beschikbaar te maken, in elke taal, gratis en voor altijd.",
+			"missionParagraph2": "Een brontekst is een werk dat in het publiek domein is gepubliceerd of onder een vrije licentie is vrijgegeven, dat we met absolute getrouwheid aan het origineel kopiëren. Onze teksten worden proefgelezen en geverifieerd, zodat wetenschappers, studenten en vertalers kunnen vertrouwen op wat zij lezen.",
+			"missionParagraph3": "Alles wat we maken is vrij gelicentieerd en mag door iedereen worden hergebruikt, verder verspreid en als basis worden gebruikt, offline en online.",
+			"missionParagraph4": "De bibliotheek wordt gebouwd en onderhouden door vrijwilligers, en iedereen mag bijdragen. Door deze teksten open, volledig en offline beschikbaar te houden, helpen we ze te bewaren voor de lezers van vandaag en voor de generaties die volgen."
+		},
+		"metadata_defaults": {
+			"title": "Wikisource-bibliotheek",
+			"description": "Vrije bronteksten van Wikisource"
+		},
+		"nav": {
+			"collections": "Collecties"
+		},
+		"home": {
+			"allCollections": "Alle collecties",
+			"mostPopular": "Meest populair",
+			"popularCollections": "Populaire collecties"
+		},
+		"collection": {
+			"allCollections": "Alle collecties"
+		},
+		"book": {
+			"collection": "Collectie",
+			"sameCollectionBooks": "Boeken in dezelfde collectie"
+		},
+		"footer": {
+			"createdBy": "Gemaakt door",
+			"packagedBy": "Verpakt door",
+			"kiwix": "Kiwix"
 		}
 	}
 }

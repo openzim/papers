@@ -43,8 +43,7 @@ const flameCount = computed(() => Math.max(0, Math.min(3, Math.floor(props.flame
   fill: currentColor;
   color: #ff8c00;
   opacity: 1;
-  margin-right: -2px;
-  margin-left: -2px;
+  margin-inline: -2px;
 }
 
 .flame-icon--dim {

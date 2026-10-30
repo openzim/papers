@@ -3,6 +3,7 @@ import { createVuetify } from 'vuetify'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 import { createI18n } from 'vue-i18n'
+import en from '../locales/en.json'
 
 // Mock browser APIs
 globalThis.ResizeObserver = class ResizeObserver {
@@ -78,6 +79,8 @@ const i18n = createI18n({
       collection: {
         bookCount: '{n} book | {n} books'
       },
+      // The real messages, so license tests fail when a key is renamed or removed
+      licenses: en.common.licenses,
       zimInfo: {
         trigger: 'Information about this ZIM',
         title: 'Information about this ZIM',

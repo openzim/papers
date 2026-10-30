@@ -158,5 +158,24 @@
 		"about": {
 			"missionHeading": "La nostra missione"
 		}
+	},
+	"onemorelibrary": {
+		"nav": {
+			"collections": "Categorie"
+		},
+		"home": {
+			"allCollections": "Tutte le categorie",
+			"popularCollections": "Categorie popolari"
+		},
+		"collection": {
+			"allCollections": "Tutte le categorie"
+		},
+		"book": {
+			"collection": "Categoria"
+		},
+		"footer": {
+			"createdBy": "Creato da",
+			"kiwix": "Kiwix"
+		}
 	}
 }

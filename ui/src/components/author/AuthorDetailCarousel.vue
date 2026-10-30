@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import { computed, ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
+import { computed, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { AuthorPreview, AuthorDetail } from '@/types'
 import AuthorCard from './AuthorCard.vue'
 import CarouselArrow from '@/components/common/CarouselArrow.vue'
 import { compareAuthorNames } from '@/utils/format-utils'
-import { useDisplay } from 'vuetify'
+import { useScrollTrack } from '@/composables/useScrollTrack'
+import { useDisplay, useRtl } from 'vuetify'
 import { LAYOUT } from '@/constants/theme.ts'
 
 const { mobile } = useDisplay()
+const { isRtl } = useRtl()
 
 const props = defineProps<{
   authors: AuthorPreview[]
@@ -23,41 +25,10 @@ const currentIndex = computed(() =>
   sortedAuthors.value.findIndex((a) => a.id === props.currentAuthor.id)
 )
 
-const trackRef = ref<HTMLElement | null>(null)
-const hasPrevious = ref(false)
-const hasNext = ref(false)
-
-function updateScrollState() {
-  const track = trackRef.value
-  if (!track) return
-  hasPrevious.value = track.scrollLeft > 0
-  hasNext.value = track.scrollLeft + track.clientWidth < track.scrollWidth - 1
-}
-
-function scrollByCell(direction: 1 | -1) {
-  const track = trackRef.value
-  if (!track) return
-  const cell = track.querySelector('.carousel-cell--others')
-  const cellWidth = cell ? cell.clientWidth : track.clientWidth / 5
-  track.scrollBy({ left: direction * cellWidth, behavior: 'smooth' })
-}
-
-function shiftLeft() {
-  scrollByCell(-1)
-}
-
-function shiftRight() {
-  scrollByCell(1)
-}
-
-onMounted(() => {
-  updateScrollState()
-  window.addEventListener('resize', updateScrollState)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('resize', updateScrollState)
-})
+const { trackRef, hasPrevious, hasNext, updateScrollState, shiftPrevious, shiftNext } =
+  useScrollTrack({
+    cellSelector: '.carousel-cell--others'
+  })
 
 // Scroll to current author
 watch(
@@ -67,7 +38,18 @@ watch(
     if (trackRef.value) {
       const currentCell = trackRef.value.querySelector('.carousel-cell--current') as HTMLElement
       if (currentCell) {
-        if (mobile.value) {
+        if (isRtl.value) {
+          const track = trackRef.value
+          const offsetFromStart =
+            track.scrollWidth - (currentCell.offsetLeft + currentCell.clientWidth)
+          if (mobile.value) {
+            track.scrollTo({ left: -offsetFromStart })
+          } else {
+            track.scrollTo({
+              left: -Math.max(0, offsetFromStart - currentCell.clientWidth * 2)
+            })
+          }
+        } else if (mobile.value) {
           trackRef.value.scrollTo({ left: currentCell.offsetLeft })
         } else {
           trackRef.value.scrollTo({ left: currentCell.offsetLeft - currentCell.clientWidth * 2 })
@@ -85,10 +67,10 @@ watch(
     <div class="author-detail-carousel--inner">
       <div class="carousel-arrow-wrapper carousel-arrow-wrapper--left" v-if="!mobile">
         <carousel-arrow
-          direction="left"
+          direction="prev"
           :disabled="!hasPrevious"
           :ariaLabel="t('common.previous')"
-          @click="shiftLeft"
+          @click="shiftPrevious"
         />
       </div>
 
@@ -112,10 +94,10 @@ watch(
 
       <div class="carousel-arrow-wrapper carousel-arrow-wrapper--right" v-if="!mobile">
         <carousel-arrow
-          direction="right"
+          direction="next"
           :disabled="!hasNext"
           :ariaLabel="t('common.next')"
-          @click="shiftRight"
+          @click="shiftNext"
         />
       </div>
     </div>
@@ -127,8 +109,8 @@ watch(
   border-top: 0.5px solid rgb(var(--v-theme-grid));
   background-color: rgb(var(--v-theme-bgd2));
   width: 100vw;
-  margin-left: calc(50% - 50vw);
-  margin-right: calc(50% - 50vw);
+  margin-inline: calc(50% - 50vw);
+
   margin-bottom: -2rem;
 }
 
@@ -183,8 +165,7 @@ watch(
 @media (max-width: 767px) {
   .author-detail-carousel {
     width: 100vw;
-    margin-left: calc(50% - 50vw);
-    margin-right: calc(50% - 50vw);
+    margin-inline: calc(50% - 50vw);
   }
 
   .carousel-track-wrapper {

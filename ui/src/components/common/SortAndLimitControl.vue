@@ -194,7 +194,7 @@ if (typeof document !== 'undefined') {
   font-size: 0.875rem;
   font-weight: 500;
   color: rgb(var(--v-theme-text));
-  text-align: left;
+  text-align: start;
 }
 
 .dropdown__trigger:hover {
@@ -224,7 +224,7 @@ if (typeof document !== 'undefined') {
 .dropdown__menu {
   position: absolute;
   top: calc(100% + 4px);
-  left: 0;
+  inset-inline-start: 0;
   width: 100%;
   background: rgb(var(--v-theme-background));
   border: 1px solid rgb(var(--v-theme-grid));

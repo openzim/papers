@@ -8,6 +8,8 @@ everything downstream (storage, export, ZIM assembly) only ever sees these types
 from dataclasses import dataclass, field
 from typing import Any
 
+from papers2zim.core.licenses import license_identifier
+
 
 @dataclass(frozen=True, slots=True)
 class Creator:
@@ -64,3 +66,8 @@ class Work:
     published: str | None = None
     source_url: str | None = None
     extra: dict[str, Any] = field(default_factory=dict)
+
+    @property
+    def license_id(self) -> str | None:
+        """Creative Commons identifier of `license`, when it names one."""
+        return license_identifier(self.license)

@@ -99,6 +99,42 @@ def test_otl_ids_and_books_cannot_be_combined():
         )
 
 
+def test_oml_categories_are_stored_as_generic_collections():
+    config = build_scrape_config(
+        {"--source": "onemorelibrary", "--categories": "Art,Science"}
+    )
+
+    assert config.source_options["collections"] == ["Art", "Science"]
+    assert config.collections == ["Art", "Science"]
+    assert config.is_selection is True
+
+
+def test_oml_ids_are_stored_for_onemorelibrary():
+    config = build_scrape_config({"--source": "onemorelibrary", "--oml-ids": "42,108"})
+
+    assert config.source_options["book_ids"] == ["42", "108"]
+    assert config.books is not None
+    assert sorted(config.books) == ["108", "42"]
+    assert config.is_selection is True
+
+
+def test_oml_ids_must_be_numeric():
+    with pytest.raises(CriticalError, match="numeric One More Library book IDs"):
+        build_scrape_config({"--source": "onemorelibrary", "--oml-ids": "abc"})
+
+
+def test_oml_ids_and_books_cannot_be_combined():
+    with pytest.raises(CriticalError, match="either --books or --oml-ids"):
+        build_scrape_config(
+            {"--source": "onemorelibrary", "--books": "1-5", "--oml-ids": "42"}
+        )
+
+
+def test_oml_categories_are_rejected_for_other_sources():
+    with pytest.raises(CriticalError, match="belongs to --source onemorelibrary"):
+        build_scrape_config({"--source": "gutenberg", "--categories": "Art"})
+
+
 def test_wikisource_pages_are_stored_for_wikisource():
     config = build_scrape_config(
         {

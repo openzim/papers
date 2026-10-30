@@ -49,7 +49,7 @@ watch(
       <!-- Desktop arrows -->
       <div class="carousel-arrow-wrapper g-desktop-only">
         <carousel-arrow
-          direction="left"
+          direction="prev"
           :disabled="!hasPrevious"
           :ariaLabel="t('common.scrollLeft')"
           @click="shiftLeft"
@@ -82,7 +82,7 @@ watch(
 
       <div class="carousel-arrow-wrapper g-desktop-only">
         <carousel-arrow
-          direction="right"
+          direction="next"
           :disabled="!hasNext"
           :ariaLabel="t('common.scrollRight')"
           @click="shiftRight"

@@ -12,6 +12,7 @@ import chardet
 
 from papers2zim.constants import logger
 from papers2zim.core.language import language_name
+from papers2zim.core.licenses import license_label, license_url
 from papers2zim.core.models import Creator, Work
 from papers2zim.core.work_store import WorkStore
 
@@ -116,12 +117,18 @@ def creator_template_context(creator: Creator) -> SimpleNamespace:
 
 def work_template_context(work: Work) -> SimpleNamespace:
     """Template-friendly view of a Work for the Jinja templates"""
+    license_id = work.license_id
     return SimpleNamespace(
         id=work.id,
         title=work.title,
         subtitle=work.subtitle,
         languages=work.languages,
         license=work.license,
+        # Recognized licenses get a readable name and a link; anything else is
+        # shown as the source gave it
+        license_label=(license_label(license_id) if license_id else None)
+        or work.license,
+        license_url=license_url(license_id) if license_id else None,
         primary_collection=primary_collection_id(work),
         has_cover=work.extra.get("has_cover", work.cover is not None),
         description=work.description,
