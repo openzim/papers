@@ -107,12 +107,12 @@ class IndexBuilder:
     ) -> Iterable[IndexEntry]:
         for work in works:
             creator = primary_creator(work)
-            parts = [
-                work.description or f"Book by {creator.display_name}",
-                f"by {creator.display_name}",
-            ]
+            parts = []
             if work.subtitle:
-                parts.insert(0, work.subtitle)
+                parts.append(work.subtitle)
+            if work.description:
+                parts.append(work.description)
+            parts.append(f"A book by {creator.display_name}")
             if work.languages:
                 parts.append(f"Languages: {', '.join(work.languages)}")
             if collection_id := primary_collection_id(work):
