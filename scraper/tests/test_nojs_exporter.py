@@ -112,7 +112,7 @@ def _book_page(license_text: str | None) -> str:
             id="7",
             source="wikisource",
             title="Old Book",
-            creators=[Creator(id="1", name="Author")],
+            creators=[Creator(id="1", display_name="Author")],
             license=license_text,
         )
     )

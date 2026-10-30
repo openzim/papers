@@ -110,8 +110,8 @@ def test_parse_book_page_maps_creator_and_collections():
     assert work is not None
     (creator,) = work.creators
     assert creator.id == "358"
-    assert creator.name == "Arthur Schopenhauer"
-    assert creator.sort_name == "Schopenhauer"
+    assert creator.display_name == "Arthur Schopenhauer"
+    assert creator.sort_name == "Schopenhauer, Arthur"
     assert creator.extra["wikipedia_url"].endswith("Arthur_Schopenhauer")
     assert [collection.name for collection in work.collections] == [
         "Art",

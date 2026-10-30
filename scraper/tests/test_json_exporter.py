@@ -425,7 +425,7 @@ def test_book_detail_exports_license_id(source_license, expected_id):
             id="10",
             source="wikisource",
             title="Old Book",
-            creators=[Creator(id="1", name="Author")],
+            creators=[Creator(id="1", display_name="Author")],
             license=source_license,
         )
     )

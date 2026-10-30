@@ -45,14 +45,31 @@ def test_fname_for(mock_work):
 
 
 def test_author_sort_key_orders_by_last_then_first_then_suffix():
-    assert author_sort_key("Clarke", "Alice") < author_sort_key("Clarke", "Bob")
-    assert author_sort_key("Andrews", "Henry Cranke") < author_sort_key("Smith")
+    alice = author_sort_key("Clarke", "Alice")
+    bob = author_sort_key("Clarke", "Bob")
+    assert alice == "Clarke, Alice"
+    assert bob == "Clarke, Bob"
+    assert alice is not None
+    assert bob is not None
+    assert alice < bob
+
+    andrews = author_sort_key("Andrews", "Henry Cranke")
+    smith = author_sort_key("Smith")
+    assert andrews == "Andrews, Henry Cranke"
+    assert smith == "Smith"
+    assert andrews is not None
+    assert smith is not None
+    assert andrews < smith
 
 
 def test_author_sort_key_disambiguates_same_last_and_first_name_by_suffix():
-    assert author_sort_key("Smith", "John", "1850-1900") < author_sort_key(
-        "Smith", "John", "1950-2000"
-    )
+    older = author_sort_key("Smith", "John", "1850-1900")
+    younger = author_sort_key("Smith", "John", "1950-2000")
+    assert older is not None
+    assert younger is not None
+    assert older == "Smith, John, 1850-1900"
+    assert younger == "Smith, John, 1950-2000"
+    assert older < younger
 
 
 def test_author_sort_key_drops_missing_parts():
