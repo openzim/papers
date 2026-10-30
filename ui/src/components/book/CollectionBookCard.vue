@@ -30,7 +30,7 @@ const { t } = useI18n()
       </h3>
 
       <p class="collection-book-author mb-2">
-        {{ book.author?.name }}
+        {{ book.author?.displayName }}
       </p>
     </div>
 

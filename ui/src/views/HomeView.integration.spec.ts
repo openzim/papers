@@ -26,7 +26,7 @@ const mockAuthorsData: Authors = {
   authors: [
     {
       id: '1',
-      name: 'Jane Austen',
+      displayName: 'Jane Austen',
       sortName: 'Austen',
       bookCount: 1,
       totalPopularity: 10
@@ -40,7 +40,7 @@ const mockBooksData: Books = {
     {
       id: '1',
       title: 'Emma',
-      author: { id: '1', name: 'Jane Austen', sortName: 'Austen', bookCount: 1 },
+      author: { id: '1', displayName: 'Jane Austen', sortName: 'Austen', bookCount: 1 },
       languages: ['en'],
       popularity: 10,
       flames: 2,

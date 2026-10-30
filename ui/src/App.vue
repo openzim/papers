@@ -36,7 +36,7 @@ const breadcrumbItems = computed(() => {
     if (route.name === 'book-detail' && main.currentBook) {
       items.push({ title: main.currentBook.title })
     } else if (route.name === 'author-detail' && main.currentAuthor) {
-      items.push({ title: main.currentAuthor.name })
+      items.push({ title: main.currentAuthor.displayName })
     }
   } else {
     items.push({ title: t(name) })
@@ -77,7 +77,7 @@ const pageTitle = computed(() => {
     return `${main.currentBook.title} - ${siteTitle}`
   }
   if (route.name === 'author-detail' && main.currentAuthor) {
-    return `${main.currentAuthor.name} - ${siteTitle}`
+    return `${main.currentAuthor.displayName} - ${siteTitle}`
   }
   return `${sectionLabel.value} - ${siteTitle}`
 })

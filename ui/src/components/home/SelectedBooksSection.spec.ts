@@ -14,7 +14,7 @@ const books: BookPreview[] = [
     title: 'First three-flame book',
     author: {
       id: 'author-1',
-      name: 'First Author',
+      displayName: 'First Author',
       sortName: 'Author',
       bookCount: 1,
       totalPopularity: 10
@@ -30,7 +30,7 @@ const books: BookPreview[] = [
     title: 'Highest raw popularity',
     author: {
       id: 'author-2',
-      name: 'Second Author',
+      displayName: 'Second Author',
       sortName: 'Author',
       bookCount: 1,
       totalPopularity: 100

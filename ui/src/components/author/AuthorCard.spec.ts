@@ -40,7 +40,7 @@ vi.mock('vue-router', () => ({
 describe('AuthorCard', () => {
   const createAuthor = (overrides?: Partial<AuthorPreview>): AuthorPreview => ({
     id: 'austen-jane',
-    name: 'Jane Austen',
+    displayName: 'Jane Austen',
     sortName: 'Austen',
     bookCount: 42,
     ...overrides
@@ -171,7 +171,7 @@ describe('AuthorCard', () => {
       'Saint-Exupéry, Antoine de'
     ])('handles name format: %s', (name) => {
       const wrapper = mount(AuthorCard, {
-        props: { author: createAuthor({ name }) }
+        props: { author: createAuthor({ displayName: name }) }
       })
 
       expect(wrapper.text()).toContain(name)
@@ -194,7 +194,7 @@ describe('AuthorCard', () => {
   describe('Edge Cases', () => {
     it('handles empty name and ID', () => {
       const wrapper = mount(AuthorCard, {
-        props: { author: createAuthor({ name: '', id: '' }) }
+        props: { author: createAuthor({ displayName: '', id: '' }) }
       })
 
       expect(wrapper.find('.author-card__name').text()).toBe('')

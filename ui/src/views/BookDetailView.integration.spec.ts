@@ -16,7 +16,7 @@ const mockBookData: Book = {
   title: 'Pride and Prejudice',
   author: {
     id: 'austen-jane',
-    name: 'Jane Austen',
+    displayName: 'Jane Austen',
     sortName: 'Austen',
     birthYear: '1775',
     deathYear: '1817',
