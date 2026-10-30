@@ -89,6 +89,8 @@ describe('Main Store Integration', () => {
       const mockConfig: Config = {
         title: 'Test Library',
         description: 'Test source books',
+        zimName: 'test-library',
+        bookLanguages: ['en'],
         source: {
           slug: 'test-source',
           name: 'Test Source',

@@ -34,4 +34,10 @@ export interface Config {
   theme: ThemeConfig
   features: FeatureFlags
   contentInfo: ZimContentInfo
+  // Stable internal ZIM name/slug, independent of `title`; used to key
+  // per-ZIM state such as the persisted interface language choice.
+  zimName: string
+  // Distinct language codes actually present across the exported books,
+  // regardless of any `--languages` filter that was requested.
+  bookLanguages: string[]
 }

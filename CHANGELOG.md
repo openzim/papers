@@ -20,6 +20,7 @@ as of 2.0.0.
 - Cache optimized EPUB and HTML images under an S3 bucket (`--optimization-cache`), keyed by the input image content so Project Gutenberg's frequent file rebuilds no longer defeat the cache (#32)
 - One More Library: add the `onemorelibrary` source (aliases `OML`), scraping public-domain EPUB/PDF books with `--categories` and `--oml-ids` filters (#94)
 - Show Creative Commons licenses as a localized name linking to the license, instead of the raw value of the source (e.g. a bare `http://creativecommons.org/licenses/by-sa/3.0` for Wikisource). The scraper reduces license URIs, short codes and names to an identifier (`licenseId` in the book JSON) shared by all sources (#17)
+- UI: bring back the interface language switcher (`config.json` now carries the distinct book languages and a stable ZIM name). A ZIM built with a single language defaults its interface to that language instead of the browser's; a multi-language ZIM still defaults to the browser's. The switcher is a searchable, translate-icon-triggered list of native + English language names, with the browser and ZIM languages pinned first, and persists the choice per ZIM instead of globally (#35)
 
 ### Changed
 
