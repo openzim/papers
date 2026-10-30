@@ -46,7 +46,7 @@ class WikisourceMetadata(MetadataPort):
         extra = ref.extra
         author = extra.get("author")
         creators = (
-            [Creator(id=author_id(author), name=author, sort_name=author)]
+            [Creator(id=author_id(author), display_name=author, sort_name=author)]
             if author
             else []
         )

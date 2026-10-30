@@ -11,6 +11,7 @@ import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import { useHasPopularity } from '@/composables/useHasPopularity'
 import { useHasMultipleCollections } from '@/composables/useHasMultipleCollections'
 import { LAYOUT } from '@/constants/theme'
+import { compareAuthorNames } from '@/utils/format-utils'
 
 const { t } = useI18n()
 const main = useMainStore()
@@ -44,7 +45,7 @@ const popularAuthors = computed(() =>
     .sort((a, b) =>
       hasPopularity.value
         ? (b.totalPopularity || 0) - (a.totalPopularity || 0)
-        : a.name.localeCompare(b.name)
+        : compareAuthorNames(a, b)
     )
     .slice(0, 10)
 )

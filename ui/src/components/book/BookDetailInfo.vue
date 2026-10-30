@@ -142,10 +142,10 @@ const collectionDisplayName = computed(() => {
             :to="`/author/${book.author.id}`"
             class="inter-13 text-decoration-underline author-name"
           >
-            {{ book.author.name }}
+            {{ book.author.displayName }}
           </router-link>
           <span v-else class="inter-13 author-name">{{
-            book.author?.name || t('book.unknown')
+            book.author?.displayName || t('book.unknown')
           }}</span>
           <span class="author-book-count">
             ({{ t('author.bookCount', book.author.bookCount) }})
@@ -159,10 +159,10 @@ const collectionDisplayName = computed(() => {
             :to="`/author/${book.author.id}`"
             class="inter-13 text-decoration-underline author-name"
           >
-            {{ book.author.name }}
+            {{ book.author.displayName }}
           </router-link>
           <span v-else class="inter-13 author-name">{{
-            book.author?.name || t('book.unknown')
+            book.author?.displayName || t('book.unknown')
           }}</span>
           <span class="author-book-count">
             ({{ t('author.bookCount', book.author.bookCount) }})

@@ -175,7 +175,9 @@ def store_portrait(
         # Wikipedia serves a raster thumbnail; store it as WebP like covers
         data = ImageProcessor.optimize_image_content(data)
     except (requests.RequestException, OSError, ValueError) as exc:
-        logger.warning(f"Failed to fetch or store portrait for {creator.name}: {exc}")
+        logger.warning(
+            f"Failed to fetch or store portrait for {creator.display_name}: {exc}"
+        )
         return False
     assembler.add_item_for(
         path=portrait_path,

@@ -43,9 +43,8 @@ def _jpeg_bytes() -> bytes:
 def _arrow_creator() -> Creator:
     return Creator(
         id="68",
-        name="Jane Austen",
+        display_name="Jane Austen",
         extra={
-            "first_names": "Jane",
             "webpage_resource": "https://en.wikipedia.org/wiki/Jane_Austen",
         },
     )
@@ -54,7 +53,7 @@ def _arrow_creator() -> Creator:
 def _amicis_creator() -> Creator:
     return Creator(
         id="61885",
-        name="De Amicis, Edmondo",
+        display_name="De Amicis, Edmondo",
         extra={
             "webpage_resource": "https://en.wikipedia.org/wiki/Edmondo_De_Amicis",
         },
@@ -72,23 +71,23 @@ def test_wikipedia_article_extracts_language_and_title():
     assert wikipedia_article(
         Creator(
             id="1",
-            name="Italian",
+            display_name="Italian",
             extra={"webpage_resource": "https://it.wikipedia.org/wiki/Guido_da_Verona"},
         )
     ) == ("it", "Guido_da_Verona")
     assert wikipedia_article(
         Creator(
             id="2",
-            name="Mobile",
+            display_name="Mobile",
             extra={"webpage_resource": "https://en.m.wikipedia.org/wiki/Jane_Austen"},
         )
     ) == ("en", "Jane_Austen")
-    assert wikipedia_article(Creator(id="3", name="No Link")) is None
+    assert wikipedia_article(Creator(id="3", display_name="No Link")) is None
     assert (
         wikipedia_article(
             Creator(
                 id="4",
-                name="Personal Site",
+                display_name="Personal Site",
                 extra={"webpage_resource": "https://example.org/about"},
             )
         )
@@ -238,8 +237,10 @@ def test_enrich_creator_sets_bio_portrait_and_skips_without_link():
     assert isinstance(call.kwargs["content"], bytes) and call.kwargs["content"]
 
     engine.fetch_bytes.reset_mock()
-    unchanged = enrich_creator(Creator(id="216", name="Anonymous"), engine, assembler)
-    assert unchanged == Creator(id="216", name="Anonymous")
+    unchanged = enrich_creator(
+        Creator(id="216", display_name="Anonymous"), engine, assembler
+    )
+    assert unchanged == Creator(id="216", display_name="Anonymous")
     engine.fetch_bytes.assert_not_called()
 
 
@@ -493,7 +494,7 @@ def test_enrich_authors_keeps_curated_link_without_a_requested_language():
 def test_enrich_authors_ignores_authors_without_wikipedia():
     engine = MagicMock(name="engine")
     assembler = MagicMock(name="assembler")
-    store = _store_with_creator(Creator(id="216", name="Anonymous"))
+    store = _store_with_creator(Creator(id="216", display_name="Anonymous"))
 
     enrich_authors(store, engine, assembler, concurrency=1)
 

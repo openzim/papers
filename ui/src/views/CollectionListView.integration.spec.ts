@@ -27,9 +27,8 @@ const mockBooks: BookPreview[] = [
     title: 'Alice in Wonderland',
     author: {
       id: '1',
-      name: 'Lewis Carroll',
-      firstName: 'Lewis',
-      lastName: 'Carroll',
+      displayName: 'Lewis Carroll',
+      sortName: 'Carroll',
       bookCount: 1
     },
     languages: ['en'],
@@ -41,7 +40,7 @@ const mockBooks: BookPreview[] = [
   {
     id: '2',
     title: 'Pride and Prejudice',
-    author: { id: '2', name: 'Jane Austen', firstName: 'Jane', lastName: 'Austen', bookCount: 1 },
+    author: { id: '2', displayName: 'Jane Austen', sortName: 'Austen', bookCount: 1 },
     languages: ['en'],
     popularity: 30000,
     flames: 2,

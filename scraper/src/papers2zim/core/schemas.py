@@ -18,9 +18,8 @@ class AuthorPreview(CamelModel):
     """Author preview for list views"""
 
     id: str
-    name: str  # Formatted full name
-    first_name: str | None = None
-    last_name: str
+    display_name: str  # Full name as shown to readers
+    sort_name: str  # Opaque sort key (last name, then first name, ...), not for display
     book_count: int
     total_popularity: float = 0
     portrait_path: str | None = None

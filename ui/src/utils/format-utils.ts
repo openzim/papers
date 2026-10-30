@@ -14,10 +14,10 @@ export function formatAuthorLifespan(birthYear: string | null, deathYear: string
 }
 
 export function compareAuthorNames(
-  a: { lastName: string; name: string },
-  b: { lastName: string; name: string }
+  a: { sortName: string; displayName: string },
+  b: { sortName: string; displayName: string }
 ): number {
-  return a.lastName.localeCompare(b.lastName) || a.name.localeCompare(b.name)
+  return a.sortName.localeCompare(b.sortName) || a.displayName.localeCompare(b.displayName)
 }
 
 export function formatLabel(format: string): string {

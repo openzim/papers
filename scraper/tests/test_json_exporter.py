@@ -31,8 +31,8 @@ def _work(work_id: str, title: str, creator: Creator, shelf: str) -> Work:
 
 
 def _store() -> WorkStore:
-    dickens = Creator(id="37", name="Charles Dickens")
-    austen = Creator(id="68", name="Jane Austen")
+    dickens = Creator(id="37", display_name="Charles Dickens")
+    austen = Creator(id="68", display_name="Jane Austen")
     store = WorkStore()
     store.add(_work("1", "Bleak House", dickens, "PR"))
     store.add(_work("2", "Emma", austen, "PR"))
@@ -124,7 +124,7 @@ def test_generate_json_files_does_not_emit_legacy_shelf_files():
 
 def test_collection_detail_path_encodes_unsafe_collection_id():
     assembler = MagicMock(name="assembler")
-    creator = Creator(id="1", name="Author")
+    creator = Creator(id="1", display_name="Author")
     store = WorkStore()
     store.add(_work("1", "Book", creator, "A/B & C"))
 
@@ -278,8 +278,8 @@ def test_config_reports_a_single_collection_source():
 
 def test_config_reports_a_source_with_multiple_collections():
     assembler = MagicMock(name="assembler")
-    dickens = Creator(id="37", name="Charles Dickens")
-    austen = Creator(id="68", name="Jane Austen")
+    dickens = Creator(id="37", display_name="Charles Dickens")
+    austen = Creator(id="68", display_name="Jane Austen")
     store = WorkStore()
     store.add(_work("1", "Bleak House", dickens, "PR"))
     store.add(_work("2", "Emma", austen, "PZ"))
@@ -298,7 +298,7 @@ def test_config_reports_a_source_with_multiple_collections():
 
 def test_book_detail_exports_popularity_and_flames():
     assembler = MagicMock(name="assembler")
-    creator = Creator(id="1", name="Reviewer")
+    creator = Creator(id="1", display_name="Reviewer")
     store = WorkStore()
     store.add(
         Work(
@@ -337,9 +337,8 @@ def test_author_details_include_wikipedia_enrichment_fields():
     assembler = MagicMock(name="assembler")
     creator = Creator(
         id="68",
-        name="Jane Austen",
+        display_name="Jane Austen",
         extra={
-            "first_names": "Jane",
             "webpage_resource": "https://en.wikipedia.org/wiki/Jane_Austen",
             "bio": "An English novelist.",
             "portrait_path": "authors/68.webp",
@@ -378,7 +377,7 @@ def test_author_details_include_wikipedia_enrichment_fields():
 
 def test_book_detail_exports_published():
     assembler = MagicMock(name="assembler")
-    creator = Creator(id="1", name="Reviewer")
+    creator = Creator(id="1", display_name="Reviewer")
     store = WorkStore()
     store.add(
         Work(
@@ -426,7 +425,7 @@ def test_book_detail_exports_license_id(source_license, expected_id):
             id="10",
             source="wikisource",
             title="Old Book",
-            creators=[Creator(id="1", name="Author")],
+            creators=[Creator(id="1", display_name="Author")],
             license=source_license,
         )
     )

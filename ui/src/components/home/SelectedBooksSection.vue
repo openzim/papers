@@ -89,7 +89,7 @@ function goToAuthor(id: string) {
               @click="goToAuthor(mostPopular.author.id)"
             >
               <p class="featured-book__author">
-                {{ mostPopular.author?.name }}
+                {{ mostPopular.author?.displayName }}
               </p>
             </button>
 

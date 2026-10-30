@@ -23,17 +23,7 @@
         <dl>
             <dt>Author ID</dt>
             <dd>{{ author.id }}</dd>
-            
-            {% if author.first_names %}
-            <dt>First Name</dt>
-            <dd>{{ author.first_names }}</dd>
-            {% endif %}
-            
-            {% if author.last_name %}
-            <dt>Last Name</dt>
-            <dd>{{ author.last_name }}</dd>
-            {% endif %}
-            
+
             {% if author.birth_year or author.death_year %}
             <dt>Lifespan</dt>
             <dd>

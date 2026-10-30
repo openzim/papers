@@ -14,7 +14,10 @@ from papers2zim.core.licenses import license_identifier
 @dataclass(frozen=True, slots=True)
 class Creator:
     id: str
-    name: str
+    # Full name as shown to readers, e.g. "Henry Cranke Andrews (active 1799-1828)"
+    display_name: str
+    # Opaque sort key (last name, then first name, then any remaining
+    # disambiguating text, sources permitting), not meant for display
     sort_name: str | None = None
     birth_date: int | None = None
     death_date: int | None = None

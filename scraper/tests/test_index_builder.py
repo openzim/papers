@@ -24,8 +24,8 @@ def _work(
     )
 
 
-DICKENS = Creator(id="37", name="Charles Dickens")
-AUSTEN = Creator(id="68", name="Jane Austen")
+DICKENS = Creator(id="37", display_name="Charles Dickens")
+AUSTEN = Creator(id="68", display_name="Jane Austen")
 FICTION = CollectionRef(id="PR", name="English literature", kind="subject")
 LCC_SHELF = CollectionRef(id="PR", name="English literature", kind="lcc_shelf")
 
