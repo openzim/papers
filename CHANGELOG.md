@@ -33,6 +33,8 @@ as of 2.0.0.
 
 ### Fixed
 
+- Wikisource: ignore non-image metadata covers in EPUBs and use declared-only covers so books without a cover fall back to the placeholder instead of extracting the site logo (#16)
+
 - UI: switch layout disposition to RTL when an RTL language is selected, and convert physical margins/paddings to logical properties (#86)
 - Resolve ZIM language metadata for ISO 639-3 codes with no ISO 639-1 equivalent (e.g. `grc`/Ancient Greek) without having to hardcode each one, and fix `fur`/Friulian being mislabeled as the unrelated `fvr`/Fur language (#102)
 
