@@ -23,14 +23,8 @@
 		},
 		"common": {
 			"loading": "Вчитувам...",
-			"search": "Пребарај",
 			"sortPopularity": "Подреди книги по популарност",
 			"sortTitle": "Подреди книги по наслов",
-			"chooseLanguage": "Изберете јазик...",
-			"mainLanguages": "Главни јазици",
-			"otherLanguages": "Други јазици",
-			"anyCatalog": "Изберете каталог",
-			"uiLanguage": "Јазик на посредникот",
 			"returnHome": "Оди Дома",
 			"sortAuthor": "Автор"
 		},

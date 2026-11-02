@@ -23,14 +23,8 @@
 		},
 		"common": {
 			"loading": "Indlæser...",
-			"search": "Søg",
 			"sortPopularity": "Sortér bøger efter popularitet",
 			"sortTitle": "Sortér bøger efter titel",
-			"chooseLanguage": "Vælg et sprog...",
-			"mainLanguages": "Hovedsprog",
-			"otherLanguages": "Andre sprog",
-			"anyCatalog": "Vælg kataloget",
-			"uiLanguage": "Grænsefladesprog",
 			"returnHome": "Gå hjem",
 			"sortAuthor": "Forfatter"
 		},

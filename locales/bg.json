@@ -5,9 +5,7 @@
 		]
 	},
 	"common": {
-		"common": {
-			"search": "Търсене"
-		}
+		"common": {}
 	},
 	"gutenberg": {
 		"metadata_defaults": {

@@ -54,15 +54,8 @@
 		"common": {
 			"loading": "Gëtt gelueden...",
 			"loadingBook": "Buchdetailer gi gelueden...",
-			"search": "Sichen",
-			"sortBy": "Sortéieren no",
 			"sortPopularity": "Bicher no Popularitéit sortéieren",
 			"sortTitle": "Bicher no Titel sortéieren",
-			"chooseLanguage": "Sicht eng Sprooch eraus...",
-			"mainLanguages": "Haaptsproochen",
-			"otherLanguages": "Aner Sproochen",
-			"anyCatalog": "Wielt de Katalog",
-			"uiLanguage": "Sprooch vum Interface",
 			"close": "Zoumaachen",
 			"readMore": "Méi liesen",
 			"sortAuthor": "Auteur"
