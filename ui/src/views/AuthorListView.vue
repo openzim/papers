@@ -43,13 +43,13 @@ const filteredByLetter = computed(() => {
   if (activeFilter.value === '0-9') {
     // Digits and any other non-letter symbols
     return sortedAuthors.value.filter((author) => {
-      const firstChar = baseFirstChar(author.lastName)
+      const firstChar = baseFirstChar(author.sortName)
       return firstChar < 'A' || firstChar > 'Z'
     })
   }
 
   return sortedAuthors.value.filter((author) => {
-    return baseFirstChar(author.lastName) === activeFilter.value
+    return baseFirstChar(author.sortName) === activeFilter.value
   })
 })
 

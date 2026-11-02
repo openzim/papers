@@ -6,6 +6,7 @@
 
 import { describe, it, expect } from 'vitest'
 import {
+  compareAuthorNames,
   formatAuthorLifespan,
   formatLanguages,
   formatScrapeDate,
@@ -14,6 +15,43 @@ import {
   normalizeImagePath,
   normalizeZimPath
 } from './format-utils'
+
+describe('compareAuthorNames', () => {
+  it('sorts by last name first', () => {
+    const smith = { sortName: 'Smith', displayName: 'Zoe Smith' }
+    const andrews = { sortName: 'Andrews', displayName: 'Amy Andrews' }
+    expect(compareAuthorNames(andrews, smith)).toBeLessThan(0)
+    expect(compareAuthorNames(smith, andrews)).toBeGreaterThan(0)
+  })
+
+  it('does not reorder compound surnames against a shorter one', () => {
+    // A composite "last, first" sort key would put "Alma-Tadema" ahead of
+    // "Alma" since '-' sorts before ',' - keeping sortName as the last name
+    // alone avoids that.
+    const alma = { sortName: 'Alma', displayName: 'Maude Alma' }
+    const almaTadema = { sortName: 'Alma-Tadema', displayName: 'Laurence Alma-Tadema' }
+    expect(compareAuthorNames(alma, almaTadema)).toBeLessThan(0)
+  })
+
+  it('breaks ties on the full display name when last names match', () => {
+    const alice = { sortName: 'Clarke', displayName: 'Alice Clarke' }
+    const bob = { sortName: 'Clarke', displayName: 'Bob Clarke' }
+    expect(compareAuthorNames(alice, bob)).toBeLessThan(0)
+    expect(compareAuthorNames(bob, alice)).toBeGreaterThan(0)
+  })
+
+  it('breaks ties on a disambiguating suffix embedded in the display name', () => {
+    const older = { sortName: 'Smith', displayName: 'John Smith (1850-1900)' }
+    const younger = { sortName: 'Smith', displayName: 'John Smith (1950-2000)' }
+    expect(compareAuthorNames(older, younger)).toBeLessThan(0)
+  })
+
+  it('falls back to the full name when the sort key and tiebreak tie', () => {
+    const a = { sortName: 'Clarke', displayName: 'Alice Clarke (editor)' }
+    const b = { sortName: 'Clarke', displayName: 'Alice Clarke (translator)' }
+    expect(compareAuthorNames(a, b)).toBeLessThan(0)
+  })
+})
 
 describe('formatAuthorLifespan', () => {
   it.each([

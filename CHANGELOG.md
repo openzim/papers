@@ -31,6 +31,7 @@ as of 2.0.0.
 - Gutenberg: prefer the cover declared by the downloaded EPUB over Project Gutenberg's ~200px `cover.medium.jpg` thumbnail, which yields sharper covers without an extra download; the thumbnail stays as fallback (#68)
 - Fine tune UI display (margins, ...) (#85)
 - UI: blur background content behind ZimInfoDialog (#87)
+- Rename the ambiguous `Creator.name`/`first_name`/`last_name` to `display_name` (the formatted string shown to readers) and `sort_name` (the last name alone, used only to sort, never displayed), dropping the unused decomposed first/last name fields; the JSON/UI `name` field is now `displayName` (#64)
 
 ### Fixed
 
@@ -46,6 +47,9 @@ as of 2.0.0.
 - UI: sort collections alphabetically by display name in sidebar (#48)
 - Gutenberg: prefer the bundled cover asset over a `<link rel="icon">` href, which PG sometimes mistags with an unrelated illustration (#49)
 - Open Textbook Library: trust the container's system CA store, which includes the `emSign ECC Root CA - G3` issuer of open.umn.edu that `certifi` does not ship, and re-enable the OTL integration tests (#83)
+- Gutenberg: stop scrambling author names with a free-text suffix (e.g. "active 1799-1828"), displaying it in parentheses after the name instead of folding it into the first name (#64)
+- Gutenberg: place a recognized title before the name ("Sir Thomas Browne", "Lady Frances Balfour") and a generational suffix after it ("Horatio Alger Jr.") instead of in parentheses; any other suffix (dates, "Saint", other titles, ...) still defaults to parentheses (#64)
+- Stop mentioning the author twice in a book's full-text search index entry when the book has no description (#64)
 
 ## [1.0.0] - 2026-09-25
 

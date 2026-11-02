@@ -53,7 +53,7 @@ def test_fetch_maps_the_feed_entry_into_a_work():
     assert work.license == "http://creativecommons.org/licenses/by-sa/3.0"
     assert work.source_url == "https://en.wikisource.org/wiki/First_Book"
     assert work.published == "1913"
-    assert [creator.name for creator in work.creators] == ["A. Writer"]
+    assert [creator.display_name for creator in work.creators] == ["A. Writer"]
     assert {fmt.name for fmt in work.formats} == {"epub", "xhtml"}
     epub = next(fmt for fmt in work.formats if fmt.name == "epub")
     assert epub.media_type == "application/epub+zip"

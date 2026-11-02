@@ -29,7 +29,7 @@ const { t } = useI18n()
       </h3>
 
       <p class="list-book-author mb-2">
-        {{ book.author?.name }}
+        {{ book.author?.displayName }}
       </p>
 
       <p v-if="book.description" class="list-book-description mb-2">

@@ -14,10 +14,17 @@ export function formatAuthorLifespan(birthYear: string | null, deathYear: string
 }
 
 export function compareAuthorNames(
-  a: { lastName: string; name: string },
-  b: { lastName: string; name: string }
+  a: { sortName: string; displayName: string },
+  b: { sortName: string; displayName: string }
 ): number {
-  return a.lastName.localeCompare(b.lastName) || a.name.localeCompare(b.name)
+  // Tiebreaking on the full displayName (rather than a separate first-name
+  // field) can rarely misorder two authors sharing a last name, if one's
+  // first name is a prefix of the other's and the following text happens to
+  // collate ambiguously across that boundary (e.g. "Francis A. (...)" vs
+  // "Francis" + a last name starting with "A"). This only affects the
+  // relative order of that one pair, never the overall last-name grouping,
+  // and matches this app's pre-existing sort behavior.
+  return a.sortName.localeCompare(b.sortName) || a.displayName.localeCompare(b.displayName)
 }
 
 export function formatLabel(format: string): string {
