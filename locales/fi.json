@@ -44,10 +44,7 @@
 			"unableToOpenPdf": "PDF-tiedostoa ei voitu avata."
 		},
 		"common": {
-			"search": "Haku",
 			"sortTitle": "Otsikko",
-			"chooseLanguage": "Valitse kieli...",
-			"otherLanguages": "Muut kielet",
 			"close": "Sulje",
 			"next": "Seuraava",
 			"previous": "Edellinen",

@@ -25,9 +25,7 @@
 		"common": {
 			"loadingAuthor": "Autori info laadimine...",
 			"loadingItems": "Laadimine {type}...",
-			"sortBy": "Sorteeri",
 			"sortPopularity": "Populaarsus",
-			"uiLanguage": "Kasutajaliidese keel",
 			"selectInterfaceLanguage": "Vali kasutajaliidese keel",
 			"gridView": "Ruudustikuvaade",
 			"listView": "Loendivaade",

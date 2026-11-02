@@ -32,14 +32,8 @@
 		},
 		"common": {
 			"loading": "جار التحميل...",
-			"search": "بحث",
 			"sortPopularity": "رتب الكتب بحسب الشعبية",
 			"sortTitle": "رتب الكتب بحسب العنوان",
-			"chooseLanguage": "أختر لغة...",
-			"mainLanguages": "اللغات الأساسية",
-			"otherLanguages": "اللغات الأخرى",
-			"anyCatalog": "أختر قائمة",
-			"uiLanguage": "لغة الواجهة",
 			"returnHome": "العودة للرئيسية",
 			"sortAuthor": "المؤلف"
 		},

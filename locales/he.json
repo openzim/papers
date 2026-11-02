@@ -24,13 +24,7 @@
 		},
 		"common": {
 			"loading": "טעינה...",
-			"search": "חיפוש",
-			"sortTitle": "כותרת",
-			"chooseLanguage": "בחירת שפה...",
-			"mainLanguages": "שפות ראשיות",
-			"otherLanguages": "שפות אחרות",
-			"anyCatalog": "בחירת הקטלוג",
-			"uiLanguage": "שפת ממשק"
+			"sortTitle": "כותרת"
 		},
 		"messages": {
 			"noBooks": "לא נמצאו ספרים."

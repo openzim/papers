@@ -19,13 +19,7 @@
 		},
 		"common": {
 			"loading": "Γίνεται φόρτωση...",
-			"search": "Αναζήτηση",
 			"sortTitle": "Τίτλος",
-			"chooseLanguage": "Επιλέξτε μια γλώσσα...",
-			"mainLanguages": "Κύριες γλώσσες",
-			"otherLanguages": "Άλλες γλώσσες",
-			"anyCatalog": "Επιλέξτε τον Κατάλογο",
-			"uiLanguage": "Γλώσσα διεπαφής",
 			"returnHome": "Μετάβαση στην Αρχική",
 			"sortAuthor": "Συγγραφέας"
 		},

@@ -24,14 +24,8 @@
 		},
 		"common": {
 			"loading": "Cargando...",
-			"search": "Buscar",
 			"sortPopularity": "Ordenar libros por popularidad",
 			"sortTitle": "Ordenar libros por título",
-			"chooseLanguage": "Elija un idioma...",
-			"mainLanguages": "Idiomas principales",
-			"otherLanguages": "Otros idiomas",
-			"anyCatalog": "Elija en el catálogo",
-			"uiLanguage": "Idioma de la interfaz",
 			"returnHome": "Volver al inicio",
 			"sortAuthor": "Autor"
 		},
