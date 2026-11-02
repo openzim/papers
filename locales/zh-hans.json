@@ -56,6 +56,16 @@
 			"booksIn": "{collection}中的书籍",
 			"allCollections": "所有合集"
 		},
+		"licenses": {
+			"termBy": "署名",
+			"termNc": "非商业性使用",
+			"termNd": "禁止演绎",
+			"termSa": "相同方式共享",
+			"termSeparator": "—",
+			"ccName": "知识共享 {terms} {version}",
+			"ccNameUnversioned": "知识共享 {terms}",
+			"cc0Name": "CC0 1.0 通用"
+		},
 		"zimInfo": {
 			"trigger": "有关此ZIM的信息",
 			"title": "有关此ZIM的信息",

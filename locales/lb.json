@@ -30,6 +30,11 @@
 			"bookCount": "{n} Buch | {n} Bicher",
 			"wikipediaSource": "Source: Wikipedia"
 		},
+		"licenses": {
+			"termBy": "Attributioun",
+			"ccName": "Creative Commons {terms} {version}",
+			"ccNameUnversioned": "Creative Commons {terms}"
+		},
 		"zimInfo": {
 			"trigger": "Informatiounen iwwer dëse ZIM",
 			"title": "Informatiounen iwwer dëse ZIM",
@@ -58,6 +63,8 @@
 			"sortTitle": "Bicher no Titel sortéieren",
 			"close": "Zoumaachen",
 			"readMore": "Méi liesen",
+			"showMore": "Méi weisen",
+			"showLess": "Manner weisen",
 			"sortAuthor": "Auteur"
 		},
 		"messages": {
@@ -140,6 +147,24 @@
 			"missionHeading": "Eis Missioun"
 		},
 		"footer": {
+			"kiwix": "Kiwix"
+		}
+	},
+	"onemorelibrary": {
+		"nav": {
+			"collections": "Kategorien"
+		},
+		"home": {
+			"allCollections": "All Kategorien"
+		},
+		"collection": {
+			"allCollections": "All Kategorien"
+		},
+		"book": {
+			"collection": "Kategorie"
+		},
+		"footer": {
+			"createdBy": "Ugeluecht vum",
 			"kiwix": "Kiwix"
 		}
 	}
