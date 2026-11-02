@@ -121,8 +121,8 @@ describe('getPinnedLanguages', () => {
   })
 
   it('also pins the ZIM language for a single-language ZIM', () => {
-    const codes = getPinnedLanguages(['fr']).map((lang) => lang.code)
-    expect(codes).toContain('fr')
+    const codes = getPinnedLanguages(['nl']).map((lang) => lang.code)
+    expect(codes).toContain('nl')
   })
 
   it('does not pin a ZIM language for a multi-language ZIM', () => {
@@ -149,16 +149,16 @@ describe('getInitialLanguage', () => {
   })
 
   it('prefers the ZIM language over the browser default for a single-language ZIM', () => {
-    expect(getInitialLanguage(['pt']).code).toBe('pt')
+    expect(getInitialLanguage(['nl']).code).toBe('nl')
   })
 
   it('prefers a stored choice over the ZIM language', () => {
-    localStorage.setItem(localeStorageKey(), 'fr')
-    expect(getInitialLanguage(['pt']).code).toBe('fr')
+    localStorage.setItem(localeStorageKey(), 'sk')
+    expect(getInitialLanguage(['nl']).code).toBe('sk')
   })
 
   it('ignores an unknown stored locale', () => {
     localStorage.setItem(localeStorageKey(), 'xx')
-    expect(getInitialLanguage(['pt']).code).toBe('pt')
+    expect(getInitialLanguage(['nl']).code).toBe('nl')
   })
 })

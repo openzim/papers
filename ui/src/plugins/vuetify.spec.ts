@@ -8,7 +8,7 @@ describe('vuetify plugin', () => {
     i18n.global.locale.value = 'en'
     expect(vuetify.locale.isRtl.value).toBe(false)
 
-    i18n.global.locale.value = 'ar'
+    i18n.global.locale.value = 'ps'
     expect(vuetify.locale.isRtl.value).toBe(true)
 
     i18n.global.locale.value = 'en'

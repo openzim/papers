@@ -4,7 +4,7 @@ import { getLanguageName, getAutonym, isRtl, isKnown } from './language-names'
 describe('getLanguageName', () => {
   it('returns CLDR-translated name for known locale', () => {
     expect(getLanguageName('de', 'en')).toBe('German')
-    expect(getLanguageName('de', 'fr')).toBe('allemand')
+    expect(getLanguageName('de', 'sk')).toBe('nemčina')
   })
 
   it('falls back to English when locale has no CLDR data', () => {

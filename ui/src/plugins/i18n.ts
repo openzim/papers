@@ -1,7 +1,7 @@
 import type { PiniaPluginContext } from 'pinia'
 import { createI18n, useI18n, type Composer, type ComposerTranslation } from 'vue-i18n'
 import languageData from '@wikimedia/language-data'
-import uiInterfaceLocales from '@/generated/ui-locales.json'
+import uiLocalesBySource from '@/generated/ui-locales.json'
 
 const LOCALE_STORAGE_PREFIX = 'papers-ui-locale-choice'
 
@@ -33,20 +33,29 @@ const AUTONYM_OVERRIDES: Record<string, string> = {
 // Some locale files under `locales/` exist only to supply a source's
 // `metadata_defaults` (ZIM title/description) in that language, with no
 // `common` namespace - i.e. no actual interface translation (e.g. `mul`,
-// used for multi-language ZIMs' metadata, or a handful of book languages
-// nobody has translated the UI chrome into yet). Selecting one of those as
-// the interface language would be a no-op, so only locales with real
-// translated UI strings - precomputed at build time by
+// used for multi-language ZIMs' metadata), or with a translation too
+// incomplete to be usable (most would silently fall back to English
+// anyway). Selecting one of those as the interface language would be a
+// no-op or near enough, so only locales whose `common` + the active ZIM's
+// source namespace are translated above a completeness threshold -
+// precomputed per source at build time by
 // `scripts/generate-language-names.js` into `ui-locales.json` - are
-// eligible, and only if their file still actually exists.
-function getLocaleCodesFromFiles(): string[] {
-  return (uiInterfaceLocales as string[]).filter(
-    (code) => `../../../locales/${code}.json` in localesFiles
-  )
+// eligible, and only if their file still actually exists. Before the ZIM's
+// source is known (see `setLocaleSource`), every locale eligible for at
+// least one source is used as a permissive placeholder.
+const allLocaleCodes = [
+  ...new Set(Object.values(uiLocalesBySource as Record<string, string[]>).flat())
+]
+
+function getLocaleCodesFromFiles(source: string | null): string[] {
+  const codes = source
+    ? ((uiLocalesBySource as Record<string, string[]>)[source] ?? [])
+    : allLocaleCodes
+  return codes.filter((code) => `../../../locales/${code}.json` in localesFiles)
 }
 
-function buildSupportedLanguages(): Language[] {
-  return getLocaleCodesFromFiles().map((code) => {
+function buildSupportedLanguages(source: string | null): Language[] {
+  return getLocaleCodesFromFiles(source).map((code) => {
     const override = AUTONYM_OVERRIDES[code]
     const autonym = override || languageData.getAutonym(code)
     return {
@@ -57,7 +66,9 @@ function buildSupportedLanguages(): Language[] {
   })
 }
 
-export const supportedLanguages: Language[] = buildSupportedLanguages()
+// Reassigned by `setLocaleSource` once the ZIM's source is known; importers
+// see the update through this live binding.
+export let supportedLanguages: Language[] = buildSupportedLanguages(null)
 
 // Candidate locale codes for a BCP 47 tag, most specific first:
 // e.g. `zh-TW` gives `zh-tw`, `zh-hant`, `zh`
@@ -94,9 +105,14 @@ export function getBrowserLanguages(): readonly string[] {
   return navigator.language ? [navigator.language] : []
 }
 
-const defaultLanguage: Language =
-  matchBrowserLanguage(getBrowserLanguages(), supportedLanguages) ||
-  supportedLanguages.find((lang) => lang.code === 'en')!
+// Recomputed against the live `supportedLanguages`, so it reflects the
+// active ZIM's source once `setLocaleSource` has narrowed it down
+function computeDefaultLanguage(): Language {
+  return (
+    matchBrowserLanguage(getBrowserLanguages(), supportedLanguages) ||
+    supportedLanguages.find((lang) => lang.code === 'en')!
+  )
+}
 
 // The browser language and, for a single-language ZIM, the ZIM's own
 // language, pinned as the first entries of the language switcher (and still
@@ -118,7 +134,7 @@ export function getPinnedLanguages(bookLanguages: string[] = []): Language[] {
 
 export const i18n = createI18n({
   legacy: false,
-  locale: defaultLanguage.code,
+  locale: computeDefaultLanguage().code,
   fallbackLocale: 'en',
   missingWarn: false,
   fallbackWarn: false,
@@ -173,6 +189,7 @@ async function loadLocaleMessages(code: string): Promise<LocaleMessages | null> 
 
 export function setLocaleSource(namespace: string): void {
   sourceLocaleNamespace = namespace
+  supportedLanguages = buildSupportedLanguages(namespace)
 }
 
 export async function setCurrentLocale(locale: Language, persist = true): Promise<boolean> {
@@ -214,7 +231,7 @@ export function getInitialLanguage(bookLanguages: string[]): Language {
     if (zimLanguage) return zimLanguage
   }
 
-  return defaultLanguage
+  return computeDefaultLanguage()
 }
 
 async function loadI18n(

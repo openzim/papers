@@ -8,23 +8,23 @@ function codesOf(entries: ReturnType<typeof buildLanguageSwitcherItems>) {
 
 describe('buildLanguageSwitcherItems', () => {
   it('pins the ZIM language first for a single-language ZIM, followed by a divider', () => {
-    const items = buildLanguageSwitcherItems(['de'])
+    const items = buildLanguageSwitcherItems(['nl'])
 
-    expect(codesOf(items)).toContain('de')
+    expect(codesOf(items)).toContain('nl')
     expect(items.some(isDivider)).toBe(true)
-    // the pinned entry and its normal-position entry both resolve to "de"
-    expect(codesOf(items).filter((code) => code === 'de').length).toBe(2)
+    // the pinned entry and its normal-position entry both resolve to "nl"
+    expect(codesOf(items).filter((code) => code === 'nl').length).toBe(2)
   })
 
   it('does not pin a ZIM language for a multi-language ZIM', () => {
-    const expectedPinned = getPinnedLanguages(['de', 'fr']).map((lang) => lang.code)
-    const items = buildLanguageSwitcherItems(['de', 'fr'])
+    const expectedPinned = getPinnedLanguages(['nl', 'sk']).map((lang) => lang.code)
+    const items = buildLanguageSwitcherItems(['nl', 'sk'])
     const dividerIndex = items.findIndex(isDivider)
     const pinnedSection = dividerIndex === -1 ? [] : items.slice(0, dividerIndex)
 
     expect((pinnedSection as LanguageItem[]).map((entry) => entry.code)).toEqual(expectedPinned)
-    expect(expectedPinned).not.toContain('de')
-    expect(expectedPinned).not.toContain('fr')
+    expect(expectedPinned).not.toContain('nl')
+    expect(expectedPinned).not.toContain('sk')
   })
 
   it('pins exactly what getPinnedLanguages reports, nothing more', () => {
@@ -46,7 +46,7 @@ describe('buildLanguageSwitcherItems', () => {
   }
 
   it('sorts the full list by native display name, not by code', () => {
-    const titles = fullListOnly(buildLanguageSwitcherItems(['de'])).map((entry) =>
+    const titles = fullListOnly(buildLanguageSwitcherItems(['nl'])).map((entry) =>
       entry.title.toLowerCase()
     )
     const sorted = [...titles].sort((a, b) => a.localeCompare(b))
@@ -56,11 +56,11 @@ describe('buildLanguageSwitcherItems', () => {
 
   it('formats "native - English" when the names differ, and just the name when they match', () => {
     const byCode = Object.fromEntries(
-      fullListOnly(buildLanguageSwitcherItems(['de'])).map((e) => [e.code, e])
+      fullListOnly(buildLanguageSwitcherItems(['nl'])).map((e) => [e.code, e])
     )
 
     expect(byCode['en']!.title).toBe('English')
-    expect(byCode['de']!.title).toBe('Deutsch - German')
-    expect(byCode['fr']!.title).toBe('français - French')
+    expect(byCode['nl']!.title).toBe('Nederlands - Dutch')
+    expect(byCode['sk']!.title).toBe('slovenčina - Slovak')
   })
 })

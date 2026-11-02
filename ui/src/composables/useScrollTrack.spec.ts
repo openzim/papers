@@ -101,7 +101,7 @@ describe('useScrollTrack', () => {
   })
 
   it('updates hasPrevious and hasNext accurately in RTL', async () => {
-    i18n.global.locale.value = 'ar'
+    i18n.global.locale.value = 'ps'
     const wrapper = mountTrack()
     const track = wrapper.vm.trackRef as HTMLElement
 
@@ -143,7 +143,7 @@ describe('useScrollTrack', () => {
   })
 
   it('flips scroll sign when in RTL mode', async () => {
-    i18n.global.locale.value = 'ar'
+    i18n.global.locale.value = 'ps'
     const wrapper = mountTrack('.test-cell')
     const track = wrapper.vm.trackRef as HTMLElement
     const cell = track.querySelector('.test-cell') as HTMLElement
