@@ -39,7 +39,7 @@ describe('LanguageSwitcher', () => {
   }
 
   it('renders a translate-icon trigger button, closed by default', () => {
-    setBookLanguages(['en', 'fr'])
+    setBookLanguages(['en', 'sk'])
 
     const wrapper = mount(LanguageSwitcher)
 
@@ -51,7 +51,7 @@ describe('LanguageSwitcher', () => {
   })
 
   it('opens the menu with a populated, pinned-first list', async () => {
-    setBookLanguages(['de'])
+    setBookLanguages(['nl'])
 
     const wrapper = mount(LanguageSwitcher)
     await wrapper.find('.language-switcher__trigger').trigger('click')
@@ -60,16 +60,16 @@ describe('LanguageSwitcher', () => {
     const texts = wrapper.findAll('.language-switcher__item').map((item) => item.text())
     // every supported language once, plus the pinned duplicates
     expect(texts.length).toBeGreaterThan(supportedLanguages.length)
-    // "Deutsch - German" (the ZIM's single language) is pinned, alongside
+    // "Nederlands - Dutch" (the ZIM's single language) is pinned, alongside
     // whatever the test environment's browser language resolves to, and
     // still appears again further down in its normal sorted position
-    expect(texts.indexOf('Deutsch - German')).toBeLessThan(5)
-    expect(texts.filter((title) => title === 'Deutsch - German')).toHaveLength(2)
+    expect(texts.indexOf('Nederlands - Dutch')).toBeLessThan(5)
+    expect(texts.filter((title) => title === 'Nederlands - Dutch')).toHaveLength(2)
     expect(wrapper.find('.language-switcher__divider').exists()).toBe(true)
   })
 
   it('toggles closed when the trigger is clicked again', async () => {
-    setBookLanguages(['en', 'fr'])
+    setBookLanguages(['en', 'sk'])
     const wrapper = mount(LanguageSwitcher)
 
     await wrapper.find('.language-switcher__trigger').trigger('click')
@@ -80,7 +80,7 @@ describe('LanguageSwitcher', () => {
   })
 
   it('closes on an outside click', async () => {
-    setBookLanguages(['en', 'fr'])
+    setBookLanguages(['en', 'sk'])
     const wrapper = mount(LanguageSwitcher, { attachTo: document.body })
 
     await wrapper.find('.language-switcher__trigger').trigger('click')
@@ -94,7 +94,7 @@ describe('LanguageSwitcher', () => {
   })
 
   it('does not close when clicking inside the menu (e.g. the search field)', async () => {
-    setBookLanguages(['en', 'fr'])
+    setBookLanguages(['en', 'sk'])
     const wrapper = mount(LanguageSwitcher, { attachTo: document.body })
 
     await wrapper.find('.language-switcher__trigger').trigger('click')
@@ -105,28 +105,28 @@ describe('LanguageSwitcher', () => {
   })
 
   it('filters the list by native or English name, without duplicates', async () => {
-    setBookLanguages(['en', 'fr'])
+    setBookLanguages(['en', 'sk'])
     const wrapper = mount(LanguageSwitcher)
     await wrapper.find('.language-switcher__trigger').trigger('click')
 
-    await wrapper.find('.language-switcher__search').setValue('german')
+    await wrapper.find('.language-switcher__search').setValue('dutch')
 
     const texts = wrapper.findAll('.language-switcher__item').map((item) => item.text())
-    expect(texts).toEqual(['Deutsch - German'])
+    expect(texts).toEqual(['Nederlands - Dutch'])
     expect(wrapper.find('.language-switcher__divider').exists()).toBe(false)
   })
 
   it('switches the interface locale and closes when an item is selected', async () => {
-    setBookLanguages(['en', 'fr'])
+    setBookLanguages(['en', 'sk'])
     const wrapper = mount(LanguageSwitcher)
     await wrapper.find('.language-switcher__trigger').trigger('click')
-    await wrapper.find('.language-switcher__search').setValue('fran')
+    await wrapper.find('.language-switcher__search').setValue('slov')
 
     await wrapper.find('.language-switcher__item').trigger('click')
 
     expect(wrapper.find('.language-switcher__menu').exists()).toBe(false)
     // `setCurrentLocale` loads the target locale's messages via a real
     // dynamic import, which outlasts a plain `nextTick`
-    await vi.waitFor(() => expect(getCurrentLocale()).toBe('fr'))
+    await vi.waitFor(() => expect(getCurrentLocale()).toBe('sk'))
   })
 })

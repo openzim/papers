@@ -113,18 +113,84 @@ const UI_LOCALES = readdirSync(localesDir)
   .filter((f) => f.endsWith('.json') && f !== 'qqq.json')
   .map((f) => f.replace('.json', ''))
 
-// Some locale files exist only to supply a source's `metadata_defaults`
-// (ZIM title/description) in that language, with no `common` namespace -
-// i.e. no actual interface translation. Selecting one of those as the UI
-// language would be a no-op (everything falls back to English), so only
-// locales with real translated UI strings are treated as interface locales:
-// both as language-switcher options and as targets to generate book-language
-// name translations for (translating book languages into an interface
-// language nobody can select is pointless).
-const UI_INTERFACE_LOCALES = UI_LOCALES.filter((locale) => {
-  const data = JSON.parse(readFileSync(resolve(localesDir, `${locale}.json`), 'utf-8'))
-  return !!(data.common && Object.keys(data.common).length > 0)
-})
+// A locale only shows up in the language switcher once its translation is
+// substantially complete - a 1%-translated locale offered in the switcher is
+// worse than not offering it at all, since nearly everything would silently
+// fall back to English anyway. Completeness is counted per source
+// (`common` + that source's own namespace, e.g. `gutenberg`), not as one
+// combined count across `common` + every source: otherwise adding a new
+// source with its own batch of untranslated strings would lower every
+// existing language's percentage and could silently drop languages from
+// ZIMs of unrelated, already-translated sources. See
+// https://github.com/openzim/papers/issues/113
+const COMPLETENESS_THRESHOLD = 0.8
+
+// Mirrors `get_leaf_keys` in scraper/src/papers2zim/scripts/validate_i18n.py:
+// recursively collects leaf keys, treating a plural message (an object keyed
+// by CLDR plural category, e.g. `{"one": "Book", "other": "Books"}`) as a
+// single leaf rather than descending into its forms.
+const PLURAL_CATEGORIES = new Set(['zero', 'one', 'two', 'few', 'many', 'other'])
+
+function isPluralMessage(value) {
+  return (
+    !!value &&
+    typeof value === 'object' &&
+    !Array.isArray(value) &&
+    Object.keys(value).length > 0 &&
+    Object.keys(value).every((key) => PLURAL_CATEGORIES.has(key)) &&
+    Object.values(value).every((form) => typeof form === 'string')
+  )
+}
+
+function getLeafKeys(data, prefix = '') {
+  const result = new Set()
+  for (const [key, value] of Object.entries(data)) {
+    if (key === '@metadata') continue
+    const fullKey = prefix ? `${prefix}.${key}` : key
+    if (value && typeof value === 'object' && !Array.isArray(value) && !isPluralMessage(value)) {
+      for (const leafKey of getLeafKeys(value, fullKey)) result.add(leafKey)
+    } else {
+      result.add(fullKey)
+    }
+  }
+  return result
+}
+
+const enData = JSON.parse(readFileSync(resolve(localesDir, 'en.json'), 'utf-8'))
+const commonEnKeys = getLeafKeys(enData.common || {})
+
+// Source namespaces are en.json's top-level keys besides `common` and its
+// own metadata fields - e.g. `gutenberg`, `wikisource`.
+const SOURCE_NAMESPACES = Object.keys(enData).filter(
+  (key) =>
+    !['@metadata', 'language', 'isocode', 'common'].includes(key) &&
+    enData[key] &&
+    typeof enData[key] === 'object' &&
+    !Array.isArray(enData[key])
+)
+
+// Locale codes above the completeness threshold, per source namespace - used
+// at runtime to only offer a language in the switcher for ZIMs of sources
+// it's actually translated for.
+const UI_LOCALES_BY_SOURCE = {}
+for (const source of SOURCE_NAMESPACES) {
+  const requiredKeys = new Set([...commonEnKeys, ...getLeafKeys(enData[source] || {})])
+  UI_LOCALES_BY_SOURCE[source] = UI_LOCALES.filter((locale) => {
+    if (requiredKeys.size === 0) return false
+    const data = JSON.parse(readFileSync(resolve(localesDir, `${locale}.json`), 'utf-8'))
+    const translatedKeys = new Set([
+      ...getLeafKeys(data.common || {}),
+      ...getLeafKeys(data[source] || {})
+    ])
+    const translatedCount = [...requiredKeys].filter((key) => translatedKeys.has(key)).length
+    return translatedCount / requiredKeys.size >= COMPLETENESS_THRESHOLD
+  })
+}
+
+// Union across sources: used for CLDR language-name extraction below, which
+// isn't source-specific - a locale eligible for at least one source is worth
+// having native/English language names for.
+const UI_INTERFACE_LOCALES = [...new Set(Object.values(UI_LOCALES_BY_SOURCE).flat())]
 
 // Source code -> CLDR code, merging Gutenberg's book-language codes (for
 // book-language badges) with papers' own UI interface locale codes (for the
@@ -167,11 +233,13 @@ mkdirSync(dirname(outPath), { recursive: true })
 writeFileSync(outPath, JSON.stringify(result) + '\n')
 
 const uiLocalesOutPath = resolve(__dirname, '../src/generated/ui-locales.json')
-writeFileSync(uiLocalesOutPath, JSON.stringify(UI_INTERFACE_LOCALES) + '\n')
+writeFileSync(uiLocalesOutPath, JSON.stringify(UI_LOCALES_BY_SOURCE) + '\n')
 
 const size = Buffer.byteLength(JSON.stringify(result))
 const localeCount = Object.keys(result).length
 console.log(`Generated ${outPath}`)
 console.log(`  ${localeCount} locales, ${size} bytes (${(size / 1024).toFixed(1)} KB)`)
 console.log(`Generated ${uiLocalesOutPath}`)
-console.log(`  ${UI_INTERFACE_LOCALES.length} interface locales`)
+for (const source of SOURCE_NAMESPACES) {
+  console.log(`  ${source}: ${UI_LOCALES_BY_SOURCE[source].length} interface locales`)
+}

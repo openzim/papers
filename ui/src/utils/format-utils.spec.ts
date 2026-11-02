@@ -83,8 +83,8 @@ describe('formatLanguages', () => {
   })
 
   it('uses uiLocale for translated names', () => {
-    expect(formatLanguages(['en'], { uiLocale: 'fr' })).toBe('anglais')
-    expect(formatLanguages(['de'], { uiLocale: 'fr' })).toBe('allemand')
+    expect(formatLanguages(['en'], { uiLocale: 'sk' })).toBe('angličtina')
+    expect(formatLanguages(['de'], { uiLocale: 'sk' })).toBe('nemčina')
   })
 
   it('falls back to English when locale has no CLDR data', () => {
