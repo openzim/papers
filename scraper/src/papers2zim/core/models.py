@@ -14,7 +14,13 @@ from papers2zim.core.licenses import license_identifier
 @dataclass(frozen=True, slots=True)
 class Creator:
     id: str
-    name: str
+    # Full name as shown to readers, e.g. "Henry Cranke Andrews (active 1799-1828)"
+    display_name: str
+    # Last name alone (or the whole name when a source has no structured
+    # last/first split), used only as a sort key, never for display. Not a
+    # full "last, first" key: on the real Gutenberg catalog that reorders
+    # compound surnames like "Alma-Tadema" before "Alma", since punctuation
+    # sorts ahead of the comma. Callers should break ties on `display_name`.
     sort_name: str | None = None
     birth_date: int | None = None
     death_date: int | None = None

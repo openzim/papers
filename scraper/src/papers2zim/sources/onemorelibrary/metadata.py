@@ -83,27 +83,22 @@ def _creator(soup: BeautifulSoup) -> Creator | None:
         return None
     href = anchor.get("href")
     author_id = None
-    sort_name = None
-    first_names = None
+    last_name = None
     if isinstance(href, str):
         match = _AUTHOR_ID_RE.search(urlparse(href).path)
         if match is not None:
             author_id = match.group(1)
         slug = _AUTHOR_ID_RE.sub("", urlparse(href).path.rstrip("/").rsplit("/", 1)[-1])
         parts = [part for part in slug.split("-") if part]
-        if len(parts) > 1:
-            first_names = " ".join(parts[:-1]).title()
-            sort_name = parts[-1].title()
-        elif parts:
-            sort_name = parts[0].title()
+        if parts:
+            last_name = parts[-1].title()
     wikipedia = soup.select_one(".row_wikipedia a[href]")
     wikipedia_url = wikipedia.get("href") if wikipedia is not None else None
     return Creator(
         id=author_id or name.casefold().replace(" ", "-"),
-        name=name,
-        sort_name=sort_name,
+        display_name=name,
+        sort_name=last_name,
         extra={
-            "first_names": first_names,
             "author_url": href if isinstance(href, str) else None,
             "wikipedia_url": wikipedia_url if isinstance(wikipedia_url, str) else None,
         },

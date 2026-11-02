@@ -42,13 +42,12 @@ def _creator_from_contributor(contributor: dict[str, Any]) -> Creator:
     if contributor.get("corporate"):
         # corporate contributors carry the organisation name in last_name
         name = last or first or "Unknown"
-        return Creator(id=str(contributor["id"]), name=name, sort_name=name)
-    name = " ".join(part for part in (first, last) if part) or "Unknown"
+        return Creator(id=str(contributor["id"]), display_name=name, sort_name=name)
+    display_name = " ".join(part for part in (first, last) if part) or "Unknown"
     return Creator(
         id=str(contributor["id"]),
-        name=name,
+        display_name=display_name,
         sort_name=last,
-        extra={"first_names": first or None},
     )
 
 

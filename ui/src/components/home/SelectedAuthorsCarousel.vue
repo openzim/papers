@@ -77,13 +77,13 @@ const arrows = [
                 <div class="selected-author-card__avatar-wrapper">
                   <author-avatar
                     :portrait-path="author.portraitPath"
-                    :name="author.name"
+                    :name="author.displayName"
                     size="large"
                     class="selected-author-card__avatar"
                   />
                 </div>
                 <h3 class="selected-author-card__name">
-                  {{ author.name }}
+                  {{ author.displayName }}
                 </h3>
                 <p class="selected-author-card__count">
                   {{ t('author.bookCount', author.bookCount) }}

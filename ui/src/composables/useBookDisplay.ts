@@ -17,7 +17,7 @@ const sortOptions: SortConfig<BookPreview>[] = [
   },
   {
     value: 'author',
-    compare: (a, b) => a.author.name.localeCompare(b.author.name)
+    compare: (a, b) => a.author.sortName.localeCompare(b.author.sortName)
   }
 ]
 

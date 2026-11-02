@@ -6,8 +6,10 @@ from papers2zim.core.download_engine import DownloadEngine
 from papers2zim.sources.gutenberg.metadata import (
     RdfParseError,
     RdfParser,
+    _work_from_parser,
     clean_marc_notation,
     fetch_book_metadata,
+    format_author_name,
 )
 
 RDF_HEADER = """
@@ -175,6 +177,7 @@ def test_rdf_parser_minimal():
     assert parsed.author_id is None
     assert parsed.first_name is None
     assert parsed.last_name is None
+    assert parsed.suffix is None
     assert parsed.bookshelf is None
     assert not parsed.has_cover
     assert parsed.birth_year is None
@@ -313,32 +316,45 @@ def test_rdf_parser_title_subtitle():
 
 
 @pytest.mark.parametrize(
-    "name, author_id, expected_first_name, expected_last_name",
+    "name, author_id, expected_first_name, expected_last_name, expected_suffix",
     [
         pytest.param(
             "Sullivan, J. W. N. (John William Navin)",
             "58535",
             "J. W. N. (John William Navin)",
             "Sullivan",
+            None,
             id="john_sullivan",
         ),
         pytest.param(
             "John, Joe, Nash",
             "12345",
-            "Nash Joe",
+            "Joe",
             "John",
+            "Nash",
             id="nash_joe_john",
+        ),
+        pytest.param(
+            "Andrews, Henry Cranke, active 1799-1828",
+            "67890",
+            "Henry Cranke",
+            "Andrews",
+            "active 1799-1828",
+            id="andrews_with_suffix",
         ),
         pytest.param(
             "Bob",
             "4567",
             None,
             "Bob",
+            None,
             id="bob",
         ),
     ],
 )
-def test_rdf_parser_author(name, author_id, expected_first_name, expected_last_name):
+def test_rdf_parser_author(
+    name, author_id, expected_first_name, expected_last_name, expected_suffix
+):
     rdf = RdfParser(
         f"""
     {RDF_HEADER}
@@ -362,8 +378,129 @@ def test_rdf_parser_author(name, author_id, expected_first_name, expected_last_n
     assert parsed.gid == 123
     assert parsed.first_name == expected_first_name
     assert parsed.last_name == expected_last_name
+    assert parsed.suffix == expected_suffix
     assert parsed.author_id == author_id
     assert parsed.webpage_resource == "https://en.wikipedia.org/wiki/J._W._N._Sullivan"
+
+
+@pytest.mark.parametrize(
+    "last_name, first_name, suffix, expected",
+    [
+        pytest.param(
+            "Andrews", "Henry Cranke", None, "Henry Cranke Andrews", id="plain"
+        ),
+        pytest.param(
+            "Andrews",
+            "Henry Cranke",
+            "active 1799-1828",
+            "Henry Cranke Andrews (active 1799-1828)",
+            id="with_suffix",
+        ),
+        pytest.param(None, None, None, "Anonymous", id="anonymous"),
+        pytest.param("Bob", None, None, "Bob", id="last_name_only"),
+        pytest.param(None, "Bob", None, "Bob", id="first_name_only"),
+        pytest.param(
+            None,
+            None,
+            "active 1799-1828",
+            "Anonymous (active 1799-1828)",
+            id="suffix_without_name",
+        ),
+        pytest.param(
+            "A" * 300,
+            None,
+            None,
+            "A" * 230,
+            id="truncated_to_230_chars",
+        ),
+        pytest.param(
+            "Doctors/Nurses",
+            "Without",
+            None,
+            "Without Doctors-Nurses",
+            id="slash_sanitized",
+        ),
+        # Real Project Gutenberg catalog entries (https://gutenberg.mirror.driftle.ss/cache/epub/feeds/pg_catalog.csv.gz),
+        # chosen to exercise the title/suffix allowlist in _split_suffix.
+        pytest.param(
+            "Browne", "Thomas", "Sir", "Sir Thomas Browne", id="title_sir_no_remainder"
+        ),
+        pytest.param(
+            "Adye",
+            "John",
+            "Sir, 1819-1900",
+            "Sir John Adye (1819-1900)",
+            id="title_sir_with_remainder",
+        ),
+        pytest.param(
+            "MacKaye",
+            "Steele",
+            "Mrs., 1845-1924",
+            "Mrs. Steele MacKaye (1845-1924)",
+            id="title_mrs",
+        ),
+        pytest.param(
+            "Balfour",
+            "Frances",
+            "Lady, 1858-1931",
+            "Lady Frances Balfour (1858-1931)",
+            id="title_lady",
+        ),
+        pytest.param(
+            "Field", "Chester", "Jr.", "Chester Field Jr.", id="suffix_jr_no_remainder"
+        ),
+        pytest.param(
+            "Alger",
+            "Horatio",
+            "Jr., 1832-1899",
+            "Horatio Alger Jr. (1832-1899)",
+            id="suffix_jr_with_remainder",
+        ),
+        pytest.param("Smith", "John", "Sr.", "John Smith Sr.", id="suffix_sr"),
+        pytest.param(
+            # Not in the allowlist: a title outside {Sir, Mrs., Lady} stays
+            # in parentheses rather than guessed at.
+            "Hahn-Hahn",
+            "Ida",
+            "Gräfin",
+            "Ida Hahn-Hahn (Gräfin)",
+            id="unrecognized_title_stays_parenthesized",
+        ),
+        pytest.param(
+            # "Saint" is deliberately left in parentheses: moving it before
+            # the name reads wrong for e.g. "Augustine, of Hippo, Saint".
+            "Liguori",
+            "Alfonso Maria de'",
+            "Saint, 1696-1787",
+            "Alfonso Maria de' Liguori (Saint, 1696-1787)",
+            id="saint_stays_parenthesized",
+        ),
+    ],
+)
+def test_format_author_name(last_name, first_name, suffix, expected):
+    assert format_author_name(last_name, first_name, suffix) == expected
+
+
+def test_work_from_parser_builds_display_name_and_sort_name_for_suffixed_author():
+    rdf = RdfParser(
+        f"""
+    {RDF_HEADER}
+    <dcterms:creator>
+      <pgterms:agent rdf:about="2009/agents/9999">
+        <pgterms:name>Andrews, Henry Cranke, active 1799-1828</pgterms:name>
+      </pgterms:agent>
+    </dcterms:creator>
+    <dcterms:rights>Public domain in the USA.</dcterms:rights>
+    <pgterms:downloads>1</pgterms:downloads>
+  </pgterms:ebook>
+</rdf:RDF>
+""",
+        1,
+    )
+    work = _work_from_parser(rdf.parse())
+    creator = work.creators[0]
+    assert creator.display_name == "Henry Cranke Andrews (active 1799-1828)"
+    assert creator.sort_name == "Andrews"
 
 
 def test_rdf_parser_title_missing_license():

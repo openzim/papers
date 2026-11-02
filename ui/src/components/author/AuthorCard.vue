@@ -53,7 +53,7 @@ const avatarSize = computed(() => {
     :aria-label="
       t('author.viewAuthor', {
         bookCount: t('author.bookCount', author.bookCount),
-        name: author.name
+        name: author.displayName
       })
     "
     :class="[
@@ -70,14 +70,14 @@ const avatarSize = computed(() => {
     <div class="author-card__avatar-infos">
       <author-avatar
         :portrait-path="author.portraitPath"
-        :name="author.name"
+        :name="author.displayName"
         :size="avatarSize"
         class="author-card__avatar"
       />
 
       <div class="author-card__infos">
         <h2 class="author-card__name">
-          {{ author.name }}
+          {{ author.displayName }}
         </h2>
 
         <p class="author-card__count">

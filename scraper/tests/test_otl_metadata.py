@@ -107,7 +107,7 @@ def test_fetch_keeps_only_authors_as_creators():
 
     (work,) = metadata.fetch([_ref("10")])
 
-    assert [c.name for c in work.creators] == ["Gilbert Strang"]
+    assert [c.display_name for c in work.creators] == ["Gilbert Strang"]
     assert work.creators[0].sort_name == "Strang"
 
 
