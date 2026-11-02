@@ -53,3 +53,48 @@ def test_extract_cover_declared_only_ignores_undeclared_image(make_epub):
 
 def test_extract_cover_falls_back_to_undeclared_image_by_default(make_epub):
     assert extract_cover(make_epub(declared=False), "epub") is not None
+
+
+def test_epub_cover_rejects_non_image_meta_cover_with_declared_only():
+    epub = io.BytesIO()
+    with zipfile.ZipFile(epub, "w") as archive:
+        archive.writestr(
+            "META-INF/container.xml",
+            """<container><rootfiles><rootfile full-path="OPS/package.opf"/>
+            </rootfiles></container>""",
+        )
+        archive.writestr(
+            "OPS/package.opf",
+            """<package><metadata><meta name="cover" content="title"/>
+            </metadata><manifest>
+            <item id="title" href="title.xhtml" media-type="application/xhtml+xml"/>
+            <item id="logo" href="images/Wikisource-logo.svg.png"
+            media-type="image/png"/>
+            </manifest></package>""",
+        )
+        archive.writestr("OPS/title.xhtml", b"<html>title</html>")
+        archive.writestr("OPS/images/Wikisource-logo.svg.png", b"logo image")
+
+    assert _epub_cover(epub.getvalue(), declared_only=True) is None
+
+
+def test_epub_cover_rejects_non_image_meta_cover_and_falls_back():
+    epub = io.BytesIO()
+    with zipfile.ZipFile(epub, "w") as archive:
+        archive.writestr(
+            "META-INF/container.xml",
+            """<container><rootfiles><rootfile full-path="OPS/package.opf"/>
+            </rootfiles></container>""",
+        )
+        archive.writestr(
+            "OPS/package.opf",
+            """<package><metadata><meta name="cover" content="titlepage"/>
+            </metadata><manifest>
+            <item id="titlepage" href="title.xhtml" media-type="application/xhtml+xml"/>
+            <item id="real-cover" href="real-cover.jpg" media-type="image/jpeg"/>
+            </manifest></package>""",
+        )
+        archive.writestr("OPS/title.xhtml", b"<html>title</html>")
+        archive.writestr("OPS/real-cover.jpg", b"real cover image")
+
+    assert _epub_cover(epub.getvalue()) == b"real cover image"

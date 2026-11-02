@@ -42,7 +42,9 @@ class WikisourcePipeline(Pipeline):
                 continue
             downloaded = True
             if cover_image is None:
-                cover_image = extract_cover(content, format_name)
+                # Only extract declared covers so books without a cover fall back
+                # to the placeholder rather than picking up the site logo.
+                cover_image = extract_cover(content, format_name, declared_only=True)
 
         if not downloaded:
             logger.warning(

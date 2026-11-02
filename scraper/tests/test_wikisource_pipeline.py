@@ -61,9 +61,12 @@ def test_process_ref_downloads_epub_and_marks_the_rest_unsupported():
     with patch(
         "papers2zim.sources.wikisource.pipeline.extract_cover",
         return_value=None,
-    ):
+    ) as extract_cover_mock:
         pipeline.process_ref(WorkRef(id=work.id, source="wikisource"))
 
+    extract_cover_mock.assert_called_once_with(
+        _valid_epub(), "epub", declared_only=True
+    )
     assert pipeline.store.get("wikisource", work.id) is work
     assert work.extra["unsupported_formats"] == ["pdf", "html"]
     assembler.add_item_for.assert_called_once_with(
@@ -97,9 +100,12 @@ def test_process_ref_attaches_a_cover_when_extractable():
     with patch(
         "papers2zim.sources.wikisource.pipeline.extract_cover",
         return_value=b"cover bytes",
-    ):
+    ) as extract_cover_mock:
         pipeline.process_ref(WorkRef(id=work.id, source="wikisource"))
 
+    extract_cover_mock.assert_called_once_with(
+        _valid_epub(), "epub", declared_only=True
+    )
     assert work.extra["has_cover"] is True
     assert work.cover is not None
     assembler.add_item_for.assert_any_call(
