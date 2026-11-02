@@ -7,7 +7,8 @@ const FALLBACK_NAMES: Record<string, string> = {
   kld: 'Gamilaraay',
   myn: 'Mayan',
   nai: 'North American Indian',
-  rmq: 'Caló'
+  rmq: 'Caló',
+  'skr-arab': 'Saraiki'
 }
 
 const typedCldrNames = cldrNames as Record<string, Record<string, string>>

@@ -111,6 +111,7 @@
       "backToTop": "Back to top",
       "uiLanguage": "UI Language",
       "selectInterfaceLanguage": "Select interface language",
+      "changeInterfaceLanguage": "Change interface language",
       "filterBy": "Filter by",
       "filterByTitle": "Filter by {title}",
       "gridView": "Grid view",

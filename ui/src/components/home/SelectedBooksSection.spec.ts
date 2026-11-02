@@ -54,6 +54,8 @@ describe('SelectedBooksSection', () => {
     useMainStore().config = {
       title: 'Test',
       description: null,
+      zimName: 'test',
+      bookLanguages: ['en'],
       source: { slug: 'test', name: 'Test', description: 'Test' },
       theme: { formatIcons: {}, routeLabels: {}, collectionIconStyle: 'classification' },
       features: {

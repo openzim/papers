@@ -7,6 +7,7 @@ import { useHasMultipleCollections } from '@/composables/useHasMultipleCollectio
 import { LAYOUT, TYPOGRAPHY } from '@/constants/theme'
 import { useDisplay, useRtl } from 'vuetify'
 import ZimInfoDialog from '@/components/layout/ZimInfoDialog.vue'
+import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -70,6 +71,8 @@ function isActive(path: string): boolean {
             {{ item.title }}
           </router-link>
         </nav>
+
+        <LanguageSwitcher />
 
         <button
           class="app-header__info-trigger"
