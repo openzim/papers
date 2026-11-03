@@ -41,6 +41,7 @@ as of 2.0.0.
 - Remove leftover `common` translation keys (`uiLanguage`, `chooseLanguage`, `anyCatalog`, `search`, `mainLanguages`, `otherLanguages`, `navigateTo`, `sortBy`) from removed features, which were counting against every translator's completion percentage for no reason (#112)
 - UI: switch layout disposition to RTL when an RTL language is selected, and convert physical margins/paddings to logical properties (#86)
 - Resolve ZIM language metadata for ISO 639-3 codes with no ISO 639-1 equivalent (e.g. `grc`/Ancient Greek) without having to hardcode each one, and fix `fur`/Friulian being mislabeled as the unrelated `fvr`/Fur language (#102)
+- Gutenberg: stop failing to build the `mul` ZIM when any book carries an unmappable language code (`myn`, `nai`); such codes are now dropped from ZIM language metadata, with a warning logged, instead of blocking the whole build (#121)
 
 - Promote Wikisource `issued` to standard `published` metadata (#10)
 - Wikisource: stop offering the withdrawn `xhtml` format, and fail early when a requested format is not offered by ws-export (#11)

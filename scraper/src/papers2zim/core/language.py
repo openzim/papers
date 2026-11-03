@@ -4,6 +4,8 @@ from typing import Protocol
 import babel
 from zimscraperlib.i18n import is_valid_iso_639_3
 
+from papers2zim.constants import logger
+
 
 def language_name(code: str) -> str:
     try:
@@ -270,14 +272,24 @@ def get_zim_language_metadata(
     languages: list[str], books: Sequence[HasLanguages]
 ) -> list[str]:
     unresolved = [lang for lang in languages if not resolve_language(lang)]
-    if unresolved:
+    if languages and len(unresolved) == len(languages):
         raise ValueError(
             f"Cannot resolve ZIM language metadata for: {', '.join(unresolved)}. "
             "Use --zim-languages to override."
         )
+    if unresolved:
+        logger.warning(
+            f"Dropping unresolvable language code(s) from ZIM language metadata: "
+            f"{', '.join(unresolved)}"
+        )
     language_counts: dict[str, int] = {}
     for lang in languages:
+        resolved = resolve_language(lang)
+        if not resolved:
+            # unresolvable code (e.g. `myn`, `nai`) mixed with other, resolvable
+            # languages: skip it rather than blocking the whole ZIM
+            continue
         count = sum(lang in book.languages for book in books)
-        for zim_lang in resolve_language(lang):
+        for zim_lang in resolved:
             language_counts[zim_lang] = language_counts.get(zim_lang, 0) + count
     return sorted(language_counts, key=lambda lang: language_counts[lang], reverse=True)
