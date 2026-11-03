@@ -83,18 +83,7 @@ if (typeof document !== 'undefined') {
           @click.stop="showSortDropdown = !showSortDropdown"
         >
           <span class="dropdown__label">{{ currentSortLabel }}</span>
-          <svg
-            class="dropdown__arrow"
-            :class="{ 'dropdown__arrow--open': showSortDropdown }"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <polyline points="6 9 12 15 18 9" />
-          </svg>
+          <v-icon class="dropdown__icon" icon="mdi-sort-variant" size="1.3rem" />
         </button>
         <ul v-if="showSortDropdown" class="dropdown__menu" role="listbox">
           <li
@@ -167,6 +156,7 @@ if (typeof document !== 'undefined') {
   color: rgb(var(--v-theme-text));
   white-space: nowrap;
   order: -1;
+  padding-left: v-bind(LAYOUT.BOOK_CARD_MARGIN);
 }
 
 .sort-and-limit__controls {
@@ -206,26 +196,20 @@ if (typeof document !== 'undefined') {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  padding-inline-end: 0.4rem;
 }
 
-.dropdown__arrow {
-  width: 16px;
-  height: 16px;
+.dropdown__icon {
   flex-shrink: 0;
   transition: transform 0.2s ease;
   color: rgb(var(--v-theme-text));
   opacity: 0.6;
 }
 
-.dropdown__arrow--open {
-  transform: rotate(180deg);
-}
-
 .dropdown__menu {
   position: absolute;
   top: calc(100% + 4px);
-  inset-inline-start: 0;
-  width: 100%;
+  inset-inline-end: 0;
   background: rgb(var(--v-theme-background));
   border: 1px solid rgb(var(--v-theme-grid));
   border-radius: 4px;
@@ -233,7 +217,8 @@ if (typeof document !== 'undefined') {
   list-style: none;
   margin: 0;
   padding: 0.25rem 0;
-  z-index: 100;
+  z-index: 99;
+  min-width: 150px;
 }
 
 .dropdown__item {
@@ -254,15 +239,6 @@ if (typeof document !== 'undefined') {
 .dropdown__item--active {
   font-weight: 500;
   background-color: rgba(var(--v-theme-text), 0.06);
-}
-
-/* Sort dropdown specific widths */
-.sort-dropdown__trigger {
-  min-width: 160px;
-}
-
-.sort-dropdown {
-  width: 160px;
 }
 
 /* View mode toggle */
@@ -317,6 +293,7 @@ if (typeof document !== 'undefined') {
   .sort-and-limit__count {
     order: 0;
     font-size: 0.8125rem;
+    padding-top: 0.5rem;
   }
 
   .sort-and-limit__controls {
@@ -330,12 +307,9 @@ if (typeof document !== 'undefined') {
     font-size: 0.8125rem;
   }
 
-  .sort-dropdown__trigger {
-    min-width: 140px;
-  }
-
-  .sort-dropdown {
-    width: 140px;
+  .dropdown__menu {
+    inset-inline-start: 0;
+    inset-inline-end: unset;
   }
 }
 </style>

@@ -88,7 +88,7 @@ const avatarSize = computed(() => {
     <div v-if="variant === 'detailed'" class="author-card__about">
       <p v-if="author.bio" class="author-card__bio">{{ author.bio }}</p>
       <a
-        v-if="author.webpageResource"
+        v-if="author.bio && author.webpageResource"
         class="author-card__source"
         :href="author.webpageResource"
         target="_blank"
