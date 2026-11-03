@@ -140,6 +140,7 @@ const sortedCollections = computed(() =>
 
 .collection-sidebar__item {
   padding: 0.1rem 0.5rem;
+  padding-inline-start: 0;
 }
 
 .collection-sidebar__btn {
@@ -148,6 +149,7 @@ const sortedCollections = computed(() =>
   gap: 0.5rem;
   width: 100%;
   padding: 0.3125rem;
+  padding-inline-start: 0;
   text-align: start;
   background: none;
   border: none;

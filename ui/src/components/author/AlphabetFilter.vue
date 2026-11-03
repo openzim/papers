@@ -37,17 +37,16 @@ const ALL_ITEMS = ['ALL', ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ', '0-9']
   -webkit-overflow-scrolling: touch;
   padding-bottom: 2rem;
   height: 70px;
-  gap: 0.25rem;
 }
 
 .alphabet-btn {
   display: flex;
   flex-shrink: 0;
   flex-direction: column;
-  align-items: center;
+  align-items: start;
   justify-content: center;
-  min-width: 36px;
-  padding: 0.25rem 0.375rem;
+  min-width: 41px;
+  padding: 0;
   background: transparent;
   border: none;
   cursor: pointer;

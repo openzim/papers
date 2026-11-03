@@ -138,8 +138,7 @@ function selectCollection(id: string | null) {
 
 .collection-view-view__content {
   flex: 1;
-  padding: 1.5rem;
-  padding-top: 0;
+  padding-inline-start: 1.5rem;
   min-width: 0;
 }
 
