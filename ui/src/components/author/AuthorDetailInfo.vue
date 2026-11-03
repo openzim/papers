@@ -1,17 +1,27 @@
 <script setup lang="ts">
-import { toRef } from 'vue'
+import { computed } from 'vue'
 import type { AuthorPreview, AuthorDetail, BookPreview } from '@/types'
 import BookDisplay from '@/components/book/BookDisplay.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
 import AuthorDetailCarousel from './AuthorDetailCarousel.vue'
 import AuthorDetailsBox from './AuthorDetailsBox.vue'
+import { useLanguageFilter } from '@/composables/useLanguageFilter'
+import { matchesLanguage } from '@/utils/language-filter'
 
 const props = defineProps<{
   author: AuthorDetail
   authors: AuthorPreview[]
 }>()
 
-const books = toRef(() => props.author.books as BookPreview[])
+const { selectedLanguage } = useLanguageFilter()
+
+// Only the book list is filtered; the author itself stays visible even if
+// none of their books match (they were reached by direct navigation).
+const books = computed(() =>
+  (props.author.books as BookPreview[]).filter((book) =>
+    matchesLanguage(book.languages, selectedLanguage.value)
+  )
+)
 </script>
 
 <template>

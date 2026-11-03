@@ -16,8 +16,22 @@ import type { Collections, Authors, Books } from '@/types'
 const mockCollectionsData: Collections = {
   totalCount: 2,
   collections: [
-    { id: 'PR', name: 'English literature', bookCount: 150, totalPopularity: 10 },
-    { id: 'PS', name: 'American literature', bookCount: 200, totalPopularity: 5 }
+    {
+      id: 'PR',
+      name: 'English literature',
+      bookCount: 150,
+      totalPopularity: 10,
+      languages: ['en'],
+      bookCountByLanguage: { en: 150 }
+    },
+    {
+      id: 'PS',
+      name: 'American literature',
+      bookCount: 200,
+      totalPopularity: 5,
+      languages: ['en'],
+      bookCountByLanguage: { en: 200 }
+    }
   ]
 }
 
@@ -29,7 +43,9 @@ const mockAuthorsData: Authors = {
       displayName: 'Jane Austen',
       sortName: 'Austen',
       bookCount: 1,
-      totalPopularity: 10
+      totalPopularity: 10,
+      languages: ['en'],
+      bookCountByLanguage: { en: 1 }
     }
   ]
 }
@@ -40,7 +56,14 @@ const mockBooksData: Books = {
     {
       id: '1',
       title: 'Emma',
-      author: { id: '1', displayName: 'Jane Austen', sortName: 'Austen', bookCount: 1 },
+      author: {
+        id: '1',
+        displayName: 'Jane Austen',
+        sortName: 'Austen',
+        bookCount: 1,
+        languages: ['en'],
+        bookCountByLanguage: { en: 1 }
+      },
       languages: ['en'],
       popularity: 10,
       flames: 2,

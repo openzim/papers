@@ -80,6 +80,10 @@
       },
       "dateScraped": "Date scraped"
     },
+    "languageFilter": {
+      "trigger": "Filter by book language",
+      "allLanguages": "All languages"
+    },
     "reader": {
       "close": "Close reader",
       "closeTableOfContents": "Close table of contents",

@@ -156,7 +156,7 @@ if (typeof document !== 'undefined') {
   color: rgb(var(--v-theme-text));
   white-space: nowrap;
   order: -1;
-  padding-left: v-bind(LAYOUT.BOOK_CARD_MARGIN);
+  padding-inline-start: v-bind(LAYOUT.BOOK_CARD_MARGIN);
 }
 
 .sort-and-limit__controls {
@@ -182,7 +182,7 @@ if (typeof document !== 'undefined') {
   cursor: pointer;
   font-family: v-bind(TYPOGRAPHY.FONT_FAMILY);
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 400;
   color: rgb(var(--v-theme-text));
   text-align: start;
 }
@@ -217,8 +217,9 @@ if (typeof document !== 'undefined') {
   list-style: none;
   margin: 0;
   padding: 0.25rem 0;
-  z-index: 99;
   min-width: 150px;
+  /* Below the global language filter's dropdown (z-index: 99) */
+  z-index: 98;
 }
 
 .dropdown__item {

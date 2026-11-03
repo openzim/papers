@@ -258,7 +258,6 @@ function isActive(path: string): boolean {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
   height: 28px;
   padding: 0;
   background: none;
@@ -307,5 +306,11 @@ function isActive(path: string): boolean {
   color: rgb(var(--v-theme-menuActive));
   text-decoration: underline;
   text-underline-offset: 4px;
+}
+
+@media (max-width: 767px) {
+  .app-header__inner {
+    padding: v-bind(LAYOUT.VIEW_PADDING_MOBILE);
+  }
 }
 </style>

@@ -43,6 +43,8 @@ describe('AuthorCard', () => {
     displayName: 'Jane Austen',
     sortName: 'Austen',
     bookCount: 42,
+    languages: ['en'],
+    bookCountByLanguage: { en: 42 },
     ...overrides
   })
 

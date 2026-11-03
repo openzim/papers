@@ -2,10 +2,18 @@
  * Component tests for AuthorDetailInfo
  */
 
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
+import { createI18n } from 'vue-i18n'
 import AuthorDetailInfo from './AuthorDetailInfo.vue'
 import type { AuthorDetail, AuthorPreview } from '@/types'
+
+const i18n = createI18n({
+  legacy: false,
+  locale: 'en',
+  messages: { en: { languageFilter: { allLanguages: 'All languages' } }, qq: {} }
+})
 
 const createAuthor = (overrides?: Partial<AuthorDetail>): AuthorDetail => ({
   id: 'austen-jane',
@@ -14,6 +22,8 @@ const createAuthor = (overrides?: Partial<AuthorDetail>): AuthorDetail => ({
   birthYear: '1775',
   deathYear: '1817',
   bookCount: 42,
+  languages: ['en'],
+  bookCountByLanguage: { en: 42 },
   books: [],
   ...overrides
 })
@@ -22,6 +32,7 @@ const mountInfo = (author: AuthorDetail, authors: AuthorPreview[] = []) =>
   mount(AuthorDetailInfo, {
     props: { author, authors },
     global: {
+      plugins: [i18n],
       stubs: {
         AuthorDetailCarousel: true,
         BookDisplay: true,
@@ -31,18 +42,21 @@ const mountInfo = (author: AuthorDetail, authors: AuthorPreview[] = []) =>
   })
 
 describe('AuthorDetailInfo', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+  })
+
   describe('Enrichment section', () => {
-    it('renders an empty about section when neither bio nor a webpage resource is available', () => {
+    // jsdom has no real viewport/matchMedia, so Vuetify's useDisplay() always
+    // reports `mobile: true` here, matching AuthorCard's mobile behavior:
+    // the empty section is dropped instead of kept for layout spacing.
+    it('does not render the about section on mobile when neither bio nor a webpage resource is available', () => {
       const wrapper = mountInfo(createAuthor({ bio: null, webpageResource: null }))
 
-      // The section is kept (empty) so it still occupies its space in the layout
-      const about = wrapper.find('.author-card__about')
-      expect(about.exists()).toBe(true)
-      expect(about.element.children).toHaveLength(0)
-      expect(about.text()).toBe('')
+      expect(wrapper.find('.author-card__about').exists()).toBe(false)
     })
 
-    it('renders an empty about section when only a portrait is available', () => {
+    it('does not render the about section on mobile when only a portrait is available', () => {
       const wrapper = mountInfo(
         createAuthor({
           bio: null,
@@ -51,10 +65,7 @@ describe('AuthorDetailInfo', () => {
         })
       )
 
-      const about = wrapper.find('.author-card__about')
-      expect(about.exists()).toBe(true)
-      expect(about.element.children).toHaveLength(0)
-      expect(about.text()).toBe('')
+      expect(wrapper.find('.author-card__about').exists()).toBe(false)
     })
 
     it('renders the biography when bio is available', () => {

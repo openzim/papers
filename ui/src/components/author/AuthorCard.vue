@@ -85,7 +85,7 @@ const avatarSize = computed(() => {
         </p>
       </div>
     </div>
-    <div v-if="variant === 'detailed'" class="author-card__about">
+    <div v-if="variant === 'detailed' && (author.bio || !mobile)" class="author-card__about">
       <p v-if="author.bio" class="author-card__bio">{{ author.bio }}</p>
       <a
         v-if="author.bio && author.webpageResource"

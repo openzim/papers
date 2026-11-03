@@ -10,6 +10,8 @@ import SelectedBooksSection from '@/components/home/SelectedBooksSection.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import { useHasPopularity } from '@/composables/useHasPopularity'
 import { useHasMultipleCollections } from '@/composables/useHasMultipleCollections'
+import { useLanguageFilter } from '@/composables/useLanguageFilter'
+import { matchesLanguage, withLanguageCounts } from '@/utils/language-filter'
 import { LAYOUT } from '@/constants/theme'
 import { compareAuthorNames } from '@/utils/format-utils'
 
@@ -17,6 +19,7 @@ const { t } = useI18n()
 const main = useMainStore()
 const hasPopularity = useHasPopularity()
 const hasMultipleCollections = useHasMultipleCollections()
+const { selectedLanguage } = useLanguageFilter()
 
 const collections = ref<CollectionPreview[]>([])
 const collectionsLoading = ref(false)
@@ -30,8 +33,16 @@ const authorsLoading = ref(false)
 const books = ref<BookPreview[]>([])
 const booksLoading = ref(false)
 
+const filteredBooks = computed(() =>
+  books.value.filter((book) => matchesLanguage(book.languages, selectedLanguage.value))
+)
+
+const filteredCollectionBooks = computed(() =>
+  collectionBooks.value.filter((book) => matchesLanguage(book.languages, selectedLanguage.value))
+)
+
 const popularCollections = computed(() =>
-  [...collections.value]
+  withLanguageCounts(collections.value, selectedLanguage.value)
     .sort((a, b) =>
       hasPopularity.value
         ? (b.totalPopularity || 0) - (a.totalPopularity || 0)
@@ -41,7 +52,7 @@ const popularCollections = computed(() =>
 )
 
 const popularAuthors = computed(() =>
-  [...authors.value]
+  withLanguageCounts(authors.value, selectedLanguage.value)
     .sort((a, b) =>
       hasPopularity.value
         ? (b.totalPopularity || 0) - (a.totalPopularity || 0)
@@ -54,16 +65,7 @@ async function loadCollections() {
   collectionsLoading.value = true
   try {
     const result = await main.fetchCollections()
-    collections.value = result.collections.map((collection) => ({
-      id: collection.id,
-      name: collection.name,
-      bookCount: collection.bookCount,
-      totalPopularity: collection.totalPopularity
-    }))
-    const top = popularCollections.value[0]
-    if (top && !activeCollectionId.value) {
-      activeCollectionId.value = top.id
-    }
+    collections.value = result.collections
   } catch (error) {
     console.error('Failed to load collections', error)
   } finally {
@@ -113,6 +115,16 @@ async function loadBooks() {
 watch(activeCollectionId, (newCode) => {
   if (newCode) {
     loadCollectionBooks(newCode)
+  } else {
+    collectionBooks.value = []
+  }
+})
+
+// Keep the active shelf valid: pick the top collection on first load, and
+// re-pick whenever the language filter drops the current one out of view.
+watch(popularCollections, (list) => {
+  if (!list.some((collection) => collection.id === activeCollectionId.value)) {
+    activeCollectionId.value = list[0]?.id ?? null
   }
 })
 
@@ -145,8 +157,8 @@ onMounted(() => {
       <div class="collection-books">
         <loading-spinner v-if="collectionBooksLoading" :message="t('common.loading')" />
         <popular-collection-books
-          v-else-if="activeCollectionId && collectionBooks.length > 0"
-          :books="collectionBooks"
+          v-else-if="activeCollectionId && filteredCollectionBooks.length > 0"
+          :books="filteredCollectionBooks"
         />
       </div>
     </template>
@@ -156,10 +168,16 @@ onMounted(() => {
         v-if="!authorsLoading && popularAuthors.length > 0"
         :authors="popularAuthors"
       />
-      <selected-books-section v-if="!booksLoading && books.length > 0" :books="books" />
+      <selected-books-section
+        v-if="!booksLoading && filteredBooks.length > 0"
+        :books="filteredBooks"
+      />
     </template>
     <template v-else>
-      <selected-books-section v-if="!booksLoading && books.length > 0" :books="books" />
+      <selected-books-section
+        v-if="!booksLoading && filteredBooks.length > 0"
+        :books="filteredBooks"
+      />
       <selected-authors-carousel
         v-if="!authorsLoading && popularAuthors.length > 0"
         :authors="popularAuthors"

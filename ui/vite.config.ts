@@ -77,7 +77,8 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000
   },
   server: {
-    port: 5173
+    port: 5173,
+    allowedHosts: ['hetwork1b.tail035625.ts.net']
   },
   preview: {
     port: 5173

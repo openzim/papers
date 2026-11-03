@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useMainStore } from '@/stores/main'
 import type { BookPreview } from '@/types'
@@ -8,13 +8,14 @@ import BookDisplay from '@/components/book/BookDisplay.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import { useListLoader } from '@/composables/useListLoader'
+import { useLanguageFilter } from '@/composables/useLanguageFilter'
+import { matchesLanguage } from '@/utils/language-filter'
 import { LAYOUT } from '@/constants/theme'
 import { MESSAGES } from '@/constants/messages'
 
 const { t } = useI18n()
 const main = useMainStore()
-
-const selectedLanguages = ref<string[]>([])
+const { selectedLanguage } = useLanguageFilter()
 
 const {
   items: books,
@@ -25,14 +26,9 @@ const {
   'books'
 )
 
-const filteredBooks = computed(() => {
-  if (selectedLanguages.value.length === 0) {
-    return books.value
-  }
-  return books.value.filter((book) =>
-    book.languages.some((lang) => selectedLanguages.value.includes(lang))
-  )
-})
+const filteredBooks = computed(() =>
+  books.value.filter((book) => matchesLanguage(book.languages, selectedLanguage.value))
+)
 
 onMounted(() => {
   loadBooks()

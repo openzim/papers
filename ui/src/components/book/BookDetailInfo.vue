@@ -204,19 +204,19 @@ const collectionDisplayName = computed(() => {
         <!-- Desktop-only meta (inside info-cell) -->
         <div class="meta-desktop">
           <v-row class="meta-row">
-            <v-col cols="3" v-if="book.published">
+            <v-col :cols="book.published ? 3 : 4" v-if="book.published">
               <div class="inter-13 text-medium-emphasis">{{ t('book.published') }}</div>
               <div class="inter-13">{{ book.published }}</div>
             </v-col>
-            <v-col cols="3">
+            <v-col :cols="book.published ? 3 : 4">
               <div class="inter-13 text-medium-emphasis">{{ t('book.languages') }}</div>
               <div class="inter-13">{{ formatLanguages(book.languages) }}</div>
             </v-col>
-            <v-col cols="3">
+            <v-col :cols="book.published ? 3 : 4">
               <div class="inter-13 text-medium-emphasis">{{ t('book.license') }}</div>
               <BookLicense :license="book.license" :license-id="book.licenseId" />
             </v-col>
-            <v-col cols="3" v-if="book.primaryCollection">
+            <v-col :cols="book.published ? 3 : 4" v-if="book.primaryCollection">
               <div class="inter-13 text-medium-emphasis">{{ t('book.collection') }}</div>
               <router-link
                 :to="{ path: '/collections', query: { collection: book.primaryCollection } }"
@@ -232,19 +232,19 @@ const collectionDisplayName = computed(() => {
       <!-- Mobile-only meta (full width row) -->
       <div class="meta-cell">
         <v-row class="meta-row">
-          <v-col cols="3" v-if="book.published">
+          <v-col :cols="book.published ? 3 : 4" v-if="book.published">
             <div class="inter-13 text-medium-emphasis">{{ t('book.published') }}</div>
             <div class="inter-13">{{ book.published }}</div>
           </v-col>
-          <v-col cols="3">
+          <v-col :cols="book.published ? 3 : 4">
             <div class="inter-13 text-medium-emphasis">{{ t('book.languages') }}</div>
             <div class="inter-13">{{ formatLanguages(book.languages) }}</div>
           </v-col>
-          <v-col cols="3">
+          <v-col :cols="book.published ? 3 : 4">
             <div class="inter-13 text-medium-emphasis">{{ t('book.license') }}</div>
             <BookLicense :license="book.license" :license-id="book.licenseId" />
           </v-col>
-          <v-col cols="3" v-if="book.primaryCollection">
+          <v-col :cols="book.published ? 3 : 4" v-if="book.primaryCollection">
             <div class="inter-13 text-medium-emphasis">{{ t('book.collection') }}</div>
             <router-link
               :to="{ path: '/collections', query: { collection: book.primaryCollection } }"
@@ -598,6 +598,10 @@ const collectionDisplayName = computed(() => {
 
   .info-cell::after {
     display: none;
+  }
+
+  .meta-row {
+    gap: 15px;
   }
 
   .meta-desktop {

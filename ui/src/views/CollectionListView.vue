@@ -10,6 +10,8 @@ import CollectionSidebar from '@/components/collection/CollectionSidebar.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import { useListLoader } from '@/composables/useListLoader'
+import { useLanguageFilter } from '@/composables/useLanguageFilter'
+import { matchesLanguage, withLanguageCounts } from '@/utils/language-filter'
 import { LAYOUT } from '@/constants/theme'
 import { MESSAGES } from '@/constants/messages'
 
@@ -17,6 +19,7 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const main = useMainStore()
+const { selectedLanguage } = useLanguageFilter()
 
 const {
   items: collections,
@@ -31,12 +34,7 @@ loadCollections()
 const totalBooks = ref(0)
 
 const sidebarCollections = computed(() =>
-  collections.value.map((collection) => ({
-    id: collection.id,
-    name: collection.name,
-    bookCount: collection.bookCount,
-    totalPopularity: collection.totalPopularity
-  }))
+  withLanguageCounts(collections.value, selectedLanguage.value)
 )
 
 const activeCollectionId = computed(() => {
@@ -53,20 +51,22 @@ const collectionBooksLoading = ref(false)
 async function loadCollectionBooks(id: string | null) {
   collectionBooksLoading.value = true
   try {
+    const allBooks = await main.fetchBooks()
+    if (activeCollectionId.value !== id) return
+    totalBooks.value = allBooks.books.filter((book) =>
+      matchesLanguage(book.languages, selectedLanguage.value)
+    ).length
+
     if (!id) {
-      const result = await main.fetchBooks()
-      if (activeCollectionId.value !== id) return
-      collectionBooks.value = result.books
-      totalBooks.value = result.totalCount
+      collectionBooks.value = allBooks.books.filter((book) =>
+        matchesLanguage(book.languages, selectedLanguage.value)
+      )
     } else {
       const collection = await main.fetchCollection(id)
       if (activeCollectionId.value !== id) return
-      collectionBooks.value = collection.books
-      if (totalBooks.value === 0) {
-        const books = await main.fetchBooks()
-        if (activeCollectionId.value !== id) return
-        totalBooks.value = books.totalCount
-      }
+      collectionBooks.value = collection.books.filter((book) =>
+        matchesLanguage(book.languages, selectedLanguage.value)
+      )
     }
   } catch {
     if (activeCollectionId.value === id) {
@@ -79,7 +79,9 @@ async function loadCollectionBooks(id: string | null) {
   }
 }
 
-watch(activeCollectionId, loadCollectionBooks, { immediate: true })
+watch([activeCollectionId, selectedLanguage], () => loadCollectionBooks(activeCollectionId.value), {
+  immediate: true
+})
 
 function selectCollection(id: string | null) {
   const query = id

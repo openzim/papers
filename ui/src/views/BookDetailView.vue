@@ -7,11 +7,14 @@ import { useMainStore } from '@/stores/main'
 import { useI18n } from 'vue-i18n'
 import { computed, ref, watch } from 'vue'
 import type { Collection } from '@/types'
+import { useLanguageFilter } from '@/composables/useLanguageFilter'
+import { matchesLanguage } from '@/utils/language-filter'
 import { LAYOUT } from '@/constants/theme'
 
 const { t } = useI18n()
 
 const main = useMainStore()
+const { selectedLanguage } = useLanguageFilter()
 
 const { data: book, notFound, loading } = useDetailView((id) => main.fetchBook(id), 'id')
 
@@ -20,7 +23,9 @@ const collectionLoading = ref(false)
 
 const sameCollectionBooks = computed(() => {
   if (!collectionData.value || !book.value) return []
-  return collectionData.value.books.filter((b) => b.id !== book.value!.id)
+  return collectionData.value.books.filter(
+    (b) => b.id !== book.value!.id && matchesLanguage(b.languages, selectedLanguage.value)
+  )
 })
 
 watch(
