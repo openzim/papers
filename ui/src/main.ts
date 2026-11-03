@@ -8,6 +8,7 @@ import router from './router'
 import { useMainStore } from './stores/main'
 import loadVuetify from './plugins/vuetify'
 import loadI18n, { i18nPlugin } from './plugins/i18n'
+import { renderLoadFailure } from './utils/load-failure'
 
 import ResizeObserver from 'resize-observer-polyfill'
 
@@ -42,7 +43,6 @@ mainStore
     console.error('Failed to initialize application:', error)
     const appElement = document.getElementById('app')
     if (appElement) {
-      appElement.innerHTML =
-        '<div style="padding: 20px; text-align: center;">Failed to load application. Please refresh the page.</div>'
+      renderLoadFailure(appElement)
     }
   })

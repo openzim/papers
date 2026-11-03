@@ -34,6 +34,7 @@ as of 2.0.0.
 - Fine tune UI display (margins, ...) (#85)
 - UI: blur background content behind ZimInfoDialog (#87)
 - Rename the ambiguous `Creator.name`/`first_name`/`last_name` to `display_name` (the formatted string shown to readers) and `sort_name` (the last name alone, used only to sort, never displayed), dropping the unused decomposed first/last name fields; the JSON/UI `name` field is now `displayName` (#64)
+- UI: when the application fails to start, explain that reloading is unlikely to help and point to the more limited No-JavaScript interface instead (#119)
 
 ### Fixed
 
