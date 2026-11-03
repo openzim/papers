@@ -35,6 +35,7 @@ as of 2.0.0.
 - UI: blur background content behind ZimInfoDialog (#87)
 - Rename the ambiguous `Creator.name`/`first_name`/`last_name` to `display_name` (the formatted string shown to readers) and `sort_name` (the last name alone, used only to sort, never displayed), dropping the unused decomposed first/last name fields; the JSON/UI `name` field is now `displayName` (#64)
 - UI: when the application fails to start, explain that reloading is unlikely to help and point to the more limited No-JavaScript interface instead (#119)
+- One More Library and Open Textbook Library: emit one broad collection per book instead of hundreds of leaf categories. OML uses the category above the book's own, OTL resolves every subject to its root through the published subject tree because textbook records often omit the ancestors; document the collection policy, give both sources dedicated category icons, and drop the OTL subject translations that no longer correspond to an emitted collection (#117)
 
 ### Fixed
 

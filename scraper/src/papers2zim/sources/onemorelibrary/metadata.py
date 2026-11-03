@@ -6,7 +6,7 @@ from pathlib import Path
 from urllib.parse import urljoin, urlparse
 
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 
 from papers2zim.constants import logger
 from papers2zim.core.download_engine import DownloadEngine, is_fatal_http_error
@@ -22,10 +22,45 @@ FORMAT_MEDIA_TYPES = {
 }
 _AUTHOR_ID_RE = re.compile(r"-(\d+)$")
 _BOOKS_SUFFIX_RE = re.compile(r"\s*\(\s*\d+\s*books?\s*\)\s*$", re.IGNORECASE)
+_TAXONOMY_ROOTS = frozenset({"books", "livres", "languages", "langues"})
+_LANGUAGE_ROOTS = frozenset({"languages", "langues"})
+_LANGUAGE_ROOT_DEPTH = 2
 
 
 def _text(node) -> str:
     return " ".join(node.get_text(" ", strip=True).split())
+
+
+def _content_segments(href: str) -> list[str]:
+    segments = [segment for segment in urlparse(href).path.split("/") if segment]
+    if "index.php" in segments:
+        segments = segments[segments.index("index.php") + 2 :]
+    return segments
+
+
+def _is_taxonomy_root(segments: list[str]) -> bool:
+    if not segments:
+        return True
+    if len(segments) == 1:
+        return segments[0] in _TAXONOMY_ROOTS
+    return len(segments) == _LANGUAGE_ROOT_DEPTH and segments[0] in _LANGUAGE_ROOTS
+
+
+def _breadcrumb_collection(soup: BeautifulSoup) -> CollectionRef | None:
+    """Return the broad category above the book's own category in the breadcrumb."""
+    items: list[tuple[Tag, list[str]]] = []
+    for anchor in soup.select(".breadcrumb a[href]"):
+        href = anchor.get("href")
+        if isinstance(href, str):
+            items.append((anchor, _content_segments(href)))
+    if not items:
+        return None
+    anchor, segments = items[-2] if len(items) > 1 else items[-1]
+    if _is_taxonomy_root(segments):
+        anchor, segments = items[-1]
+    if _is_taxonomy_root(segments):
+        return None
+    return CollectionRef(id=segments[-1], name=_text(anchor), kind="category")
 
 
 def _row_values(soup: BeautifulSoup, container: str) -> dict[str, str]:
@@ -163,7 +198,7 @@ def parse_book_page(
         return None
 
     details = _row_values(soup, ".custom_det")
-    additional, collections = _additional_details(soup)
+    additional, listed_categories = _additional_details(soup)
     language_node = soup.select_one(".title_top .type_button")
     language_name = (
         _text(language_node)
@@ -175,14 +210,16 @@ def parse_book_page(
         logger.debug("Unknown One More Library language label: %s", language_name)
 
     formats, hits = _formats(soup, source_url)
-    if not collections and ref.extra.get("category_id"):
-        collections = [
-            CollectionRef(
-                id=str(ref.extra["category_id"]),
-                name=str(ref.extra.get("category_name") or ref.extra["category_id"]),
-                kind="category",
-            )
-        ]
+    collection = _breadcrumb_collection(soup)
+    if collection is None and listed_categories:
+        collection = listed_categories[0]
+    if collection is None and ref.extra.get("category_id"):
+        collection = CollectionRef(
+            id=str(ref.extra["category_id"]),
+            name=str(ref.extra.get("category_name") or ref.extra["category_id"]),
+            kind="category",
+        )
+    collections = [collection] if collection is not None else []
 
     creator = _creator(soup)
     cover = _cover_url(soup, source_url)
