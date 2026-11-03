@@ -52,6 +52,22 @@ def test_unresolved_code_raises():
         get_zim_language_metadata(["myn"], books)
 
 
+# Regression tests for #121
+def test_unresolved_code_does_not_block_when_other_languages_resolve():
+    # `mul` ZIMs collect every language found across all books, including
+    # codes we explicitly can't map (myn, nai); they must be dropped, not
+    # block the whole ZIM, as long as at least one other language resolves.
+    books = _make_books([["en"], ["fr"], ["myn"], ["nai"]])
+    result = get_zim_language_metadata(["en", "fr", "myn", "nai"], books)
+    assert result == ["eng", "fra"]
+
+
+def test_all_unresolved_codes_raise():
+    books = _make_books([["myn"], ["nai"]])
+    with pytest.raises(ValueError, match="myn, nai"):
+        get_zim_language_metadata(["myn", "nai"], books)
+
+
 def test_empty_languages_returns_empty():
     books = _make_books([["en"]])
     result = get_zim_language_metadata([], books)
