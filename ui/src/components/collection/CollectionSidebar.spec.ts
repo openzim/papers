@@ -27,7 +27,15 @@ describe('CollectionSidebar', () => {
   it('renders collection name and book count correctly without underline regression (issue #24)', () => {
     const wrapper = mount(CollectionSidebar, {
       props: {
-        collections: [{ id: 'history', name: 'History', bookCount: 2 }],
+        collections: [
+          {
+            id: 'history',
+            name: 'History',
+            bookCount: 2,
+            languages: ['en'],
+            bookCountByLanguage: { en: 2 }
+          }
+        ],
         activeId: 'history',
         totalBooks: 10
       },

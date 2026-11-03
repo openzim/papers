@@ -14,6 +14,10 @@ export interface AuthorPreview {
   bookCount: number
   totalPopularity?: number
   portraitPath?: string | null
+  // Per-language breakdown, used by useLanguageFilter.
+  languages: string[]
+  bookCountByLanguage: Record<string, number>
+  totalPopularityByLanguage?: Record<string, number>
 }
 
 export interface Author extends AuthorPreview {

@@ -26,6 +26,8 @@ describe('CollectionCard', () => {
     id: 'PR',
     name: 'English literature',
     bookCount: 150,
+    languages: ['en'],
+    bookCountByLanguage: { en: 150 },
     ...overrides
   })
 

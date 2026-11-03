@@ -23,6 +23,11 @@ class AuthorPreview(CamelModel):
     book_count: int
     total_popularity: float = 0
     portrait_path: str | None = None
+    # Lets the UI filter/display per-language counts without fetching every
+    # author's detail JSON.
+    languages: list[str] = []
+    book_count_by_language: dict[str, int] = {}
+    total_popularity_by_language: dict[str, float] = {}
 
 
 class Author(AuthorPreview):
@@ -100,6 +105,10 @@ class CollectionPreview(CamelModel):
     name: str
     book_count: int
     total_popularity: float = 0
+    # Same per-language breakdown as `AuthorPreview`, and for the same reason.
+    languages: list[str] = []
+    book_count_by_language: dict[str, int] = {}
+    total_popularity_by_language: dict[str, float] = {}
 
 
 class Collection(CollectionPreview):

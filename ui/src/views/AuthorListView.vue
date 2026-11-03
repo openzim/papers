@@ -9,12 +9,15 @@ import BackToTopButton from '@/components/common/BackToTopButton.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import { useListLoader } from '@/composables/useListLoader'
+import { useLanguageFilter } from '@/composables/useLanguageFilter'
+import { withLanguageCounts } from '@/utils/language-filter'
 import { MESSAGES } from '@/constants/messages'
 import { LAYOUT } from '@/constants/theme'
 import { compareAuthorNames } from '@/utils/format-utils'
 
 const { t } = useI18n()
 const main = useMainStore()
+const { selectedLanguage } = useLanguageFilter()
 
 const activeFilter = ref('ALL')
 
@@ -24,7 +27,13 @@ const {
   loadItems: loadAuthors
 } = useListLoader<AuthorPreview, Authors>(() => main.fetchAuthors(), 'authors')
 
-const sortedAuthors = computed(() => [...authors.value].sort((a, b) => compareAuthorNames(a, b)))
+const languageFilteredAuthors = computed(() =>
+  withLanguageCounts(authors.value, selectedLanguage.value)
+)
+
+const sortedAuthors = computed(() =>
+  [...languageFilteredAuthors.value].sort((a, b) => compareAuthorNames(a, b))
+)
 
 // First character with accents folded to its base letter (É → E)
 function baseFirstChar(value: string): string {
@@ -64,7 +73,7 @@ onMounted(() => {
       v-if="authorsLoading"
       :message="t('common.loadingItems', { type: t('itemTypes.authors') })"
     />
-    <template v-else-if="authors.length > 0">
+    <template v-else-if="languageFilteredAuthors.length > 0">
       <alphabet-filter v-model="activeFilter" />
 
       <authors-list v-if="filteredByLetter.length > 0" :authors="filteredByLetter" />

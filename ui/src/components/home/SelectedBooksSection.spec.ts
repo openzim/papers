@@ -17,7 +17,9 @@ const books: BookPreview[] = [
       displayName: 'First Author',
       sortName: 'Author',
       bookCount: 1,
-      totalPopularity: 10
+      totalPopularity: 10,
+      languages: ['en'],
+      bookCountByLanguage: { en: 1 }
     },
     languages: ['en'],
     popularity: 10,
@@ -33,7 +35,9 @@ const books: BookPreview[] = [
       displayName: 'Second Author',
       sortName: 'Author',
       bookCount: 1,
-      totalPopularity: 100
+      totalPopularity: 100,
+      languages: ['en'],
+      bookCountByLanguage: { en: 1 }
     },
     languages: ['en'],
     popularity: 100,

@@ -20,7 +20,9 @@ const mockBookData: Book = {
     sortName: 'Austen',
     birthYear: '1775',
     deathYear: '1817',
-    bookCount: 95
+    bookCount: 95,
+    languages: ['en'],
+    bookCountByLanguage: { en: 95 }
   },
   languages: ['en'],
   popularity: 50000,

@@ -6,7 +6,13 @@ defineProps<{
 </script>
 
 <template>
-  <v-alert :type="type || 'info'" variant="tonal">
+  <v-alert class="empty-state" :type="type || 'info'" variant="tonal">
     {{ message }}
   </v-alert>
 </template>
+
+<style scoped>
+.empty-state {
+  margin-bottom: 2rem;
+}
+</style>

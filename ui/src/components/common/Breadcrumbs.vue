@@ -19,15 +19,18 @@ const { isRtl } = useRtl()
 
 function truncateToWords(title: string, wordCount: number) {
   const words = title.trim().split(/\s+/)
-
-  return words.length > wordCount ? `${words.slice(0, wordCount).join(' ')}...` : title
+  return words.length > wordCount ? `${words.slice(0, wordCount).join(' ')}…` : title
 }
 
 const displayItems = computed(() =>
   props.items.map((item, index) => ({
     ...item,
     title:
-      mobile.value && index === props.items.length - 1 ? truncateToWords(item.title, 2) : item.title
+      mobile.value && index === props.items.length - 1
+        ? truncateToWords(item.title, 2)
+        : index === 1
+          ? '…'
+          : item.title
   }))
 )
 </script>
@@ -69,6 +72,7 @@ const displayItems = computed(() =>
 .breadcrumbs-nav--small {
   width: 100%;
   min-width: 0;
+  padding: 0 calc(v-bind(LAYOUT.VIEW_PADDING_HORIZONTAL_MOBILE) - 4px);
 }
 
 .breadcrumbs-nav--small :deep(.v-breadcrumbs-item) {
@@ -84,5 +88,6 @@ const displayItems = computed(() =>
 
 .breadcrumbs-nav--small :deep(.v-breadcrumbs-divider) {
   flex: 0 0 auto;
+  padding: 0;
 }
 </style>

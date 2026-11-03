@@ -14,10 +14,38 @@ import type { Collection, Collections, BookPreview } from '@/types'
 const mockCollectionsData: Collections = {
   totalCount: 4,
   collections: [
-    { id: 'PR', name: 'English literature', bookCount: 150, totalPopularity: 0 },
-    { id: 'PS', name: 'American literature', bookCount: 200, totalPopularity: 0 },
-    { id: 'PQ', name: 'French literature', bookCount: 100, totalPopularity: 0 },
-    { id: 'PT', name: 'German literature', bookCount: 80, totalPopularity: 0 }
+    {
+      id: 'PR',
+      name: 'English literature',
+      bookCount: 150,
+      totalPopularity: 0,
+      languages: ['en'],
+      bookCountByLanguage: { en: 150 }
+    },
+    {
+      id: 'PS',
+      name: 'American literature',
+      bookCount: 200,
+      totalPopularity: 0,
+      languages: ['en'],
+      bookCountByLanguage: { en: 200 }
+    },
+    {
+      id: 'PQ',
+      name: 'French literature',
+      bookCount: 100,
+      totalPopularity: 0,
+      languages: ['en'],
+      bookCountByLanguage: { en: 100 }
+    },
+    {
+      id: 'PT',
+      name: 'German literature',
+      bookCount: 80,
+      totalPopularity: 0,
+      languages: ['en'],
+      bookCountByLanguage: { en: 80 }
+    }
   ]
 }
 
@@ -29,7 +57,9 @@ const mockBooks: BookPreview[] = [
       id: '1',
       displayName: 'Lewis Carroll',
       sortName: 'Carroll',
-      bookCount: 1
+      bookCount: 1,
+      languages: ['en'],
+      bookCountByLanguage: { en: 1 }
     },
     languages: ['en'],
     popularity: 50000,
@@ -40,7 +70,14 @@ const mockBooks: BookPreview[] = [
   {
     id: '2',
     title: 'Pride and Prejudice',
-    author: { id: '2', displayName: 'Jane Austen', sortName: 'Austen', bookCount: 1 },
+    author: {
+      id: '2',
+      displayName: 'Jane Austen',
+      sortName: 'Austen',
+      bookCount: 1,
+      languages: ['en'],
+      bookCountByLanguage: { en: 1 }
+    },
     languages: ['en'],
     popularity: 30000,
     flames: 2,
@@ -83,6 +120,8 @@ describe('CollectionListView Integration', () => {
       name: 'English literature',
       bookCount: books.length,
       totalPopularity: 0,
+      languages: ['en'],
+      bookCountByLanguage: { en: books.length },
       books
     })
     vi.spyOn(store, 'fetchBooks').mockResolvedValue({ totalCount: books.length, books })
@@ -161,6 +200,8 @@ describe('CollectionListView Integration', () => {
         name: 'American literature',
         bookCount: 1,
         totalPopularity: 0,
+        languages: ['en'],
+        bookCountByLanguage: { en: 1 },
         books: [{ ...mockBooks[0]!, title: 'Current collection book' }]
       })
       await flushPromises()
@@ -170,6 +211,8 @@ describe('CollectionListView Integration', () => {
         name: 'English literature',
         bookCount: 1,
         totalPopularity: 0,
+        languages: ['en'],
+        bookCountByLanguage: { en: 1 },
         books: [{ ...mockBooks[1]!, title: 'Stale collection book' }]
       })
       await flushPromises()

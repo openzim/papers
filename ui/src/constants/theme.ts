@@ -44,7 +44,8 @@ export const LAYOUT = {
   FOOTER_HEIGHT: '136px',
   VIEW_PADDING_HORIZONTAL: '1.6rem',
   VIEW_PADDING: '4.2rem 1.6rem 2rem 1.6rem',
-  VIEW_PADDING_MOBILE: '1.5rem 1.6rem',
+  VIEW_PADDING_MOBILE: '1.5rem 1.2rem',
+  VIEW_PADDING_HORIZONTAL_MOBILE: '1.2rem',
   BOOK_CARD_RADIUS: '10px',
   BOOK_CARD_MARGIN: '0.5rem',
   BOOK_CARD_HOVER_BORDER: '0.5px',
@@ -68,7 +69,7 @@ export const ICON_SIZES = {
 export const BOOK_GRID = {
   default: { width: 190, widthMobile: 160, coverHeight: 190, coverHeightMobile: 145 },
   wide: { width: 214, widthMobile: 160, coverHeight: 190, coverHeightMobile: 145 },
-  compact: { width: 160, widthMobile: 160, coverHeight: 145, coverHeightMobile: 145 }
+  compact: { width: 140, widthMobile: 160, coverHeight: 145, coverHeightMobile: 145 }
 } as const
 
 export type BookGridVariant = keyof typeof BOOK_GRID

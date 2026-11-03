@@ -6,6 +6,7 @@ UI routes live in `search_items_exporter`.
 """
 
 from collections import defaultdict
+from dataclasses import dataclass, field
 from datetime import date
 
 from papers2zim.constants import logger
@@ -50,11 +51,50 @@ from papers2zim.core.zim_assembler import ZimAssembler
 # JSON Generation Functions for Vue.js UI
 
 
+@dataclass(frozen=True, slots=True)
+class LanguageBreakdown:
+    """Per-language presence/book-count/popularity for one author or collection"""
+
+    languages: dict[str, list[str]] = field(default_factory=dict)
+    book_counts: dict[str, dict[str, int]] = field(default_factory=dict)
+    popularities: dict[str, dict[str, float]] = field(default_factory=dict)
+
+    def for_key(self, key: str) -> tuple[list[str], dict[str, int], dict[str, float]]:
+        return (
+            self.languages.get(key, []),
+            self.book_counts.get(key, {}),
+            self.popularities.get(key, {}),
+        )
+
+
+def _language_breakdown(works_by_key: dict[str, list[Work]]) -> LanguageBreakdown:
+    """Group each key's works by language, once, for O(n) preview exports."""
+    languages: dict[str, list[str]] = {}
+    book_counts: dict[str, dict[str, int]] = {}
+    popularities: dict[str, dict[str, float]] = {}
+    for key, works in works_by_key.items():
+        counts: dict[str, int] = {}
+        popularity: dict[str, float] = {}
+        for work in works:
+            for lang in work.languages:
+                counts[lang] = counts.get(lang, 0) + 1
+                popularity[lang] = popularity.get(lang, 0) + (work.popularity or 0)
+        languages[key] = sorted(counts)
+        book_counts[key] = counts
+        popularities[key] = popularity
+    return LanguageBreakdown(languages, book_counts, popularities)
+
+
 def _creator_to_preview(
-    creator: Creator, author_stats: dict[str, tuple[int, float]]
+    creator: Creator,
+    author_stats: dict[str, tuple[int, float]],
+    author_languages: LanguageBreakdown,
 ) -> AuthorPreview:
     """Convert Creator to AuthorPreview schema"""
     book_count, total_popularity = author_stats.get(creator.id, (0, 0))
+    languages, book_count_by_language, total_popularity_by_language = (
+        author_languages.for_key(creator.id)
+    )
     return AuthorPreview(
         id=creator.id,
         display_name=creator.display_name,
@@ -62,14 +102,22 @@ def _creator_to_preview(
         book_count=book_count,
         total_popularity=total_popularity,
         portrait_path=creator.extra.get("portrait_path"),
+        languages=languages,
+        book_count_by_language=book_count_by_language,
+        total_popularity_by_language=total_popularity_by_language,
     )
 
 
 def _creator_to_schema(
-    creator: Creator, author_stats: dict[str, tuple[int, float]]
+    creator: Creator,
+    author_stats: dict[str, tuple[int, float]],
+    author_languages: LanguageBreakdown,
 ) -> AuthorSchema:
     """Convert Creator to Author schema"""
     book_count, total_popularity = author_stats.get(creator.id, (0, 0))
+    languages, book_count_by_language, total_popularity_by_language = (
+        author_languages.for_key(creator.id)
+    )
     return AuthorSchema(
         id=creator.id,
         sort_name=creator.sort_name or "",
@@ -81,6 +129,9 @@ def _creator_to_schema(
         webpage_resource=creator.extra.get("webpage_resource"),
         book_count=book_count,
         total_popularity=total_popularity,
+        languages=languages,
+        book_count_by_language=book_count_by_language,
+        total_popularity_by_language=total_popularity_by_language,
     )
 
 
@@ -90,13 +141,18 @@ def _cover_path_for(work: Work) -> str | None:
 
 
 def _work_to_preview(
-    work: Work, formats: list[str], author_stats: dict[str, tuple[int, float]]
+    work: Work,
+    formats: list[str],
+    author_stats: dict[str, tuple[int, float]],
+    author_languages: LanguageBreakdown,
 ) -> BookPreview:
     """Convert Work to BookPreview schema"""
     return BookPreview(
         id=work.id,
         title=work.title,
-        author=_creator_to_preview(primary_creator(work), author_stats),
+        author=_creator_to_preview(
+            primary_creator(work), author_stats, author_languages
+        ),
         languages=work.languages,
         popularity=float(work.popularity or 0),
         flames=work.flames or 0,
@@ -108,7 +164,10 @@ def _work_to_preview(
 
 
 def _work_to_schema(
-    work: Work, formats: list[str], author_stats: dict[str, tuple[int, float]]
+    work: Work,
+    formats: list[str],
+    author_stats: dict[str, tuple[int, float]],
+    author_languages: LanguageBreakdown,
 ) -> BookSchema:
     """Convert Work to Book schema with formats"""
     book_formats: list[BookFormat] = []
@@ -140,7 +199,9 @@ def _work_to_schema(
         id=work.id,
         title=work.title,
         subtitle=work.subtitle,
-        author=_creator_to_schema(primary_creator(work), author_stats),
+        author=_creator_to_schema(
+            primary_creator(work), author_stats, author_languages
+        ),
         languages=work.languages,
         license=work.license or "Public domain in the USA.",
         license_id=work.license_id,
@@ -155,13 +216,22 @@ def _work_to_schema(
 
 
 def _collection_to_preview(
-    collection_id: str, collection_name: str, collection_works: list[Work]
+    collection_id: str,
+    collection_name: str,
+    collection_works: list[Work],
+    collection_languages: LanguageBreakdown,
 ) -> CollectionPreview:
+    languages, book_count_by_language, total_popularity_by_language = (
+        collection_languages.for_key(collection_id)
+    )
     return CollectionPreview(
         id=collection_id,
         name=collection_name,
         book_count=len(collection_works),
         total_popularity=sum(work.popularity or 0 for work in collection_works),
+        languages=languages,
+        book_count_by_language=book_count_by_language,
+        total_popularity_by_language=total_popularity_by_language,
     )
 
 
@@ -191,11 +261,13 @@ def generate_json_files(
     all_works = list(work_store.works)
     all_creators = indexes.authors
     author_stats = indexes.author_stats
+    author_languages = _language_breakdown(indexes.by_author)
 
     logger.info("Generating high-level JSON files")
     logger.debug("Generating books.json")
     books_preview = [
-        _work_to_preview(work, formats, author_stats) for work in all_works
+        _work_to_preview(work, formats, author_stats, author_languages)
+        for work in all_works
     ]
     books_collection = Books(books=books_preview, total_count=len(books_preview))
     assembler.add_item_for(
@@ -207,7 +279,8 @@ def generate_json_files(
 
     logger.debug("Generating authors.json")
     authors_preview = [
-        _creator_to_preview(creator, author_stats) for creator in all_creators
+        _creator_to_preview(creator, author_stats, author_languages)
+        for creator in all_creators
     ]
     authors_collection = Authors(
         authors=authors_preview, total_count=len(authors_preview)
@@ -223,6 +296,7 @@ def generate_json_files(
         collection_works_map,
         key=lambda collection_id: collection_names[collection_id],
     )
+    collection_languages = _language_breakdown(collection_works_map)
 
     collections = Collections(
         collections=[
@@ -230,6 +304,7 @@ def generate_json_files(
                 collection_id,
                 collection_names[collection_id],
                 collection_works_map[collection_id],
+                collection_languages,
             )
             for collection_id in collection_ids
         ],
@@ -302,7 +377,7 @@ def generate_json_files(
     logger.info("Generating detail JSON files")
     logger.debug("Generating book detail files")
     for work in all_works:
-        book_detail = _work_to_schema(work, formats, author_stats)
+        book_detail = _work_to_schema(work, formats, author_stats, author_languages)
         assembler.add_item_for(
             path=f"books/{work.id}.json",
             content=book_detail.model_dump_json(by_alias=True, indent=2),
@@ -312,13 +387,19 @@ def generate_json_files(
 
     for collection_id in collection_ids:
         collection_works = collection_works_map[collection_id]
+        languages, book_count_by_language, total_popularity_by_language = (
+            collection_languages.for_key(collection_id)
+        )
         collection = Collection(
             id=collection_id,
             name=collection_names[collection_id],
             book_count=len(collection_works),
             total_popularity=sum(work.popularity or 0 for work in collection_works),
+            languages=languages,
+            book_count_by_language=book_count_by_language,
+            total_popularity_by_language=total_popularity_by_language,
             books=[
-                _work_to_preview(work, formats, author_stats)
+                _work_to_preview(work, formats, author_stats, author_languages)
                 for work in collection_works
             ],
         )
@@ -332,9 +413,12 @@ def generate_json_files(
     logger.debug("Generating author detail files")
     for creator in all_creators:
         creator_works = [
-            _work_to_preview(work, formats, author_stats)
+            _work_to_preview(work, formats, author_stats, author_languages)
             for work in indexes.by_author.get(creator.id, [])
         ]
+        languages, book_count_by_language, total_popularity_by_language = (
+            author_languages.for_key(creator.id)
+        )
         author_detail = AuthorDetail(
             id=creator.id,
             sort_name=creator.sort_name or "",
@@ -347,6 +431,9 @@ def generate_json_files(
             books=creator_works,
             book_count=len(creator_works),
             total_popularity=author_stats.get(creator.id, (0, 0))[1],
+            languages=languages,
+            book_count_by_language=book_count_by_language,
+            total_popularity_by_language=total_popularity_by_language,
         )
 
         assembler.add_item_for(

@@ -10,6 +10,7 @@ import AppHeader from '@/components/layout/AppHeader.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
 import ErrorDisplay from '@/components/common/ErrorDisplay.vue'
 import Breadcrumbs from '@/components/common/Breadcrumbs.vue'
+import LanguageFilterControl from '@/components/common/LanguageFilterControl.vue'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -98,6 +99,7 @@ watch(
     <div v-if="showBreadcrumbs" class="app-breadcrumbs-wrapper">
       <div class="app-breadcrumbs-inner">
         <breadcrumbs :items="breadcrumbItems" />
+        <language-filter-control v-if="(main.config?.bookLanguages.length ?? 0) > 1" />
       </div>
     </div>
 
@@ -142,6 +144,8 @@ watch(
 }
 
 .app-breadcrumbs-inner {
+  display: flex;
+  align-items: center;
   max-width: v-bind(LAYOUT.MAX_CONTENT_WIDTH);
   margin: 0 auto;
   padding: 0.125rem 0;

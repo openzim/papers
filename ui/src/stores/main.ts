@@ -17,6 +17,9 @@ export const useMainStore = defineStore('main', () => {
   const currentAuthor = ref<AuthorDetail | null>(null)
   const config = ref<Config | null>(null)
 
+  // null = all languages. Lives here (not per-view) so it applies site-wide.
+  const selectedLanguage = ref<string | null>(null)
+
   // Cached list data to avoid refetching across views
   const books = ref<Books | null>(null)
   const authors = ref<Authors | null>(null)
@@ -133,6 +136,7 @@ export const useMainStore = defineStore('main', () => {
     currentBook,
     currentAuthor,
     config,
+    selectedLanguage,
     errorMessage,
     loading,
     booksCount,

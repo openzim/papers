@@ -20,7 +20,9 @@ function book(id: string, title: string, popularity: number): BookPreview {
       displayName: `Author ${id}`,
       sortName: id,
       bookCount: 1,
-      totalPopularity: popularity
+      totalPopularity: popularity,
+      languages: ['en'],
+      bookCountByLanguage: { en: 1 }
     },
     languages: ['en'],
     popularity,

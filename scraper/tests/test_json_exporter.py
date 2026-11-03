@@ -217,6 +217,68 @@ def test_config_reports_a_source_without_popularity():
     assert _config_content(assembler)["features"]["hasPopularity"] is False
 
 
+def test_previews_expose_per_language_breakdown():
+    assembler = MagicMock(name="assembler")
+    dickens = Creator(id="37", display_name="Charles Dickens")
+    austen = Creator(id="68", display_name="Jane Austen")
+    store = WorkStore()
+    store.add(
+        Work(
+            id="1",
+            source="gutenberg",
+            title="Bleak House",
+            creators=[dickens],
+            languages=["en"],
+            collections=[CollectionRef(id="PR", name="PR", kind="lcc_shelf")],
+            popularity=100,
+        )
+    )
+    store.add(
+        Work(
+            id="2",
+            source="gutenberg",
+            title="La Maison d'Austen",
+            creators=[dickens],
+            languages=["fr"],
+            collections=[CollectionRef(id="PR", name="PR", kind="lcc_shelf")],
+            popularity=10,
+        )
+    )
+    store.add(_work("3", "Emma", austen, "PR"))
+
+    generate_json_files(
+        zim_name="test",
+        formats=["html"],
+        work_store=store,
+        assembler=assembler,
+        display_name="Test Source",
+        indexes=_indexes(store),
+    )
+
+    authors_listing = json.loads(
+        next(
+            call
+            for call in assembler.add_item_for.call_args_list
+            if call.kwargs["path"] == "authors.json"
+        ).kwargs["content"]
+    )["authors"]
+    dickens_preview = next(a for a in authors_listing if a["id"] == "37")
+    assert sorted(dickens_preview["languages"]) == ["en", "fr"]
+    assert dickens_preview["bookCountByLanguage"] == {"en": 1, "fr": 1}
+    assert dickens_preview["totalPopularityByLanguage"] == {"en": 100, "fr": 10}
+
+    collections_listing = json.loads(
+        next(
+            call
+            for call in assembler.add_item_for.call_args_list
+            if call.kwargs["path"] == "collections.json"
+        ).kwargs["content"]
+    )["collections"]
+    pr_preview = next(c for c in collections_listing if c["id"] == "PR")
+    assert sorted(pr_preview["languages"]) == ["en", "fr"]
+    assert pr_preview["bookCountByLanguage"] == {"en": 2, "fr": 1}
+
+
 def test_content_info_reports_all_when_nothing_was_filtered():
     assembler = MagicMock(name="assembler")
     store = _store()
