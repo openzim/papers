@@ -17,6 +17,7 @@ describe('EmptyState', () => {
       const alert = wrapper.findComponent({ name: 'VAlert' })
       expect(alert.exists()).toBe(true)
       expect(alert.props('variant')).toBe('tonal')
+      expect(alert.props('rounded')).toBe('lg')
       expect(wrapper.text()).toContain('No items found')
     })
 

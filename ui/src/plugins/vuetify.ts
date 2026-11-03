@@ -11,9 +11,13 @@ async function loadVuetify() {
   const SECONDARY = '#424242'
   const ACCENT = '#82B1FF'
   const ERROR = '#D32F2F'
-  const INFO = '#1976D2'
+  const INFO = '#2A6B7A'
   const SUCCESS = '#388E3C'
   const WARNING = '#F57C00'
+  const ERROR_DARK = '#EF5350'
+  const INFO_DARK = '#69AFC6'
+  const SUCCESS_DARK = '#66BB6A'
+  const WARNING_DARK = '#FFA726'
   const BACKGROUND_LIGHT = '#F2F0F0'
   const BACKGROUND_DARK = '#121212'
   const SURFACE_LIGHT = '#FAFAFA'
@@ -61,6 +65,10 @@ async function loadVuetify() {
 
   const darkColors = {
     ...sharedColors,
+    error: ERROR_DARK,
+    info: INFO_DARK,
+    success: SUCCESS_DARK,
+    warning: WARNING_DARK,
     grid: THEME_COLORS.GRID_DARK,
     text: THEME_COLORS.TEXT_DARK,
     bgd1: THEME_COLORS.BGD_1_DARK,
