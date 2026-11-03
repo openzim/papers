@@ -17,6 +17,9 @@
 			"published": "شائع تھی ڳئے",
 			"anonymous": "گمنام"
 		},
+		"licenses": {
+			"termSeparator": "-"
+		},
 		"zimInfo": {
 			"source": "ماخذ",
 			"collections": {
@@ -54,6 +57,9 @@
 			"collections": "ونکیاں"
 		},
 		"home": {
+			"allCollections": "ساریاں ونکیاں"
+		},
+		"collection": {
 			"allCollections": "ساریاں ونکیاں"
 		},
 		"book": {
