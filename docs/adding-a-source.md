@@ -131,9 +131,16 @@ per ref (OTL) or map metadata already carried by the catalog (Wikisource), but
 it must yield `Work` instances and must use the shared `DownloadEngine` for
 HTTP requests.
 
+The orchestrator constructs the metadata object as
+`metadata_class(**metadata_options(mirror_url, cache_dir, engine))`, so each
+profile's `metadata_options` declares exactly the constructor kwargs the class
+needs: OTL passes `base_url`, `engine` and `cache_dir`, Gutenberg passes
+`mirror_url` and `engine`, and a source that only maps catalog data like
+Wikisource needs no constructor at all.
+
 ```python
 class ExampleMetadata(MetadataPort):
-    def __init__(self, base_url: str, *, engine: DownloadEngine, **_: object):
+    def __init__(self, base_url: str, *, engine: DownloadEngine):
         self.engine = engine
         self.base_url = base_url.rstrip("/")
 
@@ -352,7 +359,7 @@ EXAMPLE_PROFILE = SourceProfile(
     parse_cli_options=example_cli.parse_options,
     handle_cli_action=example_cli.handle_cli_action,
     pipeline_options=lambda _mirror_url, _cache_dir, _source_options, _languages: {},
-    metadata_options=lambda _cache_dir: {},
+    metadata_options=lambda _mirror_url, _cache_dir, _engine: {},
     metadata_class=ExampleMetadata,
     pipeline_class=ExamplePipeline,
 )
