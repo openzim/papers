@@ -1,3 +1,5 @@
+from unittest import mock
+
 import pytest
 
 from papers2zim.core.language import get_zim_language_metadata, resolve_language
@@ -60,6 +62,14 @@ def test_unresolved_code_does_not_block_when_other_languages_resolve():
     books = _make_books([["en"], ["fr"], ["myn"], ["nai"]])
     result = get_zim_language_metadata(["en", "fr", "myn", "nai"], books)
     assert result == ["eng", "fra"]
+
+
+def test_unresolved_code_logs_warning():
+    books = _make_books([["en"], ["myn"]])
+    with mock.patch("papers2zim.core.language.logger.warning") as warning:
+        get_zim_language_metadata(["en", "myn"], books)
+    warning.assert_called_once()
+    assert "myn" in warning.call_args[0][0]
 
 
 def test_all_unresolved_codes_raise():
