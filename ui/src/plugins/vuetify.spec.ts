@@ -14,4 +14,14 @@ describe('vuetify plugin', () => {
     i18n.global.locale.value = 'en'
     expect(vuetify.locale.isRtl.value).toBe(false)
   })
+
+  it('uses a dark-specific semantic palette', async () => {
+    const vuetify = await loadVuetify()
+    const { light, dark } = vuetify.theme.themes.value
+    const semanticColors = ['info', 'error', 'success', 'warning'] as const
+
+    for (const color of semanticColors) {
+      expect(dark.colors[color]).not.toBe(light.colors[color])
+    }
+  })
 })
