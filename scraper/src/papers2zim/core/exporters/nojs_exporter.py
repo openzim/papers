@@ -13,12 +13,14 @@ from papers2zim.constants import logger
 from papers2zim.core.index_builder import Indexes
 from papers2zim.core.language import language_name
 from papers2zim.core.models import Work
+from papers2zim.core.slugs import build_slugs
 from papers2zim.core.utils import (
     archive_name_for,
     article_name_for,
     book_name_for_fs,
     collection_key,
     creator_template_context,
+    primary_creator,
     work_template_context,
 )
 from papers2zim.core.work_store import WorkStore
@@ -82,6 +84,7 @@ def generate_noscript_pages(
         )
     all_works = list(work_store.works)
     all_authors = indexes.authors
+    slugs = build_slugs(all_works)
     collection_works_map: dict[str, list[Work]] = {}
     collection_names: dict[str, str] = {}
     for work in all_works:
@@ -89,9 +92,17 @@ def generate_noscript_pages(
             collection_works_map.setdefault(collection.id, []).append(work)
             collection_names.setdefault(collection.id, collection.name)
     # Template-friendly views, shared across all pages
-    book_contexts = {work.id: work_template_context(work) for work in all_works}
+    book_contexts = {
+        work.id: work_template_context(
+            work,
+            slug=slugs.works[work.id],
+            author_slug=slugs.authors[primary_creator(work).id],
+        )
+        for work in all_works
+    }
     author_contexts = {
-        creator.id: creator_template_context(creator) for creator in all_authors
+        creator.id: creator_template_context(creator, slug=slugs.authors[creator.id])
+        for creator in all_authors
     }
 
     # Generate books listing page
@@ -116,7 +127,7 @@ def generate_noscript_pages(
     # Reuse the shared per-author index for book counts
     works_map = indexes.by_author
     author_book_counts = {
-        author_id: len(works) for author_id, works in works_map.items()
+        slugs.authors[author_id]: len(works) for author_id, works in works_map.items()
     }
     authors_template = jinja_env.get_template("noscript/authors.html")
     authors_html = authors_template.render(
@@ -193,7 +204,7 @@ def generate_noscript_pages(
             display_name=display_name,
         )
         assembler.add_item_for(
-            path=f"noscript/book_{work.id}.html",
+            path=f"noscript/book_{slugs.works[work.id]}.html",
             content=book_html,
             mimetype="text/html",
             is_front=False,
@@ -214,7 +225,7 @@ def generate_noscript_pages(
             display_name=display_name,
         )
         assembler.add_item_for(
-            path=f"noscript/author_{creator.id}.html",
+            path=f"noscript/author_{slugs.authors[creator.id]}.html",
             content=author_html,
             mimetype="text/html",
             is_front=False,

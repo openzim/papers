@@ -12,8 +12,6 @@ fetch, unlike Open Textbook Library.
 """
 
 import hashlib
-import re
-import unicodedata
 from collections.abc import Iterable
 from urllib.parse import unquote, urljoin
 
@@ -23,7 +21,7 @@ from bs4 import BeautifulSoup, Tag
 from papers2zim.constants import logger
 from papers2zim.core.download_engine import DownloadEngine
 from papers2zim.core.ports import CatalogFilters, CatalogPort, WorkRef
-from papers2zim.core.utils import critical_error
+from papers2zim.core.utils import critical_error, slugify
 
 WIKISOURCE_SOURCE = "wikisource"
 BASE_URL = "https://ws-export.wmcloud.org"
@@ -37,22 +35,14 @@ FORMAT_BY_MEDIA_TYPE = {
 ACQUISITION_REL = "http://opds-spec.org/acquisition"
 
 
-def slugify(text: str) -> str:
-    """ASCII, lowercase, hyphen-separated slug (empty for non-latin scripts)."""
-    ascii_text = (
-        unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("ascii")
-    )
-    return re.sub(r"[^a-z0-9]+", "-", ascii_text.lower()).strip("-")[:80]
-
-
 def work_id(lang: str, page: str) -> str:
     """A path-safe id, unique per (language, page), readable where possible.
 
     `page` is the ws-export page name (percent-encoded, as it appears in the
     source URL); the short digest guarantees uniqueness when slugs collide or
-    the title is non-latin and slugifies to nothing.
+    the title becomes empty.
     """
-    slug = slugify(unquote(page))
+    slug = slugify(unquote(page), max_encoded_length=80)
     digest = hashlib.sha256(f"{lang}:{page}".encode()).hexdigest()[:8]
     return f"{lang}_{slug}-{digest}" if slug else f"{lang}_{digest}"
 

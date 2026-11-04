@@ -68,6 +68,7 @@ as of 2.0.0.
 - Gutenberg: place a recognized title before the name ("Sir Thomas Browne", "Lady Frances Balfour") and a generational suffix after it ("Horatio Alger Jr.") instead of in parentheses; any other suffix (dates, "Saint", other titles, ...) still defaults to parentheses (#64)
 - Stop mentioning the author twice in a book's full-text search index entry when the book has no description (#64)
 - Wikisource: drop the `base_url` and `engine` state the metadata port never used, and let each source declare its metadata constructor kwargs through `metadata_options` (#9)
+- UI: use readable slugs in user-visible locations instead of source ids (`#/book/bleak-house` in the address bar, author and collection search entries and No-JavaScript pages). One shared `slugify()` keeps letters and digits of every script, so non-Latin titles stay readable, and an export-time pass makes the slugs unique per namespace with `-1`, `-2` suffixes for duplicates. Items written while downloading — mirrored editions and book search entries — cannot know their slug yet and link to the UI by source id, so the book detail stays addressable that way through a ZIM alias of the slug file (#114)
 
 ## [1.0.0] - 2026-09-25
 

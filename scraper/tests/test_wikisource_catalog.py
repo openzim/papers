@@ -135,6 +135,14 @@ def test_discover_mints_path_safe_unique_ids():
         assert work_id.startswith("en_")
 
 
+def test_discover_keeps_non_latin_page_names_readable():
+    catalog, _ = _catalog(_feed(_entry("%E7%B4%85%E6%A8%93%E5%A4%A2", "紅樓夢")))
+
+    refs = list(catalog.discover(CatalogFilters(languages=["en"])))
+
+    assert refs[0].id.startswith("en_紅樓夢-")
+
+
 def test_discover_requires_at_least_one_language():
     catalog, _ = _catalog(_feed(_entry("First_Book", "First Book")))
 

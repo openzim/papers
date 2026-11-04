@@ -223,17 +223,13 @@ def _split_suffix(suffix: str | None) -> tuple[str | None, str | None, str | Non
 def format_author_name(
     last_name: str | None, first_name: str | None, suffix: str | None = None
 ) -> str:
-    """Formatted author name, sanitized for use as a filename component
+    """Formatted author name
 
     `suffix` is PG's free-text trailing comma segment(s) (e.g. "active
     1799-1828"). A known title or generational suffix (see `_split_suffix`)
     is placed inline; anything else is shown in parentheses after the name
     rather than folded into the first name.
     """
-
-    def sanitize(text: str) -> str:
-        return text.strip().replace("/", "-")[:230]
-
     if not first_name and not last_name:
         name = "Anonymous"
     elif not first_name:
@@ -251,7 +247,7 @@ def format_author_name(
     if remainder:
         name = f"{name} ({remainder})"
 
-    return sanitize(name)
+    return name
 
 
 def _parse_year(value: str | None) -> int | None:

@@ -28,9 +28,9 @@
         <tbody>
             {% for book in books %}
             <tr>
-                <td class="book-id">{{ book.id }}</td>
-                <td><a href="book_{{ book.id }}.html">{{ book.title }}</a></td>
-                <td><a href="author_{{ book.author.id }}.html">{{ book.author.name }}</a></td>
+                <td class="book-id">{{ book.slug }}</td>
+                <td><a href="book_{{ book.slug }}.html">{{ book.title }}</a></td>
+                <td><a href="author_{{ book.author.slug }}.html">{{ book.author.name }}</a></td>
                 <td>{{ book.languages|join(", ") }}</td>
                 <td>
                     {% for fmt in book.requested_formats(formats) %}

@@ -19,6 +19,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass, field
 
 from papers2zim.core.models import Creator, Work
+from papers2zim.core.slugs import Slugs, build_slugs
 from papers2zim.core.utils import (
     collection_key,
     creator_birth_year,
@@ -89,6 +90,7 @@ class IndexBuilder:
         author_stats: dict[str, tuple[int, float]] = {}
 
         works = self._store.works
+        slugs = build_slugs(works)
         for work in works:
             for creator in work_creators(work):
                 authors.setdefault(creator.id, creator)
@@ -107,6 +109,7 @@ class IndexBuilder:
                 list(authors.values()),
                 by_author,
                 by_collection,
+                slugs,
                 display_name=display_name,
             )
         )
@@ -125,6 +128,7 @@ class IndexBuilder:
         authors: list[Creator],
         by_author: dict[str, list[Work]],
         by_collection: dict[str, list[Work]],
+        slugs: Slugs,
         *,
         display_name: str,
     ) -> Iterable[IndexEntry]:
@@ -145,8 +149,8 @@ class IndexBuilder:
             yield IndexEntry(
                 title=creator.display_name,
                 content=". ".join(parts) + ".",
-                fname=f"author_{creator.id}",
-                route=f"author/{creator.id}",
+                fname=f"author_{slugs.authors[creator.id]}",
+                route=f"author/{slugs.authors[creator.id]}",
             )
 
         for collection_id in sorted(by_collection):

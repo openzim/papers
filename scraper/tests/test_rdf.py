@@ -407,18 +407,11 @@ def test_rdf_parser_author(
             id="suffix_without_name",
         ),
         pytest.param(
-            "A" * 300,
-            None,
-            None,
-            "A" * 230,
-            id="truncated_to_230_chars",
-        ),
-        pytest.param(
             "Doctors/Nurses",
             "Without",
             None,
-            "Without Doctors-Nurses",
-            id="slash_sanitized",
+            "Without Doctors/Nurses",
+            id="slash_preserved",
         ),
         # Real Project Gutenberg catalog entries (https://gutenberg.mirror.driftle.ss/cache/epub/feeds/pg_catalog.csv.gz),
         # chosen to exercise the title/suffix allowlist in _split_suffix.

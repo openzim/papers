@@ -88,6 +88,26 @@ def _page_ids(assembler: MagicMock, order: str) -> list[list[str]]:
     ]
 
 
+def _export(store: WorkStore, formats: list[str]) -> MagicMock:
+    assembler = MagicMock(name="assembler")
+    generate_json_files(
+        zim_name="test",
+        formats=formats,
+        work_store=store,
+        assembler=assembler,
+        display_name="Test Source",
+        indexes=_indexes(store),
+    )
+    return assembler
+
+
+def _aliased_paths(assembler: MagicMock) -> dict[str, str]:
+    return {
+        call.kwargs["path"]: call.kwargs["target"]
+        for call in assembler.add_alias.call_args_list
+    }
+
+
 def test_generate_json_files_emits_collections():
     assembler = MagicMock(name="assembler")
 
@@ -108,8 +128,37 @@ def test_generate_json_files_emits_collections():
     assert "collections.json" in paths
     assert "collections/PR.json" in paths
     # per-book and per-author detail files
-    assert "books/1.json" in paths
-    assert "authors/37.json" in paths
+    assert "books/bleak-house.json" in paths
+    assert "authors/charles-dickens.json" in paths
+
+
+def test_book_previews_use_slugs_as_their_id():
+    assembler = _export(_store(), ["html"])
+
+    preview = _books_page_content(assembler)["books"][0]
+    assert preview["id"] == "bleak-house"
+    assert "sourceId" not in preview
+    assert preview["author"]["id"] == "charles-dickens"
+
+
+def test_work_details_stay_addressable_by_source_id():
+    """Mirrored editions and book search entries are written before slugs
+    exist and name `Work.id`, so that path keeps resolving for every work."""
+    assembler = _export(_store(), ["epub"])
+
+    assert _aliased_paths(assembler) == {
+        "books/1.json": "books/bleak-house.json",
+        "books/2.json": "books/emma.json",
+        "books/3.json": "books/oliver-twist.json",
+    }
+
+
+def test_a_book_slug_after_its_own_id_needs_no_alias():
+    dickens = Creator(id="37", display_name="Charles Dickens")
+    store = WorkStore()
+    store.add(_work("bleak-house", "Bleak House", dickens, "PR"))
+
+    assert _aliased_paths(_export(store, ["html"])) == {}
 
 
 def test_book_previews_export_raw_popularity_and_flames():
@@ -150,7 +199,7 @@ def test_book_preview_embeds_a_slim_author_reference():
 
     preview = _books_page_content(assembler)["books"][0]
     assert preview["author"] == {
-        "id": "37",
+        "id": "charles-dickens",
         "displayName": "Charles Dickens",
         "sortName": "",
     }
@@ -189,7 +238,7 @@ def test_book_preview_description_is_truncated_to_a_short_excerpt():
         next(
             call
             for call in assembler.add_item_for.call_args_list
-            if call.kwargs["path"] == "books/1.json"
+            if call.kwargs["path"] == "books/bleak-house.json"
         ).kwargs["content"]
     )
     assert detail["description"] == long_description
@@ -277,7 +326,10 @@ def test_books_popularity_pages_start_with_the_most_popular_books():
         books_page_size=2,
     )
 
-    assert _page_ids(assembler, "popularity") == [["4", "3"], ["2", "1"]]
+    assert _page_ids(assembler, "popularity") == [
+        ["emma", "a-tale-of-two-cities"],
+        ["bleak-house", "david-copperfield"],
+    ]
 
 
 def test_books_pages_exist_once_per_sort_criterion():
@@ -298,8 +350,14 @@ def test_books_pages_exist_once_per_sort_criterion():
         books_page_size=2,
     )
 
-    assert _page_ids(assembler, "title") == [["3", "1"], ["2"]]
-    assert _page_ids(assembler, "author") == [["2", "3"], ["1"]]
+    assert _page_ids(assembler, "title") == [
+        ["a-tale-of-two-cities", "bleak-house"],
+        ["emma"],
+    ]
+    assert _page_ids(assembler, "author") == [
+        ["emma", "a-tale-of-two-cities"],
+        ["bleak-house"],
+    ]
     assembler = MagicMock(name="assembler")
     dickens = Creator(id="37", display_name="Charles Dickens")
     store = WorkStore()
@@ -477,7 +535,7 @@ def test_previews_expose_per_language_breakdown():
             if call.kwargs["path"] == "authors.json"
         ).kwargs["content"]
     )["authors"]
-    dickens_preview = next(a for a in authors_listing if a["id"] == "37")
+    dickens_preview = next(a for a in authors_listing if a["id"] == "charles-dickens")
     assert sorted(dickens_preview["languages"]) == ["en", "fr"]
     assert dickens_preview["bookCountByLanguage"] == {"en": 1, "fr": 1}
     assert dickens_preview["totalPopularityByLanguage"] == {"en": 100, "fr": 10}
@@ -663,7 +721,7 @@ def test_book_detail_exports_popularity_and_flames():
     detail_call = next(
         call
         for call in assembler.add_item_for.call_args_list
-        if call.kwargs["path"] == "books/10.json"
+        if call.kwargs["path"] == "books/reviewed-textbook.json"
     )
 
     detail = json.loads(detail_call.kwargs["content"])
@@ -698,7 +756,7 @@ def test_author_details_include_wikipedia_enrichment_fields():
     detail_call = next(
         call
         for call in assembler.add_item_for.call_args_list
-        if call.kwargs["path"] == "authors/68.json"
+        if call.kwargs["path"] == "authors/jane-austen.json"
     )
     detail = json.loads(detail_call.kwargs["content"])
     assert detail["bio"] == "An English novelist."
@@ -741,7 +799,7 @@ def test_book_detail_exports_published():
     detail_call = next(
         call
         for call in assembler.add_item_for.call_args_list
-        if call.kwargs["path"] == "books/10.json"
+        if call.kwargs["path"] == "books/old-book.json"
     )
     detail = json.loads(detail_call.kwargs["content"])
     assert detail["published"] == "c. 1813-1820"
@@ -782,7 +840,7 @@ def test_book_detail_exports_license_id(source_license, expected_id):
     detail_call = next(
         call
         for call in assembler.add_item_for.call_args_list
-        if call.kwargs["path"] == "books/10.json"
+        if call.kwargs["path"] == "books/old-book.json"
     )
     detail = json.loads(detail_call.kwargs["content"])
     assert detail["licenseId"] == expected_id

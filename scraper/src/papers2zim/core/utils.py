@@ -1,4 +1,5 @@
 import hashlib
+import re
 import subprocess
 import unicodedata
 import zipfile
@@ -20,6 +21,34 @@ UTF8 = "utf-8"
 ALL_FORMATS = ["epub", "pdf", "html"]
 
 NB_MAIN_LANGS = 5
+
+MAX_ENCODED_SLUG_LENGTH = 230
+
+_NON_SLUG_CHARS = re.compile(r"[\W_]+")
+
+
+def slugify(text: str, *, max_encoded_length: int = MAX_ENCODED_SLUG_LENGTH) -> str:
+    """Readable, percent-encoding-aware slug.
+
+    Letters and digits of any script are kept, everything else collapses to a
+    single hyphen. The budget applies to the percent-encoded form because each
+    non-ASCII byte costs three characters in a URL, so a CJK character costs
+    9 and an Arabic letter 6. 230 keeps a `.json` suffix and the uniqueness
+    counter inside the 255-byte filename limit.
+    """
+    slug = _NON_SLUG_CHARS.sub("-", unicodedata.normalize("NFKC", text).casefold())
+    slug = slug.strip("-")
+    if len(quote(slug)) <= max_encoded_length:
+        return slug
+    kept: list[str] = []
+    used = 0
+    for char in slug:
+        cost = len(quote(char))
+        if used + cost > max_encoded_length:
+            break
+        kept.append(char)
+        used += cost
+    return "".join(kept).rstrip("-")
 
 
 class WorkNamingInfo(Protocol):
@@ -102,10 +131,13 @@ def creator_death_year(creator: Creator) -> str | None:
     return str(creator.death_date) if creator.death_date is not None else None
 
 
-def creator_template_context(creator: Creator) -> SimpleNamespace:
+def creator_template_context(
+    creator: Creator, *, slug: str | None = None
+) -> SimpleNamespace:
     """Template-friendly view of a Creator"""
     return SimpleNamespace(
         id=creator.id,
+        slug=slug or creator.id,
         name=creator.display_name,
         birth_year=creator_birth_year(creator),
         death_year=creator_death_year(creator),
@@ -115,11 +147,14 @@ def creator_template_context(creator: Creator) -> SimpleNamespace:
     )
 
 
-def work_template_context(work: Work) -> SimpleNamespace:
+def work_template_context(
+    work: Work, *, slug: str | None = None, author_slug: str | None = None
+) -> SimpleNamespace:
     """Template-friendly view of a Work for the Jinja templates"""
     license_id = work.license_id
     return SimpleNamespace(
         id=work.id,
+        slug=slug or work.id,
         title=work.title,
         subtitle=work.subtitle,
         languages=work.languages,
@@ -132,7 +167,7 @@ def work_template_context(work: Work) -> SimpleNamespace:
         primary_collection=primary_collection_id(work),
         has_cover=work.extra.get("has_cover", work.cover is not None),
         description=work.description,
-        author=creator_template_context(primary_creator(work)),
+        author=creator_template_context(primary_creator(work), slug=author_slug),
         requested_formats=lambda formats: requested_formats(work, formats),
     )
 
