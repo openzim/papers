@@ -22,6 +22,9 @@ from papers2zim.core.ports import MetadataPort, WorkRef
 from papers2zim.core.utils import atomic_write_text
 from papers2zim.sources.opentextbooks.catalog import OTL_SOURCE, normalize_language
 
+SUBJECTS_PATH = "/subjects.json"
+SUBJECTS_CACHE_FILENAME = "otl_subjects.json"
+
 # OTL format type -> media type (only the downloadable formats matter;
 # "Online"/"XML"/"ODF" records are kept for completeness)
 MEDIA_TYPES = {
@@ -49,6 +52,74 @@ def _creator_from_contributor(contributor: dict[str, Any]) -> Creator:
         display_name=display_name,
         sort_name=last,
     )
+
+
+def _subject_root_map(tree: Any) -> dict[str, CollectionRef]:
+    """Map every subject id to the collection of its top-level ancestor."""
+    roots: dict[str, CollectionRef] = {}
+
+    def visit(nodes: Any, root: CollectionRef | None) -> None:
+        if not isinstance(nodes, list):
+            return
+        for node in nodes:
+            if not isinstance(node, dict):
+                continue
+            subject_id = node.get("id")
+            subject_name = node.get("name")
+            if (
+                subject_id is None
+                or not isinstance(subject_name, str)
+                or not subject_name
+            ):
+                continue
+            collection = root or CollectionRef(
+                id=str(subject_id), name=subject_name, kind="subject"
+            )
+            roots[str(subject_id)] = collection
+            visit(node.get("child_subjects"), collection)
+
+    visit(tree, None)
+    return roots
+
+
+def _root_subjects(
+    record: dict[str, Any], subject_roots: dict[str, CollectionRef]
+) -> list[CollectionRef]:
+    """One collection per top-level subject tree the textbook belongs to.
+
+    The subject tree is authoritative because a record only lists the subjects
+    it was filed under, not necessarily their ancestors. Records remain the
+    fallback when the tree could not be loaded.
+    """
+    subjects: dict[str, dict[str, Any]] = {}
+    for subject in record.get("subjects") or []:
+        if not isinstance(subject, dict):
+            continue
+        subject_id = subject.get("id")
+        subject_name = subject.get("name")
+        if subject_id is not None and isinstance(subject_name, str) and subject_name:
+            subjects[str(subject_id)] = subject
+
+    roots: dict[str, CollectionRef] = {}
+    for subject_id, subject in subjects.items():
+        root = subject_roots.get(subject_id)
+        if root is None:
+            node = subject
+            seen: set[str] = set()
+            while True:
+                parent_id = node.get("parent_subject_id")
+                parent_key = str(parent_id) if parent_id is not None else None
+                if (
+                    parent_key is None
+                    or parent_key not in subjects
+                    or parent_key in seen
+                ):
+                    break
+                seen.add(parent_key)
+                node = subjects[parent_key]
+            root = CollectionRef(id=str(node["id"]), name=node["name"], kind="subject")
+        roots.setdefault(root.id, root)
+    return list(roots.values())
 
 
 def _review_score(record: dict[str, Any]) -> float | None:
@@ -85,13 +156,44 @@ class OpenTextbookLibraryMetadata(MetadataPort):
         self._cache_dir = cache_dir.resolve() / "otl_metadata" if cache_dir else None
         if self._cache_dir:
             self._cache_dir.mkdir(parents=True, exist_ok=True)
+        self._subject_roots: dict[str, CollectionRef] | None = None
 
     def fetch(self, refs: Iterable[WorkRef]) -> Iterator[Work]:
+        subject_roots = self._load_subject_roots()
         for ref in refs:
             record = self._fetch_record(ref.id)
             if record is None:
                 continue
-            yield self._to_work(ref, record)
+            yield self._to_work(ref, record, subject_roots)
+
+    def _load_subject_roots(self) -> dict[str, CollectionRef]:
+        """Root collection of every subject, from the OTL subject tree."""
+        if self._subject_roots is not None:
+            return self._subject_roots
+        cache_path = (
+            self._cache_dir / SUBJECTS_CACHE_FILENAME if self._cache_dir else None
+        )
+        tree: Any = None
+        if cache_path:
+            try:
+                tree = json.loads(cache_path.read_text(encoding="utf-8"))
+            except OSError, json.JSONDecodeError:
+                tree = None
+        if tree is None:
+            url = f"{self._base_url}{SUBJECTS_PATH}"
+            try:
+                payload = json.loads(self._engine.fetch_bytes(url))
+            except requests.RequestException, json.JSONDecodeError:
+                logger.warning(
+                    "Could not load the OTL subject tree, collections fall back"
+                    " to the subjects listed on each textbook"
+                )
+                payload = None
+            tree = payload.get("data") if isinstance(payload, dict) else None
+            if cache_path and tree is not None:
+                atomic_write_text(cache_path, json.dumps(tree))
+        self._subject_roots = _subject_root_map(tree) if tree else {}
+        return self._subject_roots
 
     def _fetch_record(self, textbook_id: str) -> dict[str, Any] | None:
         """One textbook record, or None when OTL does not have it (404)"""
@@ -124,7 +226,12 @@ class OpenTextbookLibraryMetadata(MetadataPort):
             atomic_write_text(cache_path, json.dumps(record))
         return record
 
-    def _to_work(self, ref: WorkRef, record: dict[str, Any]) -> Work:
+    def _to_work(
+        self,
+        ref: WorkRef,
+        record: dict[str, Any],
+        subject_roots: dict[str, CollectionRef],
+    ) -> Work:
         creators = [
             _creator_from_contributor(contributor)
             for contributor in record.get("contributors") or []
@@ -150,14 +257,7 @@ class OpenTextbookLibraryMetadata(MetadataPort):
                 and isinstance(format_type := fmt.get("type"), str)
                 and format_type
             ],
-            collections=[
-                CollectionRef(id=str(subject_id), name=subject_name, kind="subject")
-                for subject in record.get("subjects") or []
-                if isinstance(subject, dict)
-                and (subject_id := subject.get("id")) is not None
-                and isinstance(subject_name := subject.get("name"), str)
-                and subject_name
-            ],
+            collections=_root_subjects(record, subject_roots),
             popularity=_review_score(record),
             description=record.get("description") or ref.extra.get("description"),
             source_url=record.get("url") or ref.extra.get("source_url"),

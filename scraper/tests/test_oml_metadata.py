@@ -11,21 +11,49 @@ PAGE_URL = (
     "https://onemorelibrary.com/index.php/en/books/arts/book/art-232/on-beauty-2833"
 )
 
-BOOK_PAGE = """
-<html><head>
-  <meta property="og:image"
-    content="/components/com_djclassifieds/images/item/2833_cover.png" />
-</head><body>
-  <div class="title_top info"><h1>On the Comparative Place of Interest</h1>
-    <span class="type_button">English</span></div>
-  <div class="additional">
-    <div class="row"><span class="row_label">In categories:</span>
+BREADCRUMB = """  <ul class="breadcrumb">
+    <li>You are here:</li>
+    <li><a class="pathway" href="/index.php/en/books">Books</a></li>
+    <li><a class="pathway" href="/index.php/en/books/arts">Arts</a></li>
+    <li><a class="pathway" href="/index.php/en/books/arts/art-232">Art</a></li>
+  </ul>
+"""
+
+LANGUAGE_BREADCRUMB = """  <ul class="breadcrumb">
+    <li>You are here:</li>
+    <li><a class="pathway" href="/index.php/en/languages">Languages</a></li>
+    <li><a class="pathway" href="/index.php/en/languages/french">French</a></li>
+    <li><a class="pathway" href="/index.php/en/languages/french/litterature-146">
+      Littérature</a></li>
+    <li><a class="pathway"
+      href="/index.php/en/languages/french/litterature-anglaise-179">
+      Littérature anglaise</a></li>
+  </ul>
+"""
+
+CATEGORIES_ROW = """    <div class="row"><span class="row_label">In categories:</span>
       <span class="row_value">
         <a href="/index.php/en/books/arts/art-232">Art</a>,
         <a href="/index.php/en/books/major-collections/schopenhauer-359">
           Schopenhauer Collection</a>
       </span></div>
-    <div class="row"><span class="row_label">Book ID:</span>
+"""
+
+BOOK_PAGE = (
+    """
+<html><head>
+  <meta property="og:image"
+    content="/components/com_djclassifieds/images/item/2833_cover.png" />
+</head><body>
+"""
+    + BREADCRUMB
+    + """
+  <div class="title_top info"><h1>On the Comparative Place of Interest</h1>
+    <span class="type_button">English</span></div>
+  <div class="additional">
+"""
+    + CATEGORIES_ROW
+    + """    <div class="row"><span class="row_label">Book ID:</span>
       <span class="row_value">2833</span></div>
   </div>
   <div class="general_det">
@@ -67,6 +95,7 @@ BOOK_PAGE = """
     src="/components/com_djclassifieds/images/item/2833_main.png" />
 </body></html>
 """
+)
 
 
 def _ref(**extra) -> WorkRef:
@@ -104,7 +133,7 @@ def test_parse_book_page_extracts_metadata_and_download_links():
     assert work.extra["edition"] == "A. L. Burt Company"
 
 
-def test_parse_book_page_maps_creator_and_collections():
+def test_parse_book_page_maps_creator_and_broad_collection():
     work = parse_book_page(BOOK_PAGE, _ref(), PAGE_URL)
 
     assert work is not None
@@ -113,11 +142,43 @@ def test_parse_book_page_maps_creator_and_collections():
     assert creator.display_name == "Arthur Schopenhauer"
     assert creator.sort_name == "Schopenhauer"
     assert creator.extra["wikipedia_url"].endswith("Arthur_Schopenhauer")
-    assert [collection.name for collection in work.collections] == [
-        "Art",
-        "Schopenhauer Collection",
-    ]
-    assert work.collections[0].kind == "category"
+    (collection,) = work.collections
+    assert collection.id == "arts"
+    assert collection.name == "Arts"
+    assert collection.kind == "category"
+
+
+def test_parse_book_page_skips_language_level_in_breadcrumb():
+    page = BOOK_PAGE.replace(BREADCRUMB, LANGUAGE_BREADCRUMB)
+
+    work = parse_book_page(page, _ref(), PAGE_URL)
+
+    assert work is not None
+    (collection,) = work.collections
+    assert collection.id == "litterature-146"
+    assert collection.name == "Littérature"
+
+
+def test_parse_book_page_falls_back_to_first_listed_category_without_breadcrumb():
+    page = BOOK_PAGE.replace(BREADCRUMB, "")
+
+    work = parse_book_page(page, _ref(), PAGE_URL)
+
+    assert work is not None
+    (collection,) = work.collections
+    assert collection.id == "art-232"
+    assert collection.name == "Art"
+
+
+def test_parse_book_page_falls_back_to_listing_category_without_page_categories():
+    page = BOOK_PAGE.replace(BREADCRUMB, "").replace(CATEGORIES_ROW, "")
+
+    work = parse_book_page(page, _ref(), PAGE_URL)
+
+    assert work is not None
+    (collection,) = work.collections
+    assert collection.id == "art-232"
+    assert collection.name == "Art"
 
 
 def test_parse_book_page_uses_page_cover_and_falls_back_to_listing_category():

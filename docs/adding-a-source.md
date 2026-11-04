@@ -57,6 +57,22 @@ Keep source words such as “book”, “shelf”, or “subject” inside the s
 its locale namespace. Creator and collection IDs must be stable across runs;
 do not derive a different creator ID for every work.
 
+### Keep collections few and broad
+
+Collections split a large corpus into navigable groups and drive selection
+ZIMs with one ZIM per collection, so a source should expose a handful of broad
+groups rather than its full category tree. Expect at most about 20
+collections, and merge a category that would hold only a few works into a
+larger one; a group that is much smaller than its siblings is rarely worth its
+own collection.
+
+A library is usually built once per language, so a collection must make sense
+in every language of the ZIM. Derive names from the categories in the language
+being scraped rather than translating one language's taxonomy. Gutenberg
+collapses its LCC shelves, One More Library uses the broad category above a
+book's own category, and Open Textbook Library keeps only the root of each
+subject path.
+
 `Work.popularity` is the raw numeric ranking signal supplied by the source
 (downloads, page views, review score, etc.). Core derives the zero-to-three
 `Work.flames` value after processing, so sources must not calculate flames.

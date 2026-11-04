@@ -11,6 +11,27 @@ from papers2zim.sources.opentextbooks.metadata import OpenTextbookLibraryMetadat
 
 BASE = "https://open.umn.edu/opentextbooks"
 
+SUBJECTS = [
+    {
+        "id": 7,
+        "name": "Mathematics",
+        "child_subjects": [
+            {
+                "id": 84,
+                "name": "Calculus",
+                "child_subjects": [
+                    {"id": 36, "name": "Pure", "child_subjects": []},
+                ],
+            },
+        ],
+    },
+    {
+        "id": 2,
+        "name": "Business",
+        "child_subjects": [{"id": 18, "name": "Accounting", "child_subjects": []}],
+    },
+]
+
 RECORD = {
     "id": 10,
     "title": "Calculus",
@@ -42,7 +63,7 @@ RECORD = {
             "last_name": "Itor",
         },
     ],
-    "subjects": [{"id": 5, "name": "Mathematics"}],
+    "subjects": [{"id": 7, "name": "Mathematics"}],
     "formats": [
         {"id": 1, "type": "PDF", "url": "https://example.org/calculus.pdf"},
         {"id": 2, "type": "Online", "url": "https://example.org/calculus"},
@@ -69,13 +90,20 @@ def _record_payload(record: dict = RECORD) -> bytes:
     return json.dumps({"data": record}).encode()
 
 
+def _subjects_payload(subjects: list[dict] | None = None) -> bytes:
+    return json.dumps({"data": SUBJECTS if subjects is None else subjects}).encode()
+
+
 def _metadata_with(
     pages: dict[str, bytes],
     errors: dict[str, Exception] | None = None,
     cache_dir: Path | None = None,
 ):
     return OpenTextbookLibraryMetadata(
-        engine=StubEngine(pages, errors), cache_dir=cache_dir
+        engine=StubEngine(
+            {f"{BASE}/subjects.json": _subjects_payload(), **pages}, errors
+        ),
+        cache_dir=cache_dir,
     )
 
 
@@ -122,8 +150,76 @@ def test_fetch_maps_formats_and_subjects():
     ]
     assert work.formats[0].media_type == "application/pdf"
     assert [(c.id, c.name, c.kind) for c in work.collections] == [
-        ("5", "Mathematics", "subject")
+        ("7", "Mathematics", "subject")
     ]
+
+
+def test_fetch_collapses_child_subjects_into_their_root():
+    record = {
+        **RECORD,
+        "subjects": [
+            {"id": 84, "name": "Calculus", "parent_subject_id": 7},
+            {"id": 7, "name": "Mathematics", "parent_subject_id": None},
+            {"id": 18, "name": "Accounting", "parent_subject_id": 2},
+            {"id": 2, "name": "Business", "parent_subject_id": None},
+        ],
+    }
+    metadata = _metadata_with({f"{BASE}/textbooks/10.json": _record_payload(record)})
+
+    (work,) = metadata.fetch([_ref("10")])
+
+    assert [(c.id, c.name, c.kind) for c in work.collections] == [
+        ("7", "Mathematics", "subject"),
+        ("2", "Business", "subject"),
+    ]
+
+
+def test_fetch_walks_grandchild_subjects_up_to_the_root():
+    record = {
+        **RECORD,
+        "subjects": [
+            {"id": 36, "name": "Pure", "parent_subject_id": 84},
+            {"id": 84, "name": "Calculus", "parent_subject_id": 7},
+            {"id": 7, "name": "Mathematics", "parent_subject_id": None},
+        ],
+    }
+    metadata = _metadata_with({f"{BASE}/textbooks/10.json": _record_payload(record)})
+
+    (work,) = metadata.fetch([_ref("10")])
+
+    assert [(c.id, c.name) for c in work.collections] == [("7", "Mathematics")]
+
+
+def test_fetch_resolves_roots_from_the_subject_tree_when_ancestors_are_missing():
+    record = {
+        **RECORD,
+        "subjects": [{"id": 84, "name": "Calculus", "parent_subject_id": 7}],
+    }
+    metadata = _metadata_with({f"{BASE}/textbooks/10.json": _record_payload(record)})
+
+    (work,) = metadata.fetch([_ref("10")])
+
+    assert [(c.id, c.name) for c in work.collections] == [("7", "Mathematics")]
+
+
+def test_fetch_falls_back_to_record_ancestors_without_a_subject_tree():
+    record = {
+        **RECORD,
+        "subjects": [
+            {"id": 84, "name": "Calculus", "parent_subject_id": 7},
+            {"id": 7, "name": "Mathematics", "parent_subject_id": None},
+        ],
+    }
+    metadata = OpenTextbookLibraryMetadata(
+        engine=StubEngine(
+            {f"{BASE}/textbooks/10.json": _record_payload(record)},
+            {f"{BASE}/subjects.json": requests.ConnectionError()},
+        )
+    )
+
+    (work,) = metadata.fetch([_ref("10")])
+
+    assert [(c.id, c.name) for c in work.collections] == [("7", "Mathematics")]
 
 
 def test_fetch_skips_malformed_format_and_subject_entries():
@@ -157,9 +253,29 @@ def test_fetch_persists_metadata_cache_with_atomic_replacement(tmp_path, monkeyp
 
     cache_path = tmp_path / "otl_metadata" / "10.json"
     assert replacements
-    assert replacements[0][0] != cache_path
-    assert replacements[0][1] == cache_path
+    assert any(source != cache_path for source, _ in replacements)
+    assert replacements[-1][1] == cache_path
     assert json.loads(cache_path.read_text(encoding="utf-8")) == RECORD
+
+
+def test_subject_tree_is_cached_between_runs(tmp_path):
+    metadata = _metadata_with(
+        {f"{BASE}/textbooks/10.json": _record_payload()}, cache_dir=tmp_path
+    )
+
+    list(metadata.fetch([_ref("10")]))
+
+    cache_path = tmp_path / "otl_metadata" / "otl_subjects.json"
+    assert json.loads(cache_path.read_text(encoding="utf-8")) == SUBJECTS
+
+    cached = OpenTextbookLibraryMetadata(
+        engine=StubEngine({f"{BASE}/textbooks/10.json": _record_payload()}),
+        cache_dir=tmp_path,
+    )
+
+    (work,) = cached.fetch([_ref("10")])
+
+    assert [(c.id, c.name) for c in work.collections] == [("7", "Mathematics")]
 
 
 def test_fetch_skips_missing_books():
