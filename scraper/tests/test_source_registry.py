@@ -1,10 +1,12 @@
 """Tests for static source-profile registration."""
 
 from dataclasses import replace
+from typing import cast
 
 import pytest
 
-from papers2zim.core.ports import CatalogPort
+from papers2zim.core.download_engine import DownloadEngine
+from papers2zim.core.ports import CatalogPort, MetadataPort
 from papers2zim.sources import registry
 from papers2zim.sources.onemorelibrary.catalog import OnemorelibraryCatalog
 from papers2zim.sources.onemorelibrary.metadata import OnemorelibraryMetadata
@@ -106,3 +108,17 @@ def test_popularity_is_declared_per_source():
     assert get_source("opentextbooks").has_popularity is True
     assert get_source("onemorelibrary").has_popularity is True
     assert get_source("wikisource").has_popularity is False
+
+
+@pytest.mark.parametrize(
+    "source_slug", ("gutenberg", "opentextbooks", "onemorelibrary", "wikisource")
+)
+def test_every_profile_builds_metadata_the_way_the_orchestrator_does(source_slug):
+    profile = get_source(source_slug)
+    engine = cast(DownloadEngine, object())
+
+    metadata = profile.metadata_class(
+        **profile.metadata_options(profile.default_mirror_url, None, engine)
+    )
+
+    assert isinstance(metadata, MetadataPort)

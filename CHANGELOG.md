@@ -62,6 +62,7 @@ as of 2.0.0.
 - Gutenberg: stop scrambling author names with a free-text suffix (e.g. "active 1799-1828"), displaying it in parentheses after the name instead of folding it into the first name (#64)
 - Gutenberg: place a recognized title before the name ("Sir Thomas Browne", "Lady Frances Balfour") and a generational suffix after it ("Horatio Alger Jr.") instead of in parentheses; any other suffix (dates, "Saint", other titles, ...) still defaults to parentheses (#64)
 - Stop mentioning the author twice in a book's full-text search index entry when the book has no description (#64)
+- Wikisource: drop the `base_url` and `engine` state the metadata port never used, and let each source declare its metadata constructor kwargs through `metadata_options` (#9)
 
 ## [1.0.0] - 2026-09-25
 
