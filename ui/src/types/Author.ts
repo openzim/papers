@@ -5,12 +5,16 @@
 
 import type { BookPreview } from './Book'
 
-export interface AuthorPreview {
+/** Minimal author reference, embedded inside a BookPreview. */
+export interface AuthorRef {
   id: string
   /** Full name as shown to readers. */
   displayName: string
   /** Last name alone; not for display. Tiebreak on `displayName` when sorting. */
   sortName: string
+}
+
+export interface AuthorPreview extends AuthorRef {
   bookCount: number
   totalPopularity?: number
   portraitPath?: string | null

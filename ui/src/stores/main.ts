@@ -1,7 +1,17 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import axios from 'axios'
-import type { Books, Book, Authors, AuthorDetail, Collections, Collection, Config } from '@/types'
+import type {
+  Books,
+  BooksManifest,
+  BooksPage,
+  Book,
+  Authors,
+  AuthorDetail,
+  Collections,
+  Collection,
+  Config
+} from '@/types'
 
 export const useMainStore = defineStore('main', () => {
   const errorMessage = ref<string | null>(null)
@@ -78,8 +88,27 @@ export const useMainStore = defineStore('main', () => {
     return result
   }
 
-  async function fetchBooks() {
-    return fetchList<Books>('./books.json', 'Failed to load books', booksCount, books)
+  async function fetchBooks(): Promise<Books> {
+    if (books.value) {
+      return books.value
+    }
+    // books.json has no natural per-entity split (unlike authors/collections,
+    // one file per id), so the catalog is chunked into books-pages/{page}.json;
+    // fetch the manifest, then every page, and merge into the Books shape
+    // every caller already expects.
+    const manifest = await fetchData<BooksManifest>('./books.json', 'Failed to load books')
+    const pages = await Promise.all(
+      Array.from({ length: manifest.totalPages }, (_, page) =>
+        fetchData<BooksPage>(`./books-pages/${page}.json`, 'Failed to load books')
+      )
+    )
+    const result: Books = {
+      books: pages.flatMap((page) => page.books),
+      totalCount: manifest.totalCount
+    }
+    booksCount.value = result.totalCount
+    books.value = result
+    return result
   }
 
   function fetchBook(id: string) {

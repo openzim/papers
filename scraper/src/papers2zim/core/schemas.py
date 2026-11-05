@@ -14,12 +14,23 @@ class CamelModel(BaseModel):
 
 
 # Author Models
-class AuthorPreview(CamelModel):
-    """Author preview for list views"""
+class AuthorRef(CamelModel):
+    """Minimal author reference, for embedding inside a BookPreview.
+
+    The full AuthorPreview (book_count, per-language breakdowns, etc.) is
+    already available via authors/{id}.json and authors.json; repeating it
+    on every one of an author's books is what made books.json/collections/
+    */authors/* JSON bloat to tens of MB (see issue #138).
+    """
 
     id: str
     display_name: str  # Full name as shown to readers
     sort_name: str  # Last name alone, not for display; tiebreak on display_name
+
+
+class AuthorPreview(AuthorRef):
+    """Author preview for list views"""
+
     book_count: int
     total_popularity: float = 0
     portrait_path: str | None = None
@@ -59,13 +70,14 @@ class BookPreview(CamelModel):
 
     id: str  # source-specific work id (not necessarily numeric)
     title: str
-    author: AuthorPreview
+    author: AuthorRef
     languages: list[str]
     popularity: float  # Source-specific ranking score
     flames: int = 0
     cover_path: str | None = None
     primary_collection: str | None = None
     available_formats: list[str] = []
+    # Short excerpt only; the full text lives on the Book detail schema.
     description: str | None = None
 
 
@@ -84,11 +96,24 @@ class Book(BookPreview):
 
 
 # Collection Models
-class Books(CamelModel):
-    """List of book previews"""
+class BooksManifest(CamelModel):
+    """Pagination manifest for the full books catalog (books.json).
+
+    The catalog itself (unlike collections/authors, which are naturally
+    split one-file-per-id) has no per-entity split, so it's chunked into
+    `books-pages/{page}.json` files of `page_size` BookPreview each; this
+    manifest tells the UI how many pages to fetch.
+    """
+
+    total_count: int
+    page_size: int
+    total_pages: int
+
+
+class BooksPage(CamelModel):
+    """One page of the books catalog."""
 
     books: list[BookPreview]
-    total_count: int
 
 
 class Authors(CamelModel):

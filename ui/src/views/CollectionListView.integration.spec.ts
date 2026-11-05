@@ -56,10 +56,7 @@ const mockBooks: BookPreview[] = [
     author: {
       id: '1',
       displayName: 'Lewis Carroll',
-      sortName: 'Carroll',
-      bookCount: 1,
-      languages: ['en'],
-      bookCountByLanguage: { en: 1 }
+      sortName: 'Carroll'
     },
     languages: ['en'],
     popularity: 50000,
@@ -73,10 +70,7 @@ const mockBooks: BookPreview[] = [
     author: {
       id: '2',
       displayName: 'Jane Austen',
-      sortName: 'Austen',
-      bookCount: 1,
-      languages: ['en'],
-      bookCountByLanguage: { en: 1 }
+      sortName: 'Austen'
     },
     languages: ['en'],
     popularity: 30000,

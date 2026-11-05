@@ -197,20 +197,63 @@ describe('Main Store Integration', () => {
     })
   })
 
+  describe('Books pagination', () => {
+    it('fetches the manifest and merges every page into one Books result', async () => {
+      const store = useMainStore()
+      vi.mocked(axios.get).mockImplementation((url) => {
+        if (url === './books.json') {
+          return Promise.resolve({ data: { totalCount: 3, pageSize: 2, totalPages: 2 } })
+        }
+        if (url === './books-pages/0.json') {
+          return Promise.resolve({ data: { books: [{ id: '1' }, { id: '2' }] } })
+        }
+        if (url === './books-pages/1.json') {
+          return Promise.resolve({ data: { books: [{ id: '3' }] } })
+        }
+        return Promise.reject(new Error(`Unexpected URL: ${url}`))
+      })
+
+      const result = await store.fetchBooks()
+
+      expect(result).toEqual({
+        totalCount: 3,
+        books: [{ id: '1' }, { id: '2' }, { id: '3' }]
+      })
+      expect(store.booksCount).toBe(3)
+      expect(axios.get).toHaveBeenCalledTimes(3)
+    })
+
+    it('fetches no pages when the catalog is empty', async () => {
+      const store = useMainStore()
+      vi.mocked(axios.get).mockResolvedValue({
+        data: { totalCount: 0, pageSize: 500, totalPages: 0 }
+      })
+
+      const result = await store.fetchBooks()
+
+      expect(result).toEqual({ totalCount: 0, books: [] })
+      expect(axios.get).toHaveBeenCalledTimes(1)
+    })
+  })
+
   describe('Response Caching', () => {
     it('returns cached books without refetching', async () => {
       const store = useMainStore()
-      const mockData = { totalCount: 100, books: [{ id: '1', title: 'Book 1' }] }
-      vi.mocked(axios.get).mockResolvedValue({ data: mockData })
+      vi.mocked(axios.get).mockImplementation((url) => {
+        if (url === './books.json') {
+          return Promise.resolve({ data: { totalCount: 1, pageSize: 500, totalPages: 1 } })
+        }
+        return Promise.resolve({ data: { books: [{ id: '1', title: 'Book 1' }] } })
+      })
 
       const result1 = await store.fetchBooks()
-      expect(axios.get).toHaveBeenCalledTimes(1)
-      expect(result1).toEqual(mockData)
+      expect(axios.get).toHaveBeenCalledTimes(2) // manifest + one page
+      expect(result1).toEqual({ totalCount: 1, books: [{ id: '1', title: 'Book 1' }] })
 
       const result2 = await store.fetchBooks()
-      // Should not make a second request
-      expect(axios.get).toHaveBeenCalledTimes(1)
-      expect(result2).toEqual(mockData)
+      // Should not make further requests
+      expect(axios.get).toHaveBeenCalledTimes(2)
+      expect(result2).toEqual(result1)
     })
 
     it('returns cached authors without refetching', async () => {

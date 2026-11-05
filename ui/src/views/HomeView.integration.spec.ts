@@ -59,10 +59,7 @@ const mockBooksData: Books = {
       author: {
         id: '1',
         displayName: 'Jane Austen',
-        sortName: 'Austen',
-        bookCount: 1,
-        languages: ['en'],
-        bookCountByLanguage: { en: 1 }
+        sortName: 'Austen'
       },
       languages: ['en'],
       popularity: 10,

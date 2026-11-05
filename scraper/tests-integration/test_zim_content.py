@@ -111,9 +111,10 @@ def test_zim_contains_the_selected_work(zim: Archive, expected: ZimExpectation):
 
     assert config["source"]["slug"] == expected.source_slug
     assert books["totalCount"] == 1
+    books_page = _read_json(zim, "books-pages/0.json")
     work_id = expected.work_id
-    assert books["books"][0]["id"] == work_id
-    assert books["books"][0]["availableFormats"] == [expected.format_name]
+    assert books_page["books"][0]["id"] == work_id
+    assert books_page["books"][0]["availableFormats"] == [expected.format_name]
     book = _read_json(zim, f"books/{work_id}.json")
     assert book["id"] == work_id
 

@@ -3,7 +3,7 @@
  * Matches the scraper's source-neutral JSON schemas.
  */
 
-import type { AuthorPreview, Author } from './Author'
+import type { AuthorRef, Author } from './Author'
 
 export interface BookFormat {
   format: string // "html", "epub", "pdf"
@@ -14,13 +14,14 @@ export interface BookFormat {
 export interface BookPreview {
   id: string
   title: string
-  author: AuthorPreview
+  author: AuthorRef
   languages: string[]
   popularity: number // Source-specific ranking score
   flames: number // Flame rating (0-3)
   coverPath: string | null
   primaryCollection: string | null
   availableFormats?: string[]
+  /** Short excerpt only; the full text is on the Book detail type. */
   description?: string | null
 }
 
@@ -37,4 +38,16 @@ export interface Book extends Omit<BookPreview, 'author'> {
 export interface Books {
   books: BookPreview[]
   totalCount: number
+}
+
+/** Pagination manifest served at books.json; the catalog itself is chunked
+ * into books-pages/{page}.json files of `pageSize` BookPreview each. */
+export interface BooksManifest {
+  totalCount: number
+  pageSize: number
+  totalPages: number
+}
+
+export interface BooksPage {
+  books: BookPreview[]
 }
