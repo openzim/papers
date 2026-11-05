@@ -58,10 +58,13 @@ def test_process_ref_downloads_epub_and_marks_the_rest_unsupported():
     assembler = MagicMock()
     pipeline = _pipeline(work, engine, assembler)
 
-    with patch(
-        "papers2zim.sources.wikisource.pipeline.extract_cover",
-        return_value=None,
-    ) as extract_cover_mock:
+    with (
+        patch(
+            "papers2zim.sources.wikisource.pipeline.extract_cover",
+            return_value=None,
+        ) as extract_cover_mock,
+        patch.object(pipeline, "add_book_search_item") as add_search_item,
+    ):
         pipeline.process_ref(WorkRef(id=work.id, source="wikisource"))
 
     extract_cover_mock.assert_called_once_with(
@@ -75,6 +78,7 @@ def test_process_ref_downloads_epub_and_marks_the_rest_unsupported():
         mimetype="application/epub+zip",
         is_front=False,
     )
+    add_search_item.assert_called_once_with(work, {"epub": _valid_epub()})
 
 
 def test_process_ref_rejects_an_html_response_at_the_epub_url():
@@ -84,10 +88,12 @@ def test_process_ref_rejects_an_html_response_at_the_epub_url():
     assembler = MagicMock()
     pipeline = _pipeline(work, engine, assembler)
 
-    pipeline.process_ref(WorkRef(id=work.id, source="wikisource"))
+    with patch.object(pipeline, "add_book_search_item") as add_search_item:
+        pipeline.process_ref(WorkRef(id=work.id, source="wikisource"))
 
     assert pipeline.store.get("wikisource", work.id) is None
     assembler.add_item_for.assert_not_called()
+    add_search_item.assert_not_called()
 
 
 def test_process_ref_attaches_a_cover_when_extractable():

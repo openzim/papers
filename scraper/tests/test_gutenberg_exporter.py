@@ -343,3 +343,20 @@ def test_export_book_prefers_bundled_cover_over_mismatched_icon_link():
     assembler.add_alias.assert_called_once_with(
         path="covers/11_cover_image.webp", title="", target="11/cover.jpg.webp"
     )
+
+
+def test_handle_book_files_leaves_main_html_indexing_to_the_book_entry():
+    # the book text is indexed on the book's search entry instead (#43)
+    work = _work()
+    assembler = MagicMock()
+    with patch(
+        "papers2zim.sources.gutenberg.exporter.update_html_for_static",
+        return_value="<p>rewritten</p>",
+    ):
+        handle_book_files(
+            work, {"11.html": b"<p>text</p>"}, formats=["html"], assembler=assembler
+        )
+    main_html = assembler.add_item_for.call_args.kwargs
+    assert main_html["path"] == "Test Book.11"
+    assert main_html["mimetype"] == "text/html"
+    assert main_html.get("auto_index", False) is False

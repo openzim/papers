@@ -146,6 +146,26 @@
       "title": "No Full-text Index",
       "description": "Do not create ZIM with full-text index"
     },
+    "index_format": {
+      "type": "string-enum",
+      "required": false,
+      "title": "Full-text Index Format",
+      "description": "Book format to index text from, one of the requested formats. Leave empty to use HTML, then EPUB, then PDF, depending on what each book has.",
+      "choices": [
+        {
+          "title": "EPUB",
+          "value": "epub"
+        },
+        {
+          "title": "HTML",
+          "value": "html"
+        },
+        {
+          "title": "PDF",
+          "value": "pdf"
+        }
+      ]
+    },
     "lcc_shelves": {
       "type": "string",
       "required": false,

@@ -9,7 +9,9 @@ and keeps the derivations source-agnostic: everything is computed from
 The search entries reproduce exactly the on-ZIM index format historically
 emitted by `core.exporters.json_exporter` (fnames, routes and payload
 strings, max `MAX_WORKS_IN_ENTRY` works listed per entry), so the existing
-UI keeps working.
+UI keeps working. Book entries are the exception: they carry the book text,
+so the pipeline writes each one while the book is processed (see
+`book_search_entry`).
 """
 
 from collections import defaultdict
@@ -53,6 +55,27 @@ class Indexes:
     # popularity value count for the work count only)
     author_stats: dict[str, tuple[int, float]] = field(default_factory=dict)
     search_entries: list[IndexEntry] = field(default_factory=list)
+
+
+def book_search_entry(work: Work) -> IndexEntry:
+    """Search entry of one book, written by the pipeline along with its text"""
+    creator = primary_creator(work)
+    parts = []
+    if work.subtitle:
+        parts.append(work.subtitle)
+    if work.description:
+        parts.append(work.description)
+    parts.append(f"A book by {creator.display_name}")
+    if work.languages:
+        parts.append(f"Languages: {', '.join(work.languages)}")
+    if collection_id := primary_collection_id(work):
+        parts.append(f"Collection: {collection_id}")
+    return IndexEntry(
+        title=work.title,
+        content=". ".join(parts) + ".",
+        fname=f"book_{work.id}",
+        route=f"book/{work.id}",
+    )
 
 
 class IndexBuilder:
@@ -105,25 +128,6 @@ class IndexBuilder:
         *,
         display_name: str,
     ) -> Iterable[IndexEntry]:
-        for work in works:
-            creator = primary_creator(work)
-            parts = []
-            if work.subtitle:
-                parts.append(work.subtitle)
-            if work.description:
-                parts.append(work.description)
-            parts.append(f"A book by {creator.display_name}")
-            if work.languages:
-                parts.append(f"Languages: {', '.join(work.languages)}")
-            if collection_id := primary_collection_id(work):
-                parts.append(f"Collection: {collection_id}")
-            yield IndexEntry(
-                title=work.title,
-                content=". ".join(parts) + ".",
-                fname=f"book_{work.id}",
-                route=f"book/{work.id}",
-            )
-
         for creator in authors:
             creator_works = by_author.get(creator.id, [])
             parts = [f"Author: {creator.display_name}"]

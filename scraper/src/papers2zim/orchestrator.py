@@ -293,6 +293,8 @@ def build_zimfile(
             books=config.books,
             engine=engine,
             title_search=title_search,
+            with_fulltext_index=with_fulltext_index,
+            index_format=config.index_format,
             **profile.pipeline_options(
                 mirror_url, config.cache_dir, config.source_options, languages
             ),

@@ -38,6 +38,9 @@ Options:
   -b --books=<ids>                Source catalog positions or ranges
   -c --concurrency=<nb>           Concurrent processing tasks
   --no-index                      Disable the full-text index
+  --index-format=<format>         Format to index book text from: epub, html
+                                  or pdf, one of --formats (default: html,
+                                  then epub, then pdf)
   --title-search                  Enable title search
 {source_options_help}
   --stats-filename=<filename>     Progress JSON path

@@ -9,6 +9,7 @@ from papers2zim.core.ports import WorkRef
 from papers2zim.core.progress import ScraperProgress
 from papers2zim.core.work_store import WorkStore
 from papers2zim.sources.gutenberg.catalog import LCC_SHELF_KIND
+from papers2zim.sources.gutenberg.downloader import BookContent
 from papers2zim.sources.gutenberg.pipeline import GutenbergPipeline
 
 
@@ -149,3 +150,61 @@ def test_enrich_authors_forwards_both_flags_and_language(with_bio, with_portrait
     assert kwargs["with_bio"] is with_bio
     assert kwargs["with_portrait"] is with_portrait
     assert kwargs["language"] == "fr"
+
+
+def _process_with_files(
+    work: Work, files: dict[str, bytes], formats: list[str]
+) -> MagicMock:
+    """Process a work whose download returns `files`; the search item mock"""
+    pipeline = _pipeline(work, languages=None)
+    pipeline.formats = formats
+    with (
+        patch(
+            "papers2zim.sources.gutenberg.pipeline.download_book",
+            return_value=BookContent(work=work, files=files),
+        ),
+        patch("papers2zim.sources.gutenberg.pipeline.export_book"),
+        patch.object(pipeline, "add_book_search_item") as add_search_item,
+    ):
+        pipeline.process_ref(WorkRef(id=work.id, source="gutenberg"))
+    return add_search_item
+
+
+def test_process_ref_indexes_the_book_files_but_not_companions():
+    work = _work_with_shelf("PR")
+    files = {
+        "84.html": b"<p>main</p>",
+        "84.epub": b"epub bytes",
+        "84.pdf": b"pdf bytes",
+        "84_chapter2.html": b"<p>companion</p>",
+        "84_cover.jpg": b"jpg",
+    }
+
+    add_search_item = _process_with_files(work, files, ["epub", "html"])
+
+    add_search_item.assert_called_once_with(
+        work, {"html": b"<p>main</p>", "epub": b"epub bytes"}
+    )
+
+
+def test_process_ref_indexes_the_html_even_when_not_requested():
+    # the HTML is always downloaded and stored as the base of the ZIM
+    work = _work_with_shelf("PR")
+    files = {"84.html": b"<p>main</p>", "84.epub": b"epub bytes"}
+
+    add_search_item = _process_with_files(work, files, ["epub"])
+
+    add_search_item.assert_called_once_with(
+        work, {"html": b"<p>main</p>", "epub": b"epub bytes"}
+    )
+
+
+def test_process_ref_does_not_index_a_book_that_failed_to_download():
+    work = _work_with_shelf("PR")
+    pipeline = _pipeline(work, languages=None)
+    with (
+        patch("papers2zim.sources.gutenberg.pipeline.download_book", return_value=None),
+        patch.object(pipeline, "add_book_search_item") as add_search_item,
+    ):
+        pipeline.process_ref(WorkRef(id="84", source="gutenberg"))
+    add_search_item.assert_not_called()

@@ -1,6 +1,6 @@
 """Tests for core.index_builder."""
 
-from papers2zim.core.index_builder import IndexBuilder
+from papers2zim.core.index_builder import IndexBuilder, book_search_entry
 from papers2zim.core.models import CollectionRef, Creator, Work
 from papers2zim.core.work_store import WorkStore
 
@@ -70,20 +70,28 @@ def test_author_stats_count_and_popularity():
     assert indexes.author_stats["37"] == (3, 150)
 
 
-def test_search_entries_for_works():
-    store = _store_with(
-        _work("1", "Bleak House", creators=[DICKENS], description="A novel."),
-        _work("2", "Emma", creators=[AUSTEN]),
-    )
-    indexes = IndexBuilder(store).build(display_name="Test Source")
-    entries = {entry.fname: entry for entry in indexes.search_entries}
+def test_book_search_entry():
+    bleak_house = _work("1", "Bleak House", creators=[DICKENS], description="A novel.")
+    entry = book_search_entry(bleak_house)
 
-    assert entries["book_1"].title == "Bleak House"
-    assert entries["book_1"].route == "book/1"
-    assert "A novel." in entries["book_1"].content
-    assert "Charles Dickens" in entries["book_1"].content
+    assert entry.title == "Bleak House"
+    assert entry.fname == "book_1"
+    assert entry.route == "book/1"
+    assert "A novel." in entry.content
+    assert "Charles Dickens" in entry.content
     # falls back to a generic description mentioning the creator
-    assert "Jane Austen" in entries["book_2"].content
+    assert (
+        "Jane Austen"
+        in book_search_entry(_work("2", "Emma", creators=[AUSTEN])).content
+    )
+
+
+def test_search_entries_leave_books_to_the_pipeline():
+    # book entries carry the book text, so they are written while each book is
+    # processed rather than derived here
+    store = _store_with(_work("1", "Bleak House", creators=[DICKENS]))
+    indexes = IndexBuilder(store).build(display_name="Test Source")
+    assert not [e for e in indexes.search_entries if e.fname.startswith("book_")]
 
 
 def test_search_entries_for_collections():

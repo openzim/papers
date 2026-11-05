@@ -211,6 +211,9 @@ Spaces and underscores are interchangeable, and percent-encoded names are accept
 -c --concurrency=<nb>              Number of concurrent workers (default: 16)
 
 --no-index                          Skip full-text index creation
+--index-format=<format>             Format to index book text from (epub, html, pdf;
+                                    one of --formats; default: html, then epub,
+                                    then pdf)
 --title-search                      Enable title-based search
 --stats-filename=<filename>        Statistics output file
 

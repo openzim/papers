@@ -19,6 +19,7 @@ from papers2zim.core.exporters.html_reader_controls import (
 from papers2zim.core.models import CollectionRef
 from papers2zim.core.pipeline import Pipeline
 from papers2zim.core.ports import WorkRef
+from papers2zim.core.utils import fname_for, requested_formats
 from papers2zim.sources.gutenberg.author_enricher import enrich_authors, zim_language
 from papers2zim.sources.gutenberg.catalog import (
     LCC_SHELF_KIND,
@@ -111,4 +112,14 @@ class GutenbergPipeline(Pipeline):
                 engine=self.engine,
                 _zim_name=self.zim_name,
                 _title_search=self.title_search,
+            )
+            # the HTML is always downloaded and stored, requested or not
+            index_formats = {"html", *requested_formats(work, self.formats)}
+            self.add_book_search_item(
+                work,
+                {
+                    fmt: book_content.files[fname_for(work, fmt)]
+                    for fmt in index_formats
+                    if fname_for(work, fmt) in book_content.files
+                },
             )

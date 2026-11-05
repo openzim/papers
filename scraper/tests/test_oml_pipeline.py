@@ -90,6 +90,7 @@ def test_process_ref_downloads_pdf_and_epub_and_stores_the_work():
         "On Beauty.2833.epub",
         "On Beauty.2833.pdf",
         "covers/2833_cover_image.webp",
+        "index/book_2833",
     ]
 
 
@@ -172,3 +173,42 @@ def test_process_ref_marks_unavailable_unsupported_formats():
         pipeline.process_ref(WorkRef(id="2833", source="onemorelibrary"))
 
     assert sorted(work.extra["unsupported_formats"]) == ["epub", "html"]
+
+
+def test_process_ref_writes_the_search_item_with_every_downloaded_format():
+    work = _work()
+    engine = MagicMock()
+    engine.fetch_bytes.side_effect = {
+        "https://onemorelibrary.com/download?fid=14598": b"%PDF-1.7 pdf bytes",
+        "https://onemorelibrary.com/download?fid=14599": _valid_epub(),
+    }.get
+    pipeline = _pipeline(work, engine, MagicMock())
+
+    with (
+        patch(
+            "papers2zim.sources.onemorelibrary.pipeline.extract_cover",
+            return_value=b"cover bytes",
+        ),
+        patch(
+            "papers2zim.sources.onemorelibrary.pipeline.optimize_epub_bytes",
+            return_value=b"optimized epub",
+        ),
+        patch.object(pipeline, "add_book_search_item") as add_search_item,
+    ):
+        pipeline.process_ref(WorkRef(id="2833", source="onemorelibrary"))
+
+    add_search_item.assert_called_once_with(
+        work, {"epub": b"optimized epub", "pdf": b"%PDF-1.7 pdf bytes"}
+    )
+
+
+def test_process_ref_writes_no_search_item_when_nothing_downloads():
+    work = _work()
+    engine = MagicMock()
+    engine.fetch_bytes.return_value = b"<!doctype html><html>not a book</html>"
+    pipeline = _pipeline(work, engine, MagicMock())
+
+    with patch.object(pipeline, "add_book_search_item") as add_search_item:
+        pipeline.process_ref(WorkRef(id="2833", source="onemorelibrary"))
+
+    add_search_item.assert_not_called()
