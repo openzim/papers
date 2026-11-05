@@ -25,11 +25,19 @@ export function useLanguageFilter() {
     }
   })
 
-  const languageOptions = computed<LanguageFilterOption[]>(() =>
-    (main.config?.bookLanguages ?? [])
+  const languageOptions = computed<LanguageFilterOption[]>(() => {
+    const requested = main.config?.contentInfo?.languages
+    const requestedCodes = requested?.length
+      ? new Set(requested.map((code) => code.toLowerCase()))
+      : null
+
+    return (main.config?.bookLanguages ?? [])
+      .filter((code) => !requestedCodes || requestedCodes.has(code.toLowerCase()))
       .map((code) => ({ code, label: formatLanguages([code]) }))
       .sort((a, b) => a.label.localeCompare(b.label))
-  )
+  })
+
+  const showLanguageFilter = computed(() => languageOptions.value.length > 1)
 
   const selectedLanguageLabel = computed(() =>
     selectedLanguage.value === null
@@ -37,5 +45,5 @@ export function useLanguageFilter() {
       : formatLanguages([selectedLanguage.value])
   )
 
-  return { selectedLanguage, languageOptions, selectedLanguageLabel }
+  return { selectedLanguage, languageOptions, selectedLanguageLabel, showLanguageFilter }
 }

@@ -3,17 +3,19 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest'
+import { defineComponent } from 'vue'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import LanguageFilterControl from './LanguageFilterControl.vue'
 import { useMainStore } from '@/stores/main'
+import { useLanguageFilter } from '@/composables/useLanguageFilter'
 
 describe('LanguageFilterControl', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
   })
 
-  function setBookLanguages(bookLanguages: string[]) {
+  function setBookLanguages(bookLanguages: string[], requestedLanguages: string[] | null = null) {
     useMainStore().config = {
       title: 'Test',
       description: null,
@@ -26,7 +28,7 @@ describe('LanguageFilterControl', () => {
         source: 'Test',
         collections: null,
         books: null,
-        languages: null,
+        languages: requestedLanguages,
         formats: null,
         dateScraped: '2026-01-01'
       }
@@ -51,6 +53,61 @@ describe('LanguageFilterControl', () => {
     expect(wrapper.find('.language-filter__panel').exists()).toBe(true)
     const texts = wrapper.findAll('.language-filter__item').map((item) => item.text())
     expect(texts).toEqual(['languageFilter.allLanguages', 'Dutch', 'English', 'French'])
+  })
+
+  it('only lists the languages requested with --languages, even if books carry others', async () => {
+    setBookLanguages(['en', 'fr', 'nl'], ['en', 'fr'])
+    const wrapper = mount(LanguageFilterControl)
+    await wrapper.find('.language-filter__trigger').trigger('click')
+    const texts = wrapper.findAll('.language-filter__item').map((item) => item.text())
+    expect(texts).toEqual(['languageFilter.allLanguages', 'English', 'French'])
+  })
+
+  function mountComposable() {
+    let result!: ReturnType<typeof useLanguageFilter>
+    mount(
+      defineComponent({
+        setup() {
+          result = useLanguageFilter()
+          return () => null
+        }
+      })
+    )
+    return result
+  }
+
+  describe('showLanguageFilter', () => {
+    it('is false when a single language was requested', () => {
+      setBookLanguages(['en', 'fr'], ['en'])
+      expect(mountComposable().showLanguageFilter.value).toBe(false)
+    })
+
+    it('is true when two languages were requested', () => {
+      setBookLanguages(['en', 'fr', 'nl'], ['en', 'fr'])
+      expect(mountComposable().showLanguageFilter.value).toBe(true)
+    })
+
+    it('is false when multiple languages were requested, but only one is present in books', () => {
+      setBookLanguages(['en'], ['en', 'fr'])
+      expect(mountComposable().showLanguageFilter.value).toBe(false)
+    })
+
+    it('preserves the previous behaviour when --languages was not passed', () => {
+      setBookLanguages(['en', 'fr', 'nl'], null)
+      expect(mountComposable().showLanguageFilter.value).toBe(true)
+      setBookLanguages(['en'], null)
+      expect(mountComposable().showLanguageFilter.value).toBe(false)
+    })
+
+    it('treats an empty requested list as no restriction', () => {
+      setBookLanguages(['en', 'fr'], [])
+      expect(mountComposable().showLanguageFilter.value).toBe(true)
+    })
+
+    it('matches requested codes case-insensitively', () => {
+      setBookLanguages(['en', 'fr', 'nl'], ['EN', 'Fr'])
+      expect(mountComposable().languageOptions.value.map((o) => o.code)).toEqual(['en', 'fr'])
+    })
   })
 
   it('filters the list by typing, without affecting the "All languages" option', async () => {
