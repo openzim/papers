@@ -1,6 +1,5 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <script setup lang="ts">
-import { computed } from 'vue'
 import { LAYOUT, TYPOGRAPHY } from '@/constants/theme'
 import { useDisplay, useRtl } from 'vuetify'
 
@@ -10,31 +9,18 @@ interface BreadcrumbItem {
   disabled?: boolean
 }
 
-const props = defineProps<{
+defineProps<{
   items: BreadcrumbItem[]
 }>()
 
 const { mobile } = useDisplay()
 const { isRtl } = useRtl()
-
-function truncateToWords(title: string, wordCount: number) {
-  const words = title.trim().split(/\s+/)
-  return words.length > wordCount ? `${words.slice(0, wordCount).join(' ')}…` : title
-}
-
-const displayItems = computed(() =>
-  props.items.map((item, index) => ({
-    ...item,
-    title:
-      mobile.value && index === props.items.length - 1 ? truncateToWords(item.title, 2) : item.title
-  }))
-)
 </script>
 
 <template>
   <div class="breadcrumbs-wrapper">
     <v-breadcrumbs
-      :items="displayItems"
+      :items="items"
       class="breadcrumbs-nav"
       :class="{ 'breadcrumbs-nav--small': mobile }"
       density="compact"
