@@ -1,12 +1,15 @@
 """Gutenberg catalog access (moved from `papers2zim.csv_catalog`).
 
 Reads the `pg_catalog.csv.gz` dump and exposes it through the source-agnostic
-`CatalogPort` interface.
+`CatalogPort` interface. The dump is not limited to books: it also lists audio,
+images and datasets, which are dropped here since there is no text to export
+for them.
 """
 
 import csv
 import gzip
 import re
+from collections import Counter
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
@@ -22,6 +25,8 @@ from papers2zim.core.ports import (
 
 GUTENBERG_SOURCE = "gutenberg"
 LCC_SHELF_KIND = "lcc_shelf"
+
+TEXT_WORK_TYPE = "Text"
 
 
 @dataclass
@@ -123,12 +128,18 @@ def load_catalog(csv_path: Path) -> list[CatalogEntry]:
     """
     Load catalog from CSV and return a list of catalog entries.
 
+    Entries the dump types as something other than a text (audio recordings,
+    images, datasets, ...) are left out: the mirror has no book file for them,
+    and their EPUB carries at most the license notice around the audio track
+    list, which is worse than nothing in a library of texts.
+
     Returns:
         list[CatalogEntry]: List of catalog entries with book_id, languages, and
           lcc_shelf
     """
     logger.info(f"\tLoading catalog from {csv_path}")
     catalog: list[CatalogEntry] = []
+    skipped_types: Counter[str] = Counter()
 
     with gzip.open(csv_path, "rt", encoding="utf-8") as f:
         reader = csv.DictReader(f)
@@ -137,6 +148,11 @@ def load_catalog(csv_path: Path) -> list[CatalogEntry]:
                 book_id = int(row["Text#"])
             except ValueError, KeyError:
                 logger.warning(f"Invalid book ID in row: {row.get('Text#', 'unknown')}")
+                continue
+
+            work_type = (row.get("Type") or "").strip()
+            if work_type and work_type != TEXT_WORK_TYPE:
+                skipped_types[work_type] += 1
                 continue
 
             # Parse languages (can be multiple, semicolon-separated)
@@ -157,6 +173,15 @@ def load_catalog(csv_path: Path) -> list[CatalogEntry]:
                 )
             )
 
+    if skipped_types:
+        skipped = sum(skipped_types.values())
+        breakdown = ", ".join(
+            f"{work_type}: {count}"
+            for work_type, count in sorted(skipped_types.items())
+        )
+        logger.info(
+            f"\tSkipped {skipped} catalog entries which are not texts ({breakdown})"
+        )
     logger.info(f"\tLoaded {len(catalog)} books from catalog")
     return catalog
 
