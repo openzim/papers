@@ -24,6 +24,7 @@ as of 2.0.0.
 - UI: only offer a language in the interface switcher once its translation is at least 80% complete, counted per source (`common` + that source's own namespace) rather than combined across every source, so a barely-started translation isn't offered and adding a new source's untranslated strings can't silently drop an already-translated language from unrelated ZIMs (#113)
 - UI: filter books, authors and collections by book language from a single control in the breadcrumbs bar, applied everywhere (books list, authors list, collections, home's popular/selected sections, author and collection detail pages). Author and collection previews now carry a per-language book count/popularity breakdown so filtered counts stay accurate without extra fetches (#101)
 - Index the full text of each book in its search entry, from one format per book (HTML, then EPUB, then PDF), with `--index-format` to force one (#43)
+- Wikisource: add book descriptions, sourced from each work's Wikidata item, since the ws-export OPDS feed carries none (#21)
 
 ### Changed
 

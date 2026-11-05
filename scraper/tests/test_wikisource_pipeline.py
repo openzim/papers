@@ -51,6 +51,21 @@ def _valid_epub() -> bytes:
     return output.getvalue()
 
 
+def test_enrich_descriptions_looks_them_up_on_wikidata():
+    work = _work()
+    engine = MagicMock()
+    assembler = MagicMock()
+    pipeline = _pipeline(work, engine, assembler)
+    pipeline.store.add(work)
+
+    with patch(
+        "papers2zim.sources.wikisource.pipeline.enrich_work_descriptions"
+    ) as enrich:
+        pipeline.enrich_descriptions()
+
+    enrich.assert_called_once_with(pipeline.store, engine)
+
+
 def test_process_ref_downloads_epub_and_marks_the_rest_unsupported():
     work = _work()
     engine = MagicMock()
