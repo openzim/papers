@@ -34,15 +34,16 @@ def _work(book_id="11", **extra) -> Work:
 @pytest.mark.parametrize(
     ("book_id", "filename", "expected"),
     [
-        ("11", "11_cover.jpg", True),
-        ("11", "11_cover.jpeg", True),
-        ("11", "11_cover.png", True),
-        ("11", "11_cover.webp", True),
-        ("11", "11_11-cover.png", True),
-        ("11", "11_cover.xml", False),
-        ("11", "11_colophon.png", False),
-        ("11", "11_discover.jpg", False),
-        ("84", "11_cover.jpg", False),
+        ("11", "11/cover.jpg", True),
+        ("11", "11/cover.jpeg", True),
+        ("11", "11/cover.png", True),
+        ("11", "11/cover.webp", True),
+        ("11", "11/11-cover.png", True),
+        ("11", "11/images/11-cover.png", True),
+        ("11", "11/cover.xml", False),
+        ("11", "11/colophon.png", False),
+        ("11", "11/discover.jpg", False),
+        ("84", "11/cover.jpg", False),
     ],
 )
 def test_is_cover_asset(book_id: str, filename: str, expected):
@@ -54,13 +55,13 @@ def test_handle_book_files_detects_bundled_cover_asset():
     assembler = MagicMock()
     handle_book_files(
         work,
-        {"11_cover.jpg": _image_bytes("JPEG")},
+        {"11/cover.jpg": _image_bytes("JPEG")},
         formats=["html"],
         assembler=assembler,
     )
-    assert work.extra["html_cover_path"] == "11_cover.jpg.webp"
+    assert work.extra["html_cover_path"] == "11/cover.jpg.webp"
     assembler.add_item_for.assert_called_once_with(
-        path="11_cover.jpg.webp",
+        path="11/cover.jpg.webp",
         content=ANY,
         is_front=False,
     )
@@ -127,7 +128,7 @@ def test_export_book_aliases_bundled_cover_and_skips_mirror_download():
     with patch("papers2zim.sources.gutenberg.exporter.download_book_cover") as download:
         export_book(
             work=work,
-            book_files={"11_cover.jpg": _image_bytes("JPEG")},
+            book_files={"11/cover.jpg": _image_bytes("JPEG")},
             formats=["html"],
             mirror_url="https://example.com",
             assembler=assembler,
@@ -137,7 +138,7 @@ def test_export_book_aliases_bundled_cover_and_skips_mirror_download():
         )
     download.assert_not_called()
     assembler.add_alias.assert_called_once_with(
-        path="covers/11_cover_image.webp", title="", target="11_cover.jpg.webp"
+        path="covers/11_cover_image.webp", title="", target="11/cover.jpg.webp"
     )
 
 
@@ -151,7 +152,7 @@ def test_export_book_downloads_cover_when_not_bundled():
     ) as download:
         export_book(
             work=work,
-            book_files={"11_colophon.png": _image_bytes("PNG")},
+            book_files={"11/colophon.png": _image_bytes("PNG")},
             formats=["html"],
             mirror_url="https://example.com",
             assembler=assembler,
@@ -179,7 +180,7 @@ def test_optimize_failure_leaves_cover_undetected_and_triggers_mirror_download()
     ):
         handle_book_files(
             work,
-            {"11_cover.jpg": b"corrupt-image-bytes"},
+            {"11/cover.jpg": b"corrupt-image-bytes"},
             formats=["html"],
             assembler=assembler,
         )
@@ -190,7 +191,7 @@ def test_optimize_failure_leaves_cover_undetected_and_triggers_mirror_download()
     ) as download:
         export_book(
             work=work,
-            book_files={"11_cover.jpg": b"corrupt-image-bytes"},
+            book_files={"11/cover.jpg": b"corrupt-image-bytes"},
             formats=["html"],
             mirror_url="https://example.com",
             assembler=assembler,
@@ -221,7 +222,7 @@ def test_export_book_still_uses_icon_linked_html_cover():
             work=work,
             book_files={
                 "11.html": html,
-                "11_icon.jpg": _image_bytes("JPEG"),
+                "11/images/icon.jpg": _image_bytes("JPEG"),
             },
             formats=["html"],
             mirror_url="https://example.com",
@@ -232,7 +233,7 @@ def test_export_book_still_uses_icon_linked_html_cover():
         )
     download.assert_not_called()
     assembler.add_alias.assert_called_once_with(
-        path="covers/11_cover_image.webp", title="", target="11_icon.jpg.webp"
+        path="covers/11_cover_image.webp", title="", target="11/images/icon.jpg.webp"
     )
 
 
@@ -328,8 +329,8 @@ def test_export_book_prefers_bundled_cover_over_mismatched_icon_link():
             work=work,
             book_files={
                 "11.html": html,
-                "11_illu_title.png": _image_bytes("PNG"),
-                "11_cover.jpg": _image_bytes("JPEG"),
+                "11/images/illu_title.png": _image_bytes("PNG"),
+                "11/cover.jpg": _image_bytes("JPEG"),
             },
             formats=["html"],
             mirror_url="https://example.com",
@@ -340,5 +341,5 @@ def test_export_book_prefers_bundled_cover_over_mismatched_icon_link():
         )
     download.assert_not_called()
     assembler.add_alias.assert_called_once_with(
-        path="covers/11_cover_image.webp", title="", target="11_cover.jpg.webp"
+        path="covers/11_cover_image.webp", title="", target="11/cover.jpg.webp"
     )

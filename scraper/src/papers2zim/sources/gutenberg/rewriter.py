@@ -35,9 +35,21 @@ infobox_jinja_env.filters["book_name_for_fs"] = book_name_for_fs
 infobox_jinja_env.filters["urlencode"] = urllib.parse.quote
 
 
-def transform_image_path(book_id: str, path: str) -> str:
-    """Transform image path from images/xxx to {book_id}_xxx"""
-    return path.replace("images/", f"{book_id}_")
+def transform_asset_path(book_id: str, path: str) -> str | None:
+    """Map a bundled asset reference to its ZIM path.
+
+    Project Gutenberg zips bundle images, stylesheets or audio under
+    subfolders whose name varies per book (`images/`, `style/`, `music/`,
+    ...); `handle_zipped_html` extracts them verbatim under the book's own
+    `{book_id}/` folder, so any such relative reference just needs that
+    prefix. Returns `None` when `path` isn't a local reference to a bundled
+    file (an external URL, an in-page anchor, or a site-absolute path).
+    """
+    if not path or path.startswith(("#", "/")):
+        return None
+    if urllib.parse.urlsplit(path).scheme:
+        return None
+    return f"{book_id}/{path}"
 
 
 def update_html_for_static(
@@ -62,7 +74,9 @@ def update_html_for_static(
                     work.extra["_cover_href"] = href
 
                 # Transform the path
-                icon_link["href"] = transform_image_path(work.id, href)
+                new_href = transform_asset_path(work.id, href)
+                if new_href is not None:
+                    icon_link["href"] = new_href
 
     # remove encoding as we're saving to UTF8 anyway
     encoding_specified = False
@@ -88,29 +102,44 @@ def update_html_for_static(
         # logger.debug("charset was found and removed")
         pass
 
-    # update all <img> links from images/xxx.xxx to {id}_xxx.xxx
+    # update all <img> links from their bundled subfolder (images/, img/, ...)
+    # to the book's own ZIM folder
     if not epub:
         for img in soup.find_all("img"):
             if "src" in img.attrs:
-                img.attrs["src"] = transform_image_path(
+                new_src = transform_asset_path(
                     work.id, img.get_attribute_list("src")[0]
                 )
+                if new_src is not None:
+                    img.attrs["src"] = new_src
+
+        # update bundled stylesheets (style/xxx.css, ...) the same way
+        for link in soup.find_all("link", rel="stylesheet"):
+            href = link.get("href")
+            if isinstance(href, str):
+                new_href = transform_asset_path(work.id, href)
+                if new_href is not None:
+                    link["href"] = new_href
 
         # Rewrite image references to use .webp extension for converted images
         # This also handles <link rel="icon"> tags
         # Only for regular HTML, not EPUB (EPUB images are not converted to WebP)
         rewrite_html_image_references(soup, f"Book {work.id}")
 
-    # update all <a> links to internal HTML pages
-    # should only apply to relative URLs to HTML files.
-    # examples on #16816, #22889, #30021
+    # update all <a> links: internal HTML pages are rewritten to their
+    # sibling-page name (examples on #16816, #22889, #30021); other local
+    # references (bundled images, audio, ...) are rewritten to the book's
+    # own ZIM folder like <img>/<link> above
     if not epub:
         for link in soup.find_all("a"):
-            new_link = replacement_link(
-                item_id=work.id, url=str(link.attrs.get("href", ""))
-            )
+            href = str(link.attrs.get("href", ""))
+            new_link = replacement_link(item_id=work.id, url=href)
             if new_link is not None:
                 link.attrs["href"] = new_link
+            else:
+                asset_href = transform_asset_path(work.id, href)
+                if asset_href is not None:
+                    link.attrs["href"] = asset_href
 
     # Add the title
     if not epub:

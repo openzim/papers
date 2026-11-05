@@ -10,7 +10,7 @@ import io
 import zipfile
 import zlib
 from dataclasses import dataclass, field
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 import requests
 
@@ -46,22 +46,28 @@ class BookContent:
 
 
 def handle_zipped_html(zip_content: bytes, work: Work) -> dict[str, bytes]:
-    """Extract HTML zip and return files as dict of filename -> bytes"""
+    """Extract HTML zip and return files as dict of filename -> bytes.
 
-    def clfn(fn):
-        return Path(fn).name
+    Non-HTML members keep their original relative path inside the book's own
+    `{work.id}/` folder. Project Gutenberg bundles images, stylesheets or
+    audio under subfolders whose name varies per book (`images/`, `style/`,
+    `music/`, ...); preserving the real layout avoids having to allowlist
+    each folder name while still namespacing every book's files under its own
+    id, so they can't collide with another book's files in the same ZIM.
+    """
 
     def is_safe(fname):
-        name = ensure_unicode(clfn(fname))
-        if fname == name:
-            return True
-        return fname == f"images/{name}"
+        """Reject zip-slip attempts: absolute paths or `..` traversal."""
+        if "\\" in fname:
+            return False
+        posix = PurePosixPath(fname)
+        return not posix.is_absolute() and ".." not in posix.parts
 
     result_files = {}
 
     try:
         with zipfile.ZipFile(io.BytesIO(zip_content), "r") as zf:
-            # check that there is no insecure data (absolute names)
+            # check that there is no insecure data (absolute names, traversal)
             if sum([1 for n in zf.namelist() if not is_safe(ensure_unicode(n))]):
                 return {}
 
@@ -97,7 +103,9 @@ def handle_zipped_html(zip_content: bytes, work: Work) -> dict[str, bytes]:
                     else:
                         result_files[f"{work.id}.html"] = file_content
                 else:
-                    result_files[f"{work.id}_{fname}"] = file_content
+                    # preserve the original subfolder layout, namespaced
+                    # under the book's own folder
+                    result_files[f"{work.id}/{zipped_file}"] = file_content
 
     except (zipfile.BadZipFile, RuntimeError, EOFError, OSError, zlib.error) as exc:
         # archive is unreadable when it should be a valid zip

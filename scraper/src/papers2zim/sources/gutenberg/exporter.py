@@ -23,7 +23,7 @@ from papers2zim.sources.gutenberg.epub_optimize import (
     transform_epub_document,
 )
 from papers2zim.sources.gutenberg.rewriter import (
-    transform_image_path,
+    transform_asset_path,
     update_html_for_static,
 )
 
@@ -58,8 +58,10 @@ def _embedded_epub_cover(book_files: dict[str, bytes], work: Work) -> bytes | No
 
 def is_cover_asset(work_id: str, filename: str) -> bool:
     """Return True when a book file is a Project Gutenberg cover asset"""
-    prefix = f"{work_id}_"
-    basename = filename[len(prefix) :] if filename.startswith(prefix) else filename
+    prefix = f"{work_id}/"
+    if not filename.startswith(prefix):
+        return False
+    basename = filename[len(prefix) :].rsplit("/", 1)[-1]
     return bool(_COVER_BASENAME_RE.match(basename))
 
 
@@ -241,11 +243,11 @@ def _detect_html_cover(work: Work, filename: str, output_filename: str):
     if work.extra.get("html_cover_path"):
         return
     cover_href = work.extra.get("_cover_href")
-    expected_cover = (
-        ImageProcessor.get_output_filename(transform_image_path(work.id, cover_href))
-        if cover_href
-        else None
-    )
+    expected_cover = None
+    if cover_href:
+        asset_path = transform_asset_path(work.id, cover_href)
+        if asset_path is not None:
+            expected_cover = ImageProcessor.get_output_filename(asset_path)
     if output_filename != expected_cover:
         return
     work.extra["html_cover_path"] = output_filename
