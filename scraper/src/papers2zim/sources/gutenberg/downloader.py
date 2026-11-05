@@ -141,11 +141,13 @@ def download_book(
                 content_bytes = engine.fetch_bytes(url)
             except requests.RequestException as exc:
                 # download failed: try next candidate URL
-                # (4xx = the mirror just lacks this format: routine, debug only)
+                # (transient network/server hiccup; a later candidate or
+                # format may still succeed right after, so this alone isn't
+                # yet a real problem)
                 if is_fatal_http_error(exc):
                     logger.debug(f"No {book_format} at {url} for #{work.id}")
                 else:
-                    logger.warning(f"Request failed for {url} of #{work.id}: {exc}")
+                    logger.debug(f"Request failed for {url} of #{work.id}: {exc}")
                 continue
 
             if url.endswith(".zip"):
@@ -154,7 +156,10 @@ def download_book(
                     zip_content=content_bytes, work=work
                 )
                 if not extracted_files:
-                    # ZIP was corrupt or rejected; try next preferred type
+                    # ZIP was corrupt or rejected: unlike a network hiccup,
+                    # this means the mirror actually served a bad archive,
+                    # which is worth flagging even if a fallback saves the
+                    # book overall
                     logger.warning(
                         f"ZIP extraction failed for {book_format} "
                         f"of #{work.id}, trying next type"
