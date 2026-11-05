@@ -58,9 +58,9 @@ def test_handle_book_files_detects_bundled_cover_asset():
         formats=["html"],
         assembler=assembler,
     )
-    assert work.extra["html_cover_path"] == "11_cover.webp"
+    assert work.extra["html_cover_path"] == "11_cover.jpg.webp"
     assembler.add_item_for.assert_called_once_with(
-        path="11_cover.webp",
+        path="11_cover.jpg.webp",
         content=ANY,
         is_front=False,
     )
@@ -83,7 +83,7 @@ def test_export_book_aliases_bundled_cover_and_skips_mirror_download():
         )
     download.assert_not_called()
     assembler.add_alias.assert_called_once_with(
-        path="covers/11_cover_image.webp", title="", target="11_cover.webp"
+        path="covers/11_cover_image.webp", title="", target="11_cover.jpg.webp"
     )
 
 
@@ -178,7 +178,7 @@ def test_export_book_still_uses_icon_linked_html_cover():
         )
     download.assert_not_called()
     assembler.add_alias.assert_called_once_with(
-        path="covers/11_cover_image.webp", title="", target="11_icon.webp"
+        path="covers/11_cover_image.webp", title="", target="11_icon.jpg.webp"
     )
 
 
@@ -286,5 +286,5 @@ def test_export_book_prefers_bundled_cover_over_mismatched_icon_link():
         )
     download.assert_not_called()
     assembler.add_alias.assert_called_once_with(
-        path="covers/11_cover_image.webp", title="", target="11_cover.webp"
+        path="covers/11_cover_image.webp", title="", target="11_cover.jpg.webp"
     )

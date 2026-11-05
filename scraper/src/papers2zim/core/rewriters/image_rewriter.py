@@ -54,9 +54,15 @@ class ImageProcessor:
 
     @staticmethod
     def get_output_filename(filename: str) -> str:
-        """Get output filename with .webp extension if file will be converted."""
+        """Get output filename with .webp appended if file will be converted.
+
+        The original extension is kept rather than replaced so that two
+        source files sharing a basename but differing only in extension
+        (e.g. ``001.jpg`` and ``001.png``) don't collide on the same output
+        path once both are converted to WebP.
+        """
         if ImageProcessor.should_convert_to_webp(filename):
-            return str(Path(filename).with_suffix(".webp"))
+            return f"{filename}.webp"
         return filename
 
     @staticmethod

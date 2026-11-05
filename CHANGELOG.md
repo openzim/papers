@@ -40,6 +40,7 @@ as of 2.0.0.
 
 ### Fixed
 
+- Keep the original extension when appending `.webp` to converted image output filenames, so two source images sharing a basename but differing only in extension (e.g. `001.jpg` and `001.png`) no longer collide on the same ZIM path and silently drop one of the two (#133)
 - UI: make the empty state message readable in both themes by using the normal text color inside the tinted alert, rounding its corners, and switching the `info` accent to the existing palette blues (the dark theme also gets its own info/error/success/warning colors instead of reusing the light ones) (#123)
 - Wikisource: ignore non-image metadata covers in EPUBs and use declared-only covers so books without a cover fall back to the placeholder instead of extracting the site logo (#16)
 - Remove leftover `common` translation keys (`uiLanguage`, `chooseLanguage`, `anyCatalog`, `search`, `mainLanguages`, `otherLanguages`, `navigateTo`, `sortBy`) from removed features, which were counting against every translator's completion percentage for no reason (#112)
