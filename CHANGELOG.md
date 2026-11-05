@@ -48,6 +48,7 @@ as of 2.0.0.
 - UI: switch layout disposition to RTL when an RTL language is selected, and convert physical margins/paddings to logical properties (#86)
 - Resolve ZIM language metadata for ISO 639-3 codes with no ISO 639-1 equivalent (e.g. `grc`/Ancient Greek) without having to hardcode each one, and fix `fur`/Friulian being mislabeled as the unrelated `fvr`/Fur language (#102)
 - Gutenberg: stop failing to build the `mul` ZIM when any book carries an unmappable language code (`myn`, `nai`); such codes are now dropped from ZIM language metadata, with a warning logged, instead of blocking the whole build (#121)
+- Gutenberg: stop rejecting the whole HTML zip for books that bundle images, stylesheets or audio under a subfolder other than `images/` (e.g. `music/`, `style/`+`img/`); any subfolder layout is now extracted under the book's own ZIM folder, with every reference to it rewritten accordingly, instead of only `images/` being allowed and the rest silently falling back to a worse format (#131)
 
 - Promote Wikisource `issued` to standard `published` metadata (#10)
 - Wikisource: stop offering the withdrawn `xhtml` format, and fail early when a requested format is not offered by ws-export (#11)
