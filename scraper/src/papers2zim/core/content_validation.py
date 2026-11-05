@@ -3,6 +3,10 @@
 from io import BytesIO
 from zipfile import BadZipFile, ZipFile
 
+# the formats `is_valid_book_file` can judge; anything else it reports as invalid,
+# so callers must not run HTML (and other) content through it
+BOOK_FILE_FORMATS = ("epub", "pdf")
+
 
 def is_html_document(content: bytes) -> bool:
     """Return whether downloaded content looks like an HTML document."""
