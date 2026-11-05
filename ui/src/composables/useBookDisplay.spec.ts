@@ -18,11 +18,7 @@ function book(id: string, title: string, popularity: number): BookPreview {
     author: {
       id: `author-${id}`,
       displayName: `Author ${id}`,
-      sortName: id,
-      bookCount: 1,
-      totalPopularity: popularity,
-      languages: ['en'],
-      bookCountByLanguage: { en: 1 }
+      sortName: id
     },
     languages: ['en'],
     popularity,

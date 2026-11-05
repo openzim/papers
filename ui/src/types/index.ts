@@ -1,5 +1,5 @@
-export type { BookFormat, BookPreview, Book, Books } from './Book'
-export type { AuthorPreview, Author, AuthorDetail, Authors } from './Author'
+export type { BookFormat, BookPreview, Book, Books, BooksManifest, BooksPage } from './Book'
+export type { AuthorRef, AuthorPreview, Author, AuthorDetail, Authors } from './Author'
 export type { CollectionPreview, Collection, Collections } from './Collection'
 export type { Config } from './Config'
 export type { SortOption, SortOrder } from './Sort'

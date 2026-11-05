@@ -5,6 +5,7 @@ per-item detail JSON files. The ZIM search index entries pointing at the
 UI routes live in `search_items_exporter`.
 """
 
+import math
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import date
@@ -18,10 +19,12 @@ from papers2zim.core.schemas import (
 from papers2zim.core.schemas import (
     AuthorDetail,
     AuthorPreview,
+    AuthorRef,
     Authors,
     BookFormat,
     BookPreview,
-    Books,
+    BooksManifest,
+    BooksPage,
     Collection,
     CollectionPreview,
     Collections,
@@ -49,6 +52,22 @@ from papers2zim.core.work_store import WorkStore
 from papers2zim.core.zim_assembler import ZimAssembler
 
 # JSON Generation Functions for Vue.js UI
+
+# books.json has no natural per-entity split (unlike collections/authors, one
+# file per id), so it's chunked into books-pages/{page}.json files this big.
+BOOKS_PAGE_SIZE = 500
+
+# BookPreview.description is a short excerpt for list views; the full text
+# only lives on the single-book Book detail schema.
+DESCRIPTION_EXCERPT_LENGTH = 200
+
+
+def _description_excerpt(description: str | None) -> str | None:
+    """Short, word-boundary-truncated excerpt of a book's description."""
+    if description is None or len(description) <= DESCRIPTION_EXCERPT_LENGTH:
+        return description
+    truncated = description[:DESCRIPTION_EXCERPT_LENGTH].rsplit(" ", 1)[0]
+    return f"{truncated}…"
 
 
 @dataclass(frozen=True, slots=True)
@@ -83,6 +102,15 @@ def _language_breakdown(works_by_key: dict[str, list[Work]]) -> LanguageBreakdow
         book_counts[key] = counts
         popularities[key] = popularity
     return LanguageBreakdown(languages, book_counts, popularities)
+
+
+def _creator_to_ref(creator: Creator) -> AuthorRef:
+    """Convert Creator to the minimal AuthorRef embedded in a BookPreview."""
+    return AuthorRef(
+        id=creator.id,
+        display_name=creator.display_name,
+        sort_name=creator.sort_name or "",
+    )
 
 
 def _creator_to_preview(
@@ -140,26 +168,19 @@ def _cover_path_for(work: Work) -> str | None:
     return f"covers/{work.id}_cover_image.webp" if has_cover else None
 
 
-def _work_to_preview(
-    work: Work,
-    formats: list[str],
-    author_stats: dict[str, tuple[int, float]],
-    author_languages: LanguageBreakdown,
-) -> BookPreview:
+def _work_to_preview(work: Work, formats: list[str]) -> BookPreview:
     """Convert Work to BookPreview schema"""
     return BookPreview(
         id=work.id,
         title=work.title,
-        author=_creator_to_preview(
-            primary_creator(work), author_stats, author_languages
-        ),
+        author=_creator_to_ref(primary_creator(work)),
         languages=work.languages,
         popularity=float(work.popularity or 0),
         flames=work.flames or 0,
         cover_path=_cover_path_for(work),
         primary_collection=primary_collection_id(work),
         available_formats=requested_formats(work, formats),
-        description=work.description,
+        description=_description_excerpt(work.description),
     )
 
 
@@ -253,6 +274,7 @@ def generate_json_files(
     requested_languages: list[str] | None = None,
     requested_collections: list[str] | None = None,
     books: list[str] | None = None,
+    books_page_size: int = BOOKS_PAGE_SIZE,
 ) -> None:
     """Generate all JSON files for Vue.js frontend"""
     logger.info("Generating JSON files for Vue.js UI")
@@ -264,18 +286,31 @@ def generate_json_files(
     author_languages = _language_breakdown(indexes.by_author)
 
     logger.info("Generating high-level JSON files")
-    logger.debug("Generating books.json")
-    books_preview = [
-        _work_to_preview(work, formats, author_stats, author_languages)
-        for work in all_works
-    ]
-    books_collection = Books(books=books_preview, total_count=len(books_preview))
+    logger.debug("Generating books.json and books-pages/*.json")
+    books_preview = [_work_to_preview(work, formats) for work in all_works]
+    total_pages = (
+        math.ceil(len(books_preview) / books_page_size) if books_preview else 0
+    )
+    manifest = BooksManifest(
+        total_count=len(books_preview),
+        page_size=books_page_size,
+        total_pages=total_pages,
+    )
     assembler.add_item_for(
         path="books.json",
-        content=books_collection.model_dump_json(by_alias=True, indent=2),
+        content=manifest.model_dump_json(by_alias=True, indent=2),
         mimetype="application/json",
         is_front=False,
     )
+    for page in range(total_pages):
+        start = page * books_page_size
+        page_content = BooksPage(books=books_preview[start : start + books_page_size])
+        assembler.add_item_for(
+            path=f"books-pages/{page}.json",
+            content=page_content.model_dump_json(by_alias=True, indent=2),
+            mimetype="application/json",
+            is_front=False,
+        )
 
     logger.debug("Generating authors.json")
     authors_preview = [
@@ -398,10 +433,7 @@ def generate_json_files(
             languages=languages,
             book_count_by_language=book_count_by_language,
             total_popularity_by_language=total_popularity_by_language,
-            books=[
-                _work_to_preview(work, formats, author_stats, author_languages)
-                for work in collection_works
-            ],
+            books=[_work_to_preview(work, formats) for work in collection_works],
         )
         assembler.add_item_for(
             path=f"collections/{collection_key(collection_id)}.json",
@@ -413,7 +445,7 @@ def generate_json_files(
     logger.debug("Generating author detail files")
     for creator in all_creators:
         creator_works = [
-            _work_to_preview(work, formats, author_stats, author_languages)
+            _work_to_preview(work, formats)
             for work in indexes.by_author.get(creator.id, [])
         ]
         languages, book_count_by_language, total_popularity_by_language = (

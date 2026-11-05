@@ -54,10 +54,20 @@ def _config_content(assembler: MagicMock) -> dict:
 
 
 def _books_content(assembler: MagicMock) -> dict:
+    """Content of the books.json pagination manifest."""
     call = next(
         call
         for call in assembler.add_item_for.call_args_list
         if call.kwargs["path"] == "books.json"
+    )
+    return json.loads(call.kwargs["content"])
+
+
+def _books_page_content(assembler: MagicMock, page: int = 0) -> dict:
+    call = next(
+        call
+        for call in assembler.add_item_for.call_args_list
+        if call.kwargs["path"] == f"books-pages/{page}.json"
     )
     return json.loads(call.kwargs["content"])
 
@@ -77,6 +87,7 @@ def test_generate_json_files_emits_collections():
 
     paths = _added_paths(assembler)
     assert "books.json" in paths
+    assert "books-pages/0.json" in paths
     assert "authors.json" in paths
     assert "collections.json" in paths
     assert "collections/PR.json" in paths
@@ -98,9 +109,125 @@ def test_book_previews_export_raw_popularity_and_flames():
         indexes=_indexes(store),
     )
 
-    preview = _books_content(assembler)["books"][0]
+    preview = _books_page_content(assembler)["books"][0]
     assert preview["popularity"] == 100
     assert preview["flames"] == 1
+
+
+def test_book_preview_embeds_a_slim_author_reference():
+    """BookPreview.author is a minimal ref, not the full AuthorPreview.
+
+    Regression test for issue #138: the full author object (book counts,
+    per-language breakdowns, etc.) was being duplicated once per book.
+    """
+    assembler = MagicMock(name="assembler")
+
+    store = _store()
+    generate_json_files(
+        zim_name="test",
+        formats=["html"],
+        work_store=store,
+        assembler=assembler,
+        display_name="Test Source",
+        indexes=_indexes(store),
+    )
+
+    preview = _books_page_content(assembler)["books"][0]
+    assert preview["author"] == {
+        "id": "37",
+        "displayName": "Charles Dickens",
+        "sortName": "",
+    }
+
+
+def test_book_preview_description_is_truncated_to_a_short_excerpt():
+    assembler = MagicMock(name="assembler")
+    dickens = Creator(id="37", display_name="Charles Dickens")
+    store = WorkStore()
+    long_description = "word " * 100  # far longer than the excerpt length
+    store.add(
+        Work(
+            id="1",
+            source="gutenberg",
+            title="Bleak House",
+            creators=[dickens],
+            languages=["en"],
+            description=long_description,
+        )
+    )
+
+    generate_json_files(
+        zim_name="test",
+        formats=["html"],
+        work_store=store,
+        assembler=assembler,
+        display_name="Test Source",
+        indexes=_indexes(store),
+    )
+
+    preview_description = _books_page_content(assembler)["books"][0]["description"]
+    assert len(preview_description) < len(long_description)
+    assert preview_description.endswith("…")
+
+    detail = json.loads(
+        next(
+            call
+            for call in assembler.add_item_for.call_args_list
+            if call.kwargs["path"] == "books/1.json"
+        ).kwargs["content"]
+    )
+    assert detail["description"] == long_description
+
+
+def test_books_json_is_a_pagination_manifest_over_books_pages():
+    assembler = MagicMock(name="assembler")
+    dickens = Creator(id="37", display_name="Charles Dickens")
+    store = WorkStore()
+    for i in range(5):
+        store.add(_work(str(i), f"Book {i}", dickens, "PR"))
+
+    generate_json_files(
+        zim_name="test",
+        formats=["html"],
+        work_store=store,
+        assembler=assembler,
+        display_name="Test Source",
+        indexes=_indexes(store),
+        books_page_size=2,
+    )
+
+    manifest = _books_content(assembler)
+    assert manifest == {"totalCount": 5, "pageSize": 2, "totalPages": 3}
+
+    paths = _added_paths(assembler)
+    assert "books-pages/0.json" in paths
+    assert "books-pages/1.json" in paths
+    assert "books-pages/2.json" in paths
+    assert "books-pages/3.json" not in paths
+
+    assert len(_books_page_content(assembler, page=0)["books"]) == 2
+    assert len(_books_page_content(assembler, page=1)["books"]) == 2
+    assert len(_books_page_content(assembler, page=2)["books"]) == 1
+
+
+def test_books_json_reports_no_pages_when_there_are_no_books():
+    assembler = MagicMock(name="assembler")
+
+    generate_json_files(
+        zim_name="test",
+        formats=["html"],
+        work_store=WorkStore(),
+        assembler=assembler,
+        display_name="Test Source",
+        indexes=_indexes(WorkStore()),
+    )
+
+    assert _books_content(assembler) == {
+        "totalCount": 0,
+        "pageSize": 500,
+        "totalPages": 0,
+    }
+    assert "books-pages/0.json" not in _added_paths(assembler)
 
 
 def test_generate_json_files_does_not_emit_legacy_shelf_files():
