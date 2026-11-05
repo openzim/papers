@@ -103,11 +103,22 @@ describe('CollectionListView Integration', () => {
     })
   })
 
+  function mockCatalog(books: BookPreview[]) {
+    vi.spyOn(store, 'fetchBooksManifest').mockResolvedValue({
+      totalCount: books.length,
+      pageSize: 500,
+      totalPages: 1,
+      bookCountByLanguage: { en: books.length }
+    })
+    vi.spyOn(store, 'fetchBooksPage').mockResolvedValue(books)
+  }
+
   const mountView = async (
     collectionsData: Collections = mockCollectionsData,
     books: BookPreview[] = mockBooks,
     collectionQuery?: string
   ) => {
+    mockCatalog(books)
     vi.spyOn(store, 'fetchCollections').mockResolvedValue(collectionsData)
     vi.spyOn(store, 'fetchCollection').mockResolvedValue({
       id: 'PR',
@@ -118,7 +129,6 @@ describe('CollectionListView Integration', () => {
       bookCountByLanguage: { en: books.length },
       books
     })
-    vi.spyOn(store, 'fetchBooks').mockResolvedValue({ totalCount: books.length, books })
 
     await router.push({
       path: '/collections',
@@ -143,11 +153,12 @@ describe('CollectionListView Integration', () => {
       expect(wrapper.find('.collection-sidebar').exists()).toBe(true)
     })
 
-    it('loads all books when no collection is selected', async () => {
+    it('loads the first catalog page only when no collection is selected', async () => {
       const wrapper = await mountView()
 
       await flushPromises()
-      expect(store.fetchBooks).toHaveBeenCalledOnce()
+      expect(store.fetchBooksPage).toHaveBeenCalledTimes(1)
+      expect(store.fetchBooksPage).toHaveBeenCalledWith('popularity', 0)
       expect(wrapper.find('.books-grid').exists()).toBe(true)
     })
 
@@ -159,22 +170,25 @@ describe('CollectionListView Integration', () => {
   })
 
   describe('Collection Selection', () => {
-    it('loads collection books when a collection is selected', async () => {
+    it('reads a selected collection from its own file, not the catalog', async () => {
       await mountView(mockCollectionsData, mockBooks, 'PR')
 
       await flushPromises()
       expect(store.fetchCollection).toHaveBeenCalledWith('PR')
-      expect(store.fetchBooks).toHaveBeenCalled()
+      expect(store.fetchBooksPage).not.toHaveBeenCalled()
     })
 
     it('ignores a late response for a previously selected collection', async () => {
       const firstCollection = deferred<Collection>()
       const secondCollection = deferred<Collection>()
-      vi.spyOn(store, 'fetchCollections').mockResolvedValue(mockCollectionsData)
-      vi.spyOn(store, 'fetchBooks').mockResolvedValue({
-        totalCount: mockBooks.length,
-        books: mockBooks
+      vi.spyOn(store, 'fetchBooksManifest').mockResolvedValue({
+        totalCount: 2,
+        pageSize: 500,
+        totalPages: 1,
+        bookCountByLanguage: { en: 2 }
       })
+      vi.spyOn(store, 'fetchBooksPage').mockResolvedValue(mockBooks)
+      vi.spyOn(store, 'fetchCollections').mockResolvedValue(mockCollectionsData)
       vi.spyOn(store, 'fetchCollection').mockImplementation((id) =>
         id === 'PR' ? firstCollection.promise : secondCollection.promise
       )
@@ -213,6 +227,29 @@ describe('CollectionListView Integration', () => {
 
       expect(wrapper.text()).toContain('Current collection book')
       expect(wrapper.text()).not.toContain('Stale collection book')
+    })
+  })
+
+  describe('Sorting', () => {
+    it("keeps the reader's sort choice while the new page set loads", async () => {
+      const wrapper = await mountView()
+
+      const pageSet = deferred<BookPreview[]>()
+      const fetchPage = vi.mocked(store.fetchBooksPage)
+      fetchPage.mockImplementationOnce(() => pageSet.promise)
+
+      await wrapper.find('.sort-dropdown__trigger').trigger('click')
+      await wrapper.find('.sort-dropdown .dropdown__item:nth-child(2)').trigger('click')
+      await flushPromises()
+
+      expect(fetchPage).toHaveBeenLastCalledWith('title', 0)
+      expect(wrapper.findComponent({ name: 'LoadingSpinner' }).exists()).toBe(true)
+
+      pageSet.resolve(mockBooks)
+      await flushPromises()
+
+      expect(wrapper.find('.sort-dropdown__trigger').text()).toContain('Title')
+      expect(wrapper.find('.books-grid').exists()).toBe(true)
     })
   })
 

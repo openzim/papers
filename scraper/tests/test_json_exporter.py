@@ -16,15 +16,22 @@ def _indexes(store: WorkStore):
     return IndexBuilder(store).build(display_name="Test Source")
 
 
-def _work(work_id: str, title: str, creator: Creator, shelf: str) -> Work:
+def _work(
+    work_id: str,
+    title: str,
+    creator: Creator,
+    shelf: str,
+    popularity: int = 100,
+    languages: list[str] | None = None,
+) -> Work:
     return Work(
         id=work_id,
         source="gutenberg",
         title=title,
         creators=[creator],
-        languages=["en"],
+        languages=languages or ["en"],
         collections=[CollectionRef(id=shelf, name=shelf, kind="lcc_shelf")],
-        popularity=100,
+        popularity=popularity,
         flames=1,
         extra={"has_cover": False},
     )
@@ -63,13 +70,22 @@ def _books_content(assembler: MagicMock) -> dict:
     return json.loads(call.kwargs["content"])
 
 
-def _books_page_content(assembler: MagicMock, page: int = 0) -> dict:
+def _books_page_content(
+    assembler: MagicMock, page: int = 0, order: str = "popularity"
+) -> dict:
     call = next(
         call
         for call in assembler.add_item_for.call_args_list
-        if call.kwargs["path"] == f"books-pages/{page}.json"
+        if call.kwargs["path"] == f"books-pages/{order}/{page}.json"
     )
     return json.loads(call.kwargs["content"])
+
+
+def _page_ids(assembler: MagicMock, order: str) -> list[list[str]]:
+    return [
+        [book["id"] for book in _books_page_content(assembler, page, order)["books"]]
+        for page in range(_books_content(assembler)["totalPages"])
+    ]
 
 
 def test_generate_json_files_emits_collections():
@@ -87,7 +103,7 @@ def test_generate_json_files_emits_collections():
 
     paths = _added_paths(assembler)
     assert "books.json" in paths
-    assert "books-pages/0.json" in paths
+    assert "books-pages/popularity/0.json" in paths
     assert "authors.json" in paths
     assert "collections.json" in paths
     assert "collections/PR.json" in paths
@@ -197,13 +213,18 @@ def test_books_json_is_a_pagination_manifest_over_books_pages():
     )
 
     manifest = _books_content(assembler)
-    assert manifest == {"totalCount": 5, "pageSize": 2, "totalPages": 3}
+    assert manifest == {
+        "totalCount": 5,
+        "pageSize": 2,
+        "totalPages": 3,
+        "bookCountByLanguage": {"en": 5},
+    }
 
     paths = _added_paths(assembler)
-    assert "books-pages/0.json" in paths
-    assert "books-pages/1.json" in paths
-    assert "books-pages/2.json" in paths
-    assert "books-pages/3.json" not in paths
+    assert "books-pages/popularity/0.json" in paths
+    assert "books-pages/popularity/1.json" in paths
+    assert "books-pages/popularity/2.json" in paths
+    assert "books-pages/popularity/3.json" not in paths
 
     assert len(_books_page_content(assembler, page=0)["books"]) == 2
     assert len(_books_page_content(assembler, page=1)["books"]) == 2
@@ -226,8 +247,75 @@ def test_books_json_reports_no_pages_when_there_are_no_books():
         "totalCount": 0,
         "pageSize": 500,
         "totalPages": 0,
+        "bookCountByLanguage": {},
     }
-    assert "books-pages/0.json" not in _added_paths(assembler)
+    assert "books-pages/popularity/0.json" not in _added_paths(assembler)
+
+
+def test_books_popularity_pages_start_with_the_most_popular_books():
+    """Page 0 of the popularity set holds the globally most-popular books.
+
+    The UI sorts by popularity descending and JS sort is stable, so chunking
+    in that order lets it render the first pages without holding or merging
+    the whole catalog.
+    """
+    assembler = MagicMock(name="assembler")
+    dickens = Creator(id="37", display_name="Charles Dickens")
+    store = WorkStore()
+    store.add(_work("1", "David Copperfield", dickens, "PR", popularity=50))
+    store.add(_work("2", "Bleak House", dickens, "PR", popularity=300))
+    store.add(_work("3", "a Tale of Two Cities", dickens, "PR", popularity=300))
+    store.add(_work("4", "Emma", dickens, "PR", popularity=700))
+
+    generate_json_files(
+        zim_name="test",
+        formats=["html"],
+        work_store=store,
+        assembler=assembler,
+        display_name="Test Source",
+        indexes=_indexes(store),
+        books_page_size=2,
+    )
+
+    assert _page_ids(assembler, "popularity") == [["4", "3"], ["2", "1"]]
+
+
+def test_books_pages_exist_once_per_sort_criterion():
+    dickens = Creator(id="37", display_name="Charles Dickens", sort_name="Dickens")
+    austen = Creator(id="68", display_name="Jane Austen", sort_name="Austen")
+    store = WorkStore()
+    store.add(_work("1", "Bleak House", dickens, "PR", popularity=300))
+    store.add(_work("2", "Emma", austen, "PR", popularity=700))
+    store.add(_work("3", "a Tale of Two Cities", dickens, "PR", popularity=100))
+    assembler = MagicMock(name="assembler")
+    generate_json_files(
+        zim_name="test",
+        formats=["html"],
+        work_store=store,
+        assembler=assembler,
+        display_name="Test Source",
+        indexes=_indexes(store),
+        books_page_size=2,
+    )
+
+    assert _page_ids(assembler, "title") == [["3", "1"], ["2"]]
+    assert _page_ids(assembler, "author") == [["2", "3"], ["1"]]
+    assembler = MagicMock(name="assembler")
+    dickens = Creator(id="37", display_name="Charles Dickens")
+    store = WorkStore()
+    store.add(_work("1", "Bleak House", dickens, "PR", languages=["en", "fr"]))
+    store.add(_work("2", "Emma", dickens, "PR"))
+
+    generate_json_files(
+        zim_name="test",
+        formats=["html"],
+        work_store=store,
+        assembler=assembler,
+        display_name="Test Source",
+        indexes=_indexes(store),
+    )
+
+    assert _books_content(assembler)["bookCountByLanguage"] == {"en": 2, "fr": 1}
 
 
 def test_generate_json_files_does_not_emit_legacy_shelf_files():

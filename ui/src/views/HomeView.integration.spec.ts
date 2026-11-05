@@ -11,7 +11,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import HomeView from './HomeView.vue'
 import { useMainStore } from '@/stores/main'
-import type { Collections, Authors, Books } from '@/types'
+import type { Collections, Authors, BookPreview } from '@/types'
 
 const mockCollectionsData: Collections = {
   totalCount: 2,
@@ -50,25 +50,22 @@ const mockAuthorsData: Authors = {
   ]
 }
 
-const mockBooksData: Books = {
-  totalCount: 1,
-  books: [
-    {
+const mockBooks: BookPreview[] = [
+  {
+    id: '1',
+    title: 'Emma',
+    author: {
       id: '1',
-      title: 'Emma',
-      author: {
-        id: '1',
-        displayName: 'Jane Austen',
-        sortName: 'Austen'
-      },
-      languages: ['en'],
-      popularity: 10,
-      flames: 2,
-      coverPath: null,
-      primaryCollection: 'PR'
-    }
-  ]
-}
+      displayName: 'Jane Austen',
+      sortName: 'Austen'
+    },
+    languages: ['en'],
+    popularity: 10,
+    flames: 2,
+    coverPath: null,
+    primaryCollection: 'PR'
+  }
+]
 
 function setHasMultipleCollections(store: ReturnType<typeof useMainStore>, value: boolean) {
   store.config = {
@@ -116,10 +113,16 @@ describe('HomeView', () => {
     vi.spyOn(store, 'fetchCollections').mockResolvedValue(mockCollectionsData)
     vi.spyOn(store, 'fetchCollection').mockResolvedValue({
       ...mockCollectionsData.collections[0],
-      books: mockBooksData.books
+      books: mockBooks
     })
     vi.spyOn(store, 'fetchAuthors').mockResolvedValue(mockAuthorsData)
-    vi.spyOn(store, 'fetchBooks').mockResolvedValue(mockBooksData)
+    vi.spyOn(store, 'fetchBooksManifest').mockResolvedValue({
+      totalCount: mockBooks.length,
+      pageSize: 500,
+      totalPages: 1,
+      bookCountByLanguage: { en: mockBooks.length }
+    })
+    vi.spyOn(store, 'fetchBooksPage').mockResolvedValue(mockBooks)
 
     const wrapper = mount(HomeView, { global: { plugins: [pinia, router] } })
     await flushPromises()

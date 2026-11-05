@@ -35,17 +35,16 @@ export interface Book extends Omit<BookPreview, 'author'> {
   published: string | null
 }
 
-export interface Books {
-  books: BookPreview[]
-  totalCount: number
-}
-
 /** Pagination manifest served at books.json; the catalog itself is chunked
- * into books-pages/{page}.json files of `pageSize` BookPreview each. */
+ * into books-pages/{order}/{page}.json files of `pageSize` BookPreview each,
+ * one set per sort criterion the UI offers. Each set is cut in the direction
+ * this UI sorts it by default, so a prefix of the set being browsed is what a
+ * reader sees at the top of that sort. */
 export interface BooksManifest {
   totalCount: number
   pageSize: number
   totalPages: number
+  bookCountByLanguage: Record<string, number>
 }
 
 export interface BooksPage {

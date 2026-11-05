@@ -1,13 +1,15 @@
 /**
  * Unit tests for useBookDisplay composable
- * Focuses on forcing alphabetical sorting for sources without popularity
+ * Focuses on forcing alphabetical sorting for sources without popularity and
+ * on reading a window of the catalog rather than all of it
  */
 
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { defineComponent, h, nextTick, ref } from 'vue'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { useBookDisplay } from './useBookDisplay'
+import type { CatalogWindow, SortState } from './useBooksWindow'
 import { useMainStore } from '@/stores/main'
 import type { BookPreview, SortOption, SortOrder } from '@/types'
 
@@ -31,17 +33,29 @@ function book(id: string, title: string, popularity: number): BookPreview {
 const BOOKS = [book('z', 'Zebra', 1), book('a', 'Apple', 99), book('m', 'Mango', 50)]
 
 // useBookDisplay uses lifecycle hooks, so it has to be exercised inside a component
-function mountBookDisplay(books: BookPreview[]) {
+function mountBookDisplay(books: BookPreview[], catalog?: CatalogWindow, sort?: SortState) {
   let display!: ReturnType<typeof useBookDisplay>
   mount(
     defineComponent({
       setup() {
-        display = useBookDisplay(ref(books))
+        display = useBookDisplay(ref(books), catalog, sort)
         return () => h('div')
       }
     })
   )
   return display
+}
+
+function sortState(sortBy: SortOption, sortOrder: SortOrder): SortState {
+  return { sortBy: ref(sortBy), sortOrder: ref(sortOrder) }
+}
+
+function catalogWindow(): CatalogWindow {
+  return {
+    total: () => 900,
+    hasMore: () => true,
+    loadMore: vi.fn(async () => undefined)
+  }
 }
 
 describe('useBookDisplay', () => {
@@ -102,5 +116,47 @@ describe('useBookDisplay', () => {
 
     expect(sortBy.value as SortOption).toBe('title')
     expect(sortOrder.value as SortOrder).toBe('asc')
+  })
+
+  it('counts the catalog a window is part of, not the window itself', () => {
+    setConfigPopularity(true)
+
+    const display = mountBookDisplay(BOOKS, catalogWindow())
+
+    expect(display.sortedBooks.value).toHaveLength(3)
+    expect(display.catalogTotal.value).toBe(900)
+  })
+
+  it('still has books to show when the window has further pages', () => {
+    setConfigPopularity(true)
+
+    const display = mountBookDisplay(BOOKS, catalogWindow())
+
+    expect(display.hasMoreBooks.value).toBe(true)
+  })
+
+  it('sorts the way the caller that owns the sort state asks for', async () => {
+    setConfigPopularity(true)
+    const sort = sortState('title', 'asc')
+
+    const display = mountBookDisplay(BOOKS, catalogWindow(), sort)
+    expect(display.sortedBooks.value.map((b) => b.title)).toEqual(['Apple', 'Mango', 'Zebra'])
+
+    sort.sortOrder.value = 'desc'
+    await nextTick()
+
+    expect(display.sortedBooks.value.map((b) => b.title)).toEqual(['Zebra', 'Mango', 'Apple'])
+  })
+
+  it('leaves a sort reset to the caller that owns the sort state', async () => {
+    setConfigPopularity(true)
+    const sort = sortState('popularity', 'desc')
+    const display = mountBookDisplay(BOOKS, catalogWindow(), sort)
+
+    setConfigPopularity(false)
+    await nextTick()
+
+    expect(display.sortBy.value).toBe('popularity')
+    expect(sort.sortBy.value).toBe('popularity')
   })
 })

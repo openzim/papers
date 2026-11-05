@@ -7,6 +7,7 @@ UI routes live in `search_items_exporter`.
 
 import math
 from collections import defaultdict
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import date
 
@@ -54,8 +55,22 @@ from papers2zim.core.zim_assembler import ZimAssembler
 # JSON Generation Functions for Vue.js UI
 
 # books.json has no natural per-entity split (unlike collections/authors, one
-# file per id), so it's chunked into books-pages/{page}.json files this big.
+# file per id), so the catalog is chunked into
+# `books-pages/{order}/{page}.json` files this big, one set per sort order.
 BOOKS_PAGE_SIZE = 500
+
+CATALOG_ORDERS: dict[str, Callable[[BookPreview], tuple]] = {
+    "popularity": lambda book: (-book.popularity, book.title.casefold()),
+    "title": lambda book: (book.title.casefold(), -book.popularity),
+    "author": lambda book: (book.author.sort_name.casefold(), book.title.casefold()),
+}
+"""One page set per sort criterion the UI offers, named after it.
+
+Each set is cut in the direction the UI sorts it by default, which is the only
+direction its sort control offers. Tiebreaks on casefolded text keep page
+contents deterministic across rebuilds; the UI re-sorts the pages it has, so
+only the prefix a set starts with has to be right.
+"""
 
 # BookPreview.description is a short excerpt for list views; the full text
 # only lives on the single-book Book detail schema.
@@ -184,6 +199,14 @@ def _work_to_preview(work: Work, formats: list[str]) -> BookPreview:
     )
 
 
+def _book_count_by_language(works: list[Work]) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for work in works:
+        for lang in work.languages:
+            counts[lang] = counts.get(lang, 0) + 1
+    return counts
+
+
 def _work_to_schema(
     work: Work,
     formats: list[str],
@@ -286,7 +309,7 @@ def generate_json_files(
     author_languages = _language_breakdown(indexes.by_author)
 
     logger.info("Generating high-level JSON files")
-    logger.debug("Generating books.json and books-pages/*.json")
+    logger.debug("Generating books.json and books-pages/{order}/*.json")
     books_preview = [_work_to_preview(work, formats) for work in all_works]
     total_pages = (
         math.ceil(len(books_preview) / books_page_size) if books_preview else 0
@@ -295,6 +318,7 @@ def generate_json_files(
         total_count=len(books_preview),
         page_size=books_page_size,
         total_pages=total_pages,
+        book_count_by_language=_book_count_by_language(all_works),
     )
     assembler.add_item_for(
         path="books.json",
@@ -302,15 +326,17 @@ def generate_json_files(
         mimetype="application/json",
         is_front=False,
     )
-    for page in range(total_pages):
-        start = page * books_page_size
-        page_content = BooksPage(books=books_preview[start : start + books_page_size])
-        assembler.add_item_for(
-            path=f"books-pages/{page}.json",
-            content=page_content.model_dump_json(by_alias=True, indent=2),
-            mimetype="application/json",
-            is_front=False,
-        )
+    for order, order_key in CATALOG_ORDERS.items():
+        ordered = sorted(books_preview, key=order_key)
+        for page in range(total_pages):
+            start = page * books_page_size
+            page_content = BooksPage(books=ordered[start : start + books_page_size])
+            assembler.add_item_for(
+                path=f"books-pages/{order}/{page}.json",
+                content=page_content.model_dump_json(by_alias=True, indent=2),
+                mimetype="application/json",
+                is_front=False,
+            )
 
     logger.debug("Generating authors.json")
     authors_preview = [

@@ -1,34 +1,17 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useMainStore } from '@/stores/main'
-import type { BookPreview } from '@/types'
 import BackToTopButton from '@/components/common/BackToTopButton.vue'
 import BookDisplay from '@/components/book/BookDisplay.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
-import { useListLoader } from '@/composables/useListLoader'
-import { useLanguageFilter } from '@/composables/useLanguageFilter'
-import { matchesLanguage } from '@/utils/language-filter'
+import { useBooksWindow } from '@/composables/useBooksWindow'
 import { LAYOUT } from '@/constants/theme'
 import { MESSAGES } from '@/constants/messages'
 
 const { t } = useI18n()
-const main = useMainStore()
-const { selectedLanguage } = useLanguageFilter()
 
-const {
-  items: books,
-  loading: booksLoading,
-  loadItems: loadBooks
-} = useListLoader<BookPreview, { books: BookPreview[]; totalCount: number }>(
-  () => main.fetchBooks(),
-  'books'
-)
-
-const filteredBooks = computed(() =>
-  books.value.filter((book) => matchesLanguage(book.languages, selectedLanguage.value))
-)
+const { books, loading: booksLoading, catalog, sort, load: loadBooks } = useBooksWindow()
 
 onMounted(() => {
   loadBooks()
@@ -38,7 +21,14 @@ onMounted(() => {
 <template>
   <div class="books-view">
     <loading-spinner v-if="booksLoading" :message="t('common.loading')" />
-    <book-display v-else-if="books.length > 0" :books="filteredBooks" :columns="5" type="books" />
+    <book-display
+      v-else-if="books.length > 0"
+      :books="books"
+      :catalog="catalog"
+      :sort="sort"
+      :columns="5"
+      type="books"
+    />
     <empty-state v-else :message="t(MESSAGES.NO_BOOKS)" type="info" />
     <back-to-top-button />
   </div>
