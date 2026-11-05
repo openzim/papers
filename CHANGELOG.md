@@ -40,6 +40,7 @@ as of 2.0.0.
 
 ### Fixed
 
+- UI: cap the book-language filter dropdown's height with a scrollbar instead of letting it grow unbounded, and add the same type-to-filter search box the interface-language switcher already had (#145)
 - Gutenberg: stop a corrupted book file (an HTML error page served with a 200 status, a truncated transfer) from dropping the whole book. Downloaded EPUB/PDF content is validated before it is stored, an unreadable EPUB costs its format instead of the book, and a readable EPUB that cannot be optimized is kept unoptimized instead of re-raising into the pipeline's generic handler (#135)
 - UI: fix breadcrumbs always ellipsizing the second item regardless of available space, and let every item (including the current page's, which can be an arbitrarily long book title or author name) ellipsize instead of overflowing when space is tight, on both desktop and mobile (#143)
 - Keep the original extension when appending `.webp` to converted image output filenames, so two source images sharing a basename but differing only in extension (e.g. `001.jpg` and `001.png`) no longer collide on the same ZIM path and silently drop one of the two (#133)

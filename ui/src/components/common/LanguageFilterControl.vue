@@ -3,7 +3,7 @@
  * Selecting a language here updates the shared store state, so it filters
  * every view (books, authors, collections, home), not just this page.
  */
-import { ref, onUnmounted } from 'vue'
+import { ref, computed, nextTick, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useDisplay } from 'vuetify'
 import { useLanguageFilter } from '@/composables/useLanguageFilter'
@@ -18,6 +18,24 @@ const { mobile } = useDisplay()
 const { selectedLanguage, languageOptions, selectedLanguageLabel } = useLanguageFilter()
 
 const isOpen = ref(false)
+const query = ref('')
+const searchInput = ref<HTMLInputElement | null>(null)
+
+const filteredOptions = computed(() => {
+  const q = query.value.trim().toLowerCase()
+  if (!q) return languageOptions.value
+  return languageOptions.value.filter(
+    (option) => option.label.toLowerCase().includes(q) || option.code.toLowerCase().includes(q)
+  )
+})
+
+function toggle() {
+  isOpen.value = !isOpen.value
+  if (isOpen.value) {
+    query.value = ''
+    nextTick(() => searchInput.value?.focus())
+  }
+}
 
 function select(code: string | null) {
   selectedLanguage.value = code
@@ -45,7 +63,7 @@ if (typeof document !== 'undefined') {
       :aria-label="t('languageFilter.trigger')"
       aria-haspopup="listbox"
       :aria-expanded="isOpen"
-      @click.stop="isOpen = !isOpen"
+      @click.stop="toggle"
     >
       <span v-if="!mobile" class="language-filter__label">{{ selectedLanguageLabel }}</span>
       <svg class="language-filter__icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -53,28 +71,39 @@ if (typeof document !== 'undefined') {
       </svg>
     </button>
 
-    <ul v-if="isOpen" class="language-filter__menu" role="listbox">
-      <li
-        class="language-filter__item"
-        :class="{ 'language-filter__item--active': selectedLanguage === null }"
-        role="option"
-        :aria-selected="selectedLanguage === null"
-        @click="select(null)"
-      >
-        {{ t('languageFilter.allLanguages') }}
-      </li>
-      <li
-        v-for="option in languageOptions"
-        :key="option.code"
-        class="language-filter__item"
-        :class="{ 'language-filter__item--active': option.code === selectedLanguage }"
-        role="option"
-        :aria-selected="option.code === selectedLanguage"
-        @click="select(option.code)"
-      >
-        {{ option.label }}
-      </li>
-    </ul>
+    <div v-if="isOpen" class="language-filter__panel">
+      <input
+        ref="searchInput"
+        v-model="query"
+        type="text"
+        class="language-filter__search"
+        :placeholder="t('languageFilter.select')"
+        :aria-label="t('languageFilter.select')"
+        @keyup.escape="isOpen = false"
+      />
+      <ul class="language-filter__menu" role="listbox">
+        <li
+          class="language-filter__item"
+          :class="{ 'language-filter__item--active': selectedLanguage === null }"
+          role="option"
+          :aria-selected="selectedLanguage === null"
+          @click="select(null)"
+        >
+          {{ t('languageFilter.allLanguages') }}
+        </li>
+        <li
+          v-for="option in filteredOptions"
+          :key="option.code"
+          class="language-filter__item"
+          :class="{ 'language-filter__item--active': option.code === selectedLanguage }"
+          role="option"
+          :aria-selected="option.code === selectedLanguage"
+          @click="select(option.code)"
+        >
+          {{ option.label }}
+        </li>
+      </ul>
+    </div>
   </div>
 </template>
 
@@ -116,20 +145,44 @@ if (typeof document !== 'undefined') {
   padding-inline-end: 0.5rem;
 }
 
-.language-filter__menu {
+.language-filter__panel {
   position: absolute;
   top: calc(100% + 4px);
   inset-inline-end: 0;
-  min-width: 160px;
+  width: 220px;
+  display: flex;
+  flex-direction: column;
   background: rgb(var(--v-theme-background));
   border: 1px solid rgb(var(--v-theme-grid));
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  /* Above SortAndLimitControl's dropdown (z-index: 98) */
+  z-index: 99;
+  overflow: hidden;
+}
+
+.language-filter__search {
+  margin: 0.5rem;
+  padding: 0.375rem 0.5rem;
+  border: 1px solid rgb(var(--v-theme-grid));
+  border-radius: 4px;
+  background: rgb(var(--v-theme-background));
+  color: rgb(var(--v-theme-text));
+  font-family: v-bind(TYPOGRAPHY.FONT_FAMILY);
+  font-size: 0.875rem;
+}
+
+.language-filter__search:focus {
+  outline: 2px solid rgb(var(--v-theme-primary));
+  outline-offset: -1px;
+}
+
+.language-filter__menu {
   list-style: none;
   margin: 0;
   padding: 0.25rem 0;
-  /* Above SortAndLimitControl's dropdown (z-index: 98) */
-  z-index: 99;
+  max-height: 320px;
+  overflow-y: auto;
 }
 
 .language-filter__item {
@@ -140,6 +193,8 @@ if (typeof document !== 'undefined') {
   color: rgb(var(--v-theme-text));
   cursor: pointer;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   transition: background-color 0.2s ease;
 }
 
