@@ -73,7 +73,7 @@ describe('LanguageFilterControl', () => {
     await wrapper.find('.language-filter__trigger').trigger('click') // close
     await wrapper.find('.language-filter__trigger').trigger('click') // reopen
 
-    expect(wrapper.find('.language-filter__search').element.value).toBe('')
+    expect(wrapper.find<HTMLInputElement>('.language-filter__search').element.value).toBe('')
     expect(wrapper.findAll('.language-filter__item')).toHaveLength(3)
   })
 
