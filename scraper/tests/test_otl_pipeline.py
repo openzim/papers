@@ -14,7 +14,7 @@ from papers2zim.sources.opentextbooks.pipeline import OpenTextbookLibraryPipelin
 def _pipeline(work: Work, engine: MagicMock, assembler: MagicMock):
     metadata = MagicMock()
     metadata.fetch.return_value = [work]
-    return OpenTextbookLibraryPipeline(
+    pipeline = OpenTextbookLibraryPipeline(
         metadata=metadata,
         store=WorkStore(),
         assembler=assembler,
@@ -27,6 +27,9 @@ def _pipeline(work: Work, engine: MagicMock, assembler: MagicMock):
         title_search=False,
         engine=engine,
     )
+    # keep the assembler calls to the book files; search items are tested apart
+    pipeline.add_book_search_item = MagicMock()
+    return pipeline
 
 
 def _valid_epub() -> bytes:
@@ -255,3 +258,67 @@ def test_process_ref_accepts_a_valid_epub_archive():
         mimetype="application/epub+zip",
         is_front=False,
     )
+
+
+def test_process_ref_indexes_the_downloaded_binary_formats():
+    work = Work(
+        id="10",
+        source="opentextbooks",
+        title="Calculus",
+        formats=[
+            Format(
+                name="PDF",
+                media_type="application/pdf",
+                url="https://example.org/calculus.pdf",
+            )
+        ],
+    )
+    engine = MagicMock()
+    engine.fetch_bytes.return_value = b"%PDF-1.7 pdf bytes"
+    pipeline = _pipeline(work, engine, MagicMock())
+
+    with patch.object(pipeline, "add_book_search_item") as add_search_item:
+        pipeline.process_ref(WorkRef(id="10", source="opentextbooks"))
+
+    add_search_item.assert_called_once_with(work, {"pdf": b"%PDF-1.7 pdf bytes"})
+
+
+def test_process_ref_indexes_the_html_pages_of_a_mirrored_edition():
+    work = Work(
+        id="10",
+        source="opentextbooks",
+        title="Calculus",
+        formats=[
+            Format(
+                name="Online",
+                media_type="text/html",
+                url="https://example.org/calculus/",
+            )
+        ],
+    )
+    pipeline = _pipeline(work, MagicMock(), MagicMock())
+    page = b"<!doctype html><html><body>Limits</body></html>"
+    edition = MagicMock(pages={"Calculus.10": page, "style.css": b"p {}"})
+
+    with (
+        patch(
+            "papers2zim.sources.opentextbooks.pipeline.download_html_edition",
+            return_value=edition,
+        ),
+        patch.object(pipeline, "add_book_search_item") as add_search_item,
+    ):
+        pipeline.process_ref(WorkRef(id="10", source="opentextbooks"))
+
+    contents = add_search_item.call_args.args[1]
+    assert list(contents) == ["html"]
+    assert [b"Limits" in p for p in contents["html"]] == [True]
+
+
+def test_process_ref_does_not_index_a_work_without_any_download():
+    work = Work(id="10", source="opentextbooks", title="Calculus")
+    pipeline = _pipeline(work, MagicMock(), MagicMock())
+
+    with patch.object(pipeline, "add_book_search_item") as add_search_item:
+        pipeline.process_ref(WorkRef(id="10", source="opentextbooks"))
+
+    add_search_item.assert_not_called()

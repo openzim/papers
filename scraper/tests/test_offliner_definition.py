@@ -127,3 +127,16 @@ def test_recipe_exposes_optimization_cache():
         "description": "URL with credentials and bucket name to S3 Optimization Cache",
         "secret": True,
     }
+
+
+def test_recipe_exposes_index_format_as_an_optional_enum():
+    definition = json.loads(DEFINITION_PATH.read_text(encoding="utf-8"))
+    index_format = definition["flags"]["index_format"]
+
+    assert index_format["type"] == "string-enum"
+    assert index_format["required"] is False
+    assert [choice["value"] for choice in index_format["choices"]] == [
+        "epub",
+        "html",
+        "pdf",
+    ]

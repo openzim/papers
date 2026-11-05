@@ -2,6 +2,7 @@
 
 from unittest.mock import MagicMock, patch
 
+import pytest
 import requests
 
 from papers2zim.core.models import Work
@@ -177,3 +178,75 @@ def test_no_book_level_retry_for_network_errors():
     # book 1 failed once (no whole-book reprocessing), book 2 still processed
     assert calls.count("process:1") == 1
     assert calls.count("process:2") == 1
+
+
+def _search_item_pipeline(**kwargs) -> tuple[DummyPipeline, MagicMock]:
+    assembler = MagicMock(name="assembler")
+    pipeline = DummyPipeline(
+        [],
+        metadata=MagicMock(name="metadata"),
+        store=WorkStore(),
+        assembler=assembler,
+        progress=ScraperProgress(None),
+        concurrency=1,
+        formats=["epub", "html", "pdf"],
+        zim_name="test",
+        source_slug="test",
+        display_name="Test Source",
+        **kwargs,
+    )
+    return pipeline, assembler
+
+
+def _indexed_text(assembler: MagicMock) -> str:
+    kwargs = assembler.add_item_for.call_args.kwargs
+    assert kwargs["path"] == "index/book_1"
+    return kwargs["index_data"].get_content()
+
+
+def test_book_search_item_indexes_the_preferred_format():
+    pipeline, assembler = _search_item_pipeline()
+    pipeline.add_book_search_item(
+        make_work("1", popularity=1),
+        {"epub": b"not read", "html": "<p>html words</p>"},
+    )
+    assert "html words" in _indexed_text(assembler)
+
+
+def test_book_search_item_indexes_the_forced_format():
+    pipeline, assembler = _search_item_pipeline(index_format="epub")
+    with patch(
+        "papers2zim.core.pipeline.extract_index_text", return_value="epub words"
+    ) as extract:
+        pipeline.add_book_search_item(
+            make_work("1", popularity=1),
+            {"epub": b"epub bytes", "html": "<p>html words</p>"},
+        )
+    assert extract.call_args.args[:2] == ("epub", b"epub bytes")
+    assert "epub words" in _indexed_text(assembler)
+
+
+@pytest.mark.parametrize("empty_html", [b"", []])
+def test_book_search_item_falls_back_when_the_preferred_format_has_no_text(
+    empty_html: bytes | list[bytes],
+):
+    pipeline, assembler = _search_item_pipeline()
+    with patch(
+        "papers2zim.core.pipeline.extract_index_text",
+        side_effect=lambda fmt, *_: "epub words" if fmt == "epub" else "",
+    ) as extract:
+        pipeline.add_book_search_item(
+            make_work("1", popularity=1), {"html": empty_html, "epub": b"epub bytes"}
+        )
+    assert [call.args[0] for call in extract.call_args_list] == ["html", "epub"]
+    assert "epub words" in _indexed_text(assembler)
+
+
+def test_book_search_item_extracts_nothing_without_fulltext_index():
+    pipeline, assembler = _search_item_pipeline(with_fulltext_index=False)
+    with patch("papers2zim.core.pipeline.extract_index_text") as extract:
+        pipeline.add_book_search_item(
+            make_work("1", popularity=1), {"html": "<p>html words</p>"}
+        )
+    extract.assert_not_called()
+    assert "html words" not in _indexed_text(assembler)

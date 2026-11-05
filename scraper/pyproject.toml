@@ -16,7 +16,7 @@ dependencies = [
   "apsw==3.53.4.0",
   "requests==2.34.2",
   "kiwixstorage==0.10.1",
-  "zimscraperlib==5.4.1",
+  "zimscraperlib==5.5.1",
   "schedule==1.2.2",
   "backoff==2.2.1",
   "i18nice==0.16.0",

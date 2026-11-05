@@ -26,6 +26,7 @@ Notes:
 """
 
 from abc import ABC, abstractmethod
+from collections.abc import Mapping, Sequence
 
 import apsw
 import backoff
@@ -34,8 +35,13 @@ from papers2zim.constants import logger
 from papers2zim.core.concurrency import parallel_map
 from papers2zim.core.exporters.json_exporter import generate_json_files
 from papers2zim.core.exporters.nojs_exporter import generate_noscript_pages
-from papers2zim.core.exporters.search_items_exporter import export_search_items
+from papers2zim.core.exporters.search_items_exporter import (
+    export_book_search_item,
+    export_search_items,
+)
+from papers2zim.core.fulltext import extract_index_text, index_format_candidates
 from papers2zim.core.index_builder import IndexBuilder
+from papers2zim.core.models import Work
 from papers2zim.core.ports import MetadataPort, WorkRef
 from papers2zim.core.progress import ScraperProgress
 from papers2zim.core.work_store import WorkStore
@@ -111,6 +117,8 @@ class Pipeline(ABC):
         collection_icon_style: str = "classification",
         has_popularity: bool = True,
         title_search: bool = False,
+        with_fulltext_index: bool = True,
+        index_format: str | None = None,
         requested_languages: list[str] | None = None,
         collections: list[str] | None = None,
         books: list[str] | None = None,
@@ -131,6 +139,8 @@ class Pipeline(ABC):
         self.collection_icon_style = collection_icon_style
         self.has_popularity = has_popularity
         self.title_search = title_search
+        self.with_fulltext_index = with_fulltext_index
+        self.index_format = index_format
         self.requested_languages = requested_languages
         self.collections = collections
         self.books = books
@@ -142,6 +152,26 @@ class Pipeline(ABC):
     def process_ref(self, ref: WorkRef) -> None:
         """Fetch metadata, download and export one work (source-specific)"""
         ...
+
+    def add_book_search_item(
+        self,
+        work: Work,
+        contents: Mapping[str, str | bytes | Sequence[str | bytes]],
+    ) -> None:
+        """Write a processed book's search entry, with the text of one format.
+
+        `contents` maps each format downloaded for the book to its content
+        (all pages for a multi-page HTML edition).
+        """
+        index_text = ""
+        if self.with_fulltext_index:
+            for index_format in index_format_candidates(contents, self.index_format):
+                index_text = extract_index_text(
+                    index_format, contents[index_format], f"book {work.id}"
+                )
+                if index_text:
+                    break
+        export_book_search_item(work, index_text, self.assembler)
 
     def compute_flames(self) -> None:
         """Compute flame ratings after all works are processed."""
@@ -202,8 +232,9 @@ class Pipeline(ABC):
         # once and shared by all exporters
         indexes = IndexBuilder(self.store).build(display_name=self.display_name)
 
-        # Write the ZIM search index entries (books, authors, collections,
-        # listing pages) pointing at the UI routes
+        # Write the ZIM search index entries (authors, collections, listing
+        # pages) pointing at the UI routes; book entries were written by
+        # `add_book_search_item` as each book was processed
         export_search_items(indexes, self.assembler)
 
         # export to JSON files (new format for Vue.js UI)

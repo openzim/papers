@@ -36,7 +36,7 @@ class _DownloadedFormats:
 
     downloaded: bool = False
     html_downloaded: bool = False
-    binary_formats: list[str] = field(default_factory=list)
+    binary_contents: dict[str, bytes] = field(default_factory=dict)
     html_edition: HtmlEdition | None = None
     cover_image: bytes | None = None
     cover_future: Future[bytes | None] | None = None
@@ -73,7 +73,9 @@ class OpenTextbookLibraryPipeline(Pipeline):
 
         if downloaded_formats.html_edition is not None:
             set_download_controls(
-                downloaded_formats.html_edition, work, downloaded_formats.binary_formats
+                downloaded_formats.html_edition,
+                work,
+                list(downloaded_formats.binary_contents),
             )
             for path, content in downloaded_formats.html_edition.pages.items():
                 self.assembler.add_item_for(
@@ -98,10 +100,26 @@ class OpenTextbookLibraryPipeline(Pipeline):
                 work.cover = Cover()
                 work.extra["has_cover"] = True
             self.store.add(work)
+            self.add_book_search_item(work, self._index_contents(downloaded_formats))
         else:
             logger.warning(
                 f"OTL textbook #{work.id} has no downloadable requested format"
             )
+
+    @staticmethod
+    def _index_contents(
+        downloaded_formats: _DownloadedFormats,
+    ) -> dict[str, bytes | list[bytes]]:
+        contents: dict[str, bytes | list[bytes]] = dict(
+            downloaded_formats.binary_contents
+        )
+        if downloaded_formats.html_edition is not None:
+            contents["html"] = [
+                content
+                for content in downloaded_formats.html_edition.pages.values()
+                if is_html_document(content)
+            ]
+        return contents
 
     def _download_requested_formats(
         self, work: Work, unsupported: list[str]
@@ -217,7 +235,7 @@ class OpenTextbookLibraryPipeline(Pipeline):
             is_front=False,
         )
         result.downloaded = True
-        result.binary_formats.append(format_name)
+        result.binary_contents[format_name] = content
         if result.cover_image is None:
             result.cover_image = extract_cover(content, format_name)
         result.cover_future = self._schedule_page_cover(work, result.cover_future)

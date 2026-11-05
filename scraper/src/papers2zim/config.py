@@ -44,6 +44,7 @@ class ScrapeConfig:
     is_selection: bool = False
     title_search: bool = False
     with_fulltext_index: bool = True
+    index_format: str | None = None
     stats_filename: str | None = None
 
 
@@ -86,6 +87,14 @@ def build_scrape_config(arguments: dict) -> ScrapeConfig:
     title_search = arguments.get("--title-search", False)
 
     with_fulltext_index = not arguments.get("--no-index", False)
+    index_format = (arguments.get("--index-format") or "").strip().lower() or None
+    if index_format and index_format not in ALL_FORMATS:
+        critical_error(
+            f"--index-format must be one of {', '.join(ALL_FORMATS)}, "
+            f"got {index_format}"
+        )
+    if index_format and not with_fulltext_index:
+        critical_error("--index-format cannot be combined with --no-index")
 
     stats_filename: str | None = arguments.get("--stats-filename") or None
     publisher = arguments.get("--publisher") or "openZIM"
@@ -132,6 +141,11 @@ def build_scrape_config(arguments: dict) -> ScrapeConfig:
                 for x in (arguments.get("--formats") or "").split(",")
                 if x.strip()
             }
+        )
+
+    if index_format and index_format not in formats:
+        critical_error(
+            f"--index-format={index_format} is not one of the requested --formats"
         )
 
     description, long_description = compute_descriptions(
@@ -194,5 +208,6 @@ def build_scrape_config(arguments: dict) -> ScrapeConfig:
         is_selection=bool(books or collections or source_options.get("pages")),
         title_search=title_search,
         with_fulltext_index=with_fulltext_index,
+        index_format=index_format,
         stats_filename=stats_filename,
     )

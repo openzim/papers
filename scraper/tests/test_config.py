@@ -219,3 +219,31 @@ def test_default_ui_dist_is_packaged_with_the_scraper():
     assert config.ui_dist == (
         Path(__file__).parents[1] / "src" / "papers2zim" / "zimui"
     )
+
+
+def test_index_format_defaults_to_automatic_choice():
+    assert build_scrape_config({"--source": "gutenberg"}).index_format is None
+
+
+def test_index_format_is_stored():
+    config = build_scrape_config({"--source": "gutenberg", "--index-format": " EPUB "})
+    assert config.index_format == "epub"
+
+
+def test_unknown_index_format_is_rejected():
+    with pytest.raises(CriticalError, match="--index-format"):
+        build_scrape_config({"--source": "gutenberg", "--index-format": "mobi"})
+
+
+def test_index_format_cannot_be_combined_with_no_index():
+    with pytest.raises(CriticalError, match="--no-index"):
+        build_scrape_config(
+            {"--source": "gutenberg", "--index-format": "pdf", "--no-index": True}
+        )
+
+
+def test_index_format_must_be_a_requested_format():
+    with pytest.raises(CriticalError, match="--formats"):
+        build_scrape_config(
+            {"--source": "gutenberg", "--formats": "html", "--index-format": "epub"}
+        )

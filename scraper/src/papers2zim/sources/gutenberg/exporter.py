@@ -138,7 +138,6 @@ def _add_main_html(
         mimetype="text/html",
         is_front=False,
         title=work.title,
-        auto_index=True,
     )
 
 

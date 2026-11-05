@@ -38,7 +38,7 @@ class OnemorelibraryPipeline(Pipeline):
             return
         work = works[0]
         unsupported = work.extra.setdefault("unsupported_formats", [])
-        downloaded: list[str] = []
+        downloaded: dict[str, bytes] = {}
         cover_image: bytes | None = None
 
         for format_name in self.formats:
@@ -89,7 +89,7 @@ class OnemorelibraryPipeline(Pipeline):
                 mimetype=media_type,
                 is_front=False,
             )
-            downloaded.append(format_name)
+            downloaded[format_name] = content
             if cover_image is None:
                 cover_image = extract_cover(
                     content,
@@ -121,3 +121,4 @@ class OnemorelibraryPipeline(Pipeline):
             work.extra["has_cover"] = False
 
         self.store.add(work)
+        self.add_book_search_item(work, downloaded)

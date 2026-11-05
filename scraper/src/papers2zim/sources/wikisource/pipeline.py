@@ -34,19 +34,19 @@ class WikisourcePipeline(Pipeline):
         work = works[0]
         unsupported = work.extra.setdefault("unsupported_formats", [])
 
-        downloaded = False
+        contents: dict[str, bytes] = {}
         cover_image: bytes | None = None
         for format_name in self.formats:
             content = self._download_format(work, format_name, unsupported)
             if content is None:
                 continue
-            downloaded = True
+            contents[format_name] = content
             if cover_image is None:
                 # Only extract declared covers so books without a cover fall back
                 # to the placeholder rather than picking up the site logo.
                 cover_image = extract_cover(content, format_name, declared_only=True)
 
-        if not downloaded:
+        if not contents:
             logger.warning(
                 "Wikisource book %s has no downloadable requested format", work.id
             )
@@ -62,6 +62,7 @@ class WikisourcePipeline(Pipeline):
             work.cover = Cover()
             work.extra["has_cover"] = True
         self.store.add(work)
+        self.add_book_search_item(work, contents)
 
     def _download_format(
         self, work: Work, format_name: str, unsupported: list[str]
