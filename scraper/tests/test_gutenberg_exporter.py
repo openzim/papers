@@ -66,6 +66,60 @@ def test_handle_book_files_detects_bundled_cover_asset():
     )
 
 
+def _stored_paths(assembler) -> list[str]:
+    """ZIM paths the book files were stored under."""
+    return [call.kwargs.get("path") for call in assembler.add_item_for.call_args_list]
+
+
+def test_handle_book_files_keeps_book_when_epub_is_not_an_archive():
+    """#135: unreadable EPUB bytes cost the format, never the whole book"""
+    work = _work()
+    assembler = MagicMock()
+    book_files = {
+        "11.html": b"<html><body><p>Book content</p></body></html>",
+        "11.epub": b"<!doctype html><html><body>server error</body></html>",
+    }
+    handle_book_files(work, book_files, formats=["html", "epub"], assembler=assembler)
+
+    assert "11.epub" not in book_files
+    assert work.extra["unsupported_formats"] == ["epub"]
+    # stored as an article, without the EPUB and without retrying it as an asset
+    assert "Test Book.11.epub" not in _stored_paths(assembler)
+    assert "Test Book.11" in _stored_paths(assembler)
+
+
+def test_epub_is_stored_unoptimized_when_optimization_fails(make_epub):
+    work = _work()
+    assembler = MagicMock()
+    epub = make_epub()
+    with patch(
+        "papers2zim.sources.gutenberg.exporter.optimize_epub_bytes",
+        side_effect=RuntimeError("cannot rewrite the package"),
+    ):
+        handle_book_files(
+            work, {"11.epub": epub}, formats=["epub"], assembler=assembler
+        )
+
+    assert work.extra.get("unsupported_formats", []) == []
+    assert "Test Book.11.epub" in _stored_paths(assembler)
+
+
+def test_handle_book_files_keeps_book_when_a_format_cannot_be_written(make_epub):
+    work = _work()
+    assembler = MagicMock()
+
+    def store_or_fail(**kwargs):
+        if kwargs["path"].endswith(".epub"):
+            raise RuntimeError("ZIM is full")
+
+    assembler.add_item_for.side_effect = store_or_fail
+    book_files = {"11.epub": make_epub()}
+    handle_book_files(work, book_files, formats=["epub"], assembler=assembler)
+
+    assert book_files == {}
+    assert work.extra["unsupported_formats"] == ["epub"]
+
+
 def test_export_book_aliases_bundled_cover_and_skips_mirror_download():
     work = _work()
     assembler = MagicMock()

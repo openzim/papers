@@ -40,6 +40,7 @@ as of 2.0.0.
 
 ### Fixed
 
+- Gutenberg: stop a corrupted book file (an HTML error page served with a 200 status, a truncated transfer) from dropping the whole book. Downloaded EPUB/PDF content is validated before it is stored, an unreadable EPUB costs its format instead of the book, and a readable EPUB that cannot be optimized is kept unoptimized instead of re-raising into the pipeline's generic handler (#135)
 - Keep the original extension when appending `.webp` to converted image output filenames, so two source images sharing a basename but differing only in extension (e.g. `001.jpg` and `001.png`) no longer collide on the same ZIM path and silently drop one of the two (#133)
 - UI: make the empty state message readable in both themes by using the normal text color inside the tinted alert, rounding its corners, and switching the `info` accent to the existing palette blues (the dark theme also gets its own info/error/success/warning colors instead of reusing the light ones) (#123)
 - Wikisource: ignore non-image metadata covers in EPUBs and use declared-only covers so books without a cover fall back to the placeholder instead of extracting the site logo (#16)

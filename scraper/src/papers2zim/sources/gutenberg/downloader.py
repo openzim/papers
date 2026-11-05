@@ -15,6 +15,10 @@ from pathlib import Path
 import requests
 
 from papers2zim.constants import logger
+from papers2zim.core.content_validation import (
+    BOOK_FILE_FORMATS,
+    is_valid_book_file,
+)
 from papers2zim.core.download_engine import (
     DownloadEngine,
     is_fatal_http_error,
@@ -167,6 +171,17 @@ def download_book(
                     continue
                 book_content.files.update(extracted_files)
             else:
+                if book_format in BOOK_FILE_FORMATS and not is_valid_book_file(
+                    content_bytes, book_format
+                ):
+                    # the mirror served something that is not a book file at all
+                    # (truncated transfer, HTML error page): don't hand it over to
+                    # the format handlers, which would fail on it later on
+                    logger.warning(
+                        f"Downloaded {book_format} of #{work.id} from {url} is not "
+                        "a valid file, trying next type"
+                    )
+                    continue
                 # Store the file directly
                 filename = fname_for(work, book_format)
                 book_content.files[filename] = content_bytes

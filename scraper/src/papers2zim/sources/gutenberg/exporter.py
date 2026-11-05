@@ -4,6 +4,7 @@ import re
 from functools import partial
 
 from papers2zim.constants import logger
+from papers2zim.core.content_validation import is_valid_book_file
 from papers2zim.core.covers import extract_cover
 from papers2zim.core.download_engine import DownloadEngine
 from papers2zim.core.epub_optimizer import optimize_epub_bytes
@@ -139,6 +140,23 @@ def _add_main_html(
     )
 
 
+def _drop_format(
+    work: Work,
+    book_files: dict[str, bytes],
+    book_filename: str,
+    other_format: str,
+):
+    """Drop a single format of a book, keeping the book itself
+
+    Removes the file so it cannot be stored again as a plain associated file and
+    stops the book from advertising the format (#135).
+    """
+    del book_files[book_filename]
+    unsupported = work.extra.setdefault("unsupported_formats", [])
+    if other_format not in unsupported:
+        unsupported.append(other_format)
+
+
 def _add_other_formats(
     work: Work,
     book_files: dict[str, bytes],
@@ -151,14 +169,29 @@ def _add_other_formats(
         book_filename = fname_for(work, other_format)
         if book_filename not in book_files:
             continue
-        try:
-            content = book_files[book_filename]
-            if other_format == "epub":
+        content = book_files[book_filename]
+        if other_format == "epub":
+            if not is_valid_book_file(content, "epub"):
+                logger.error(
+                    f"\t\tDownloaded EPUB of book {work.id} is not a readable archive"
+                )
+                _drop_format(work, book_files, book_filename, other_format)
+                continue
+            try:
                 content = optimize_epub_bytes(
                     content,
                     document_transform=partial(transform_epub_document, work=work),
                     log_context=f"book {work.id}",
                 )
+            except Exception as e:
+                # a readable EPUB that cannot be rewritten is still perfectly
+                # readable: losing the format over an optimization failure
+                # would be worse than keeping it as downloaded
+                logger.warning(
+                    f"\t\tCould not optimize EPUB of book {work.id}: {e}. "
+                    "Storing it unoptimized."
+                )
+        try:
             assembler.add_item_for(
                 path=archive_name_for(work, other_format),
                 content=content,
@@ -167,7 +200,7 @@ def _add_other_formats(
         except Exception as e:
             logger.exception(e)
             logger.error(f"\t\tException while handling {other_format}: {e}")
-            raise
+            _drop_format(work, book_files, book_filename, other_format)
 
 
 def _add_companion_html(
