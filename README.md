@@ -74,6 +74,8 @@ The scraper supports several sources, select a source with `--source`:
 
 Select Project Gutenberg with `--source=gutenberg` (or `--source=PG`).
 
+Gutenberg's catalog is not limited to books: entries typed something else than `Text` — audio recordings, images, datasets — are skipped when the catalog is loaded, since there is no text to export for them.
+
 For example:
 
 ```bash

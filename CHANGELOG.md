@@ -26,6 +26,7 @@ as of 2.0.0.
 
 ### Changed
 
+- Gutenberg: scrape only the catalog entries typed `Text`. The dump also lists ~1250 audio recordings, images and datasets whose info page is all the mirror has; they used to be downloaded, fail in every format, and be dropped again with 1128 "could not be downloaded in any format" warnings in every run's log (#129)
 - UI: upgrade to Vuetify 4, migrating to the Material Design 3 typography classes, grid alignment utility classes, and restoring the CSS reset the new version dropped (#26)
 - UI: replace book grid borders with rounded card backgrounds, highlighted on hover, in book grid, book list, book carousel and author carousel (#61, #82)
 - Gutenberg: replace `--with-author-details` with `--with-author-bio` and `--with-author-portrait` (#66)
