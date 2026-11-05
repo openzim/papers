@@ -87,7 +87,8 @@
 		},
 		"languageFilter": {
 			"trigger": "Accessible label for the button that opens the book-language filter menu",
-			"allLanguages": "Label for the option that clears the book-language filter, showing books in every language"
+			"allLanguages": "Label for the option that clears the book-language filter, showing books in every language",
+			"select": "Placeholder and accessible label for the search box in the book-language filter menu, used to narrow the list of languages to filter the catalog by, by typing part of a language name"
 		},
 		"reader": {
 			"close": "Accessible label for closing a reader dialog",

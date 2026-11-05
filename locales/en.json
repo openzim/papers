@@ -82,7 +82,8 @@
     },
     "languageFilter": {
       "trigger": "Filter by book language",
-      "allLanguages": "All languages"
+      "allLanguages": "All languages",
+      "select": "Select language"
     },
     "reader": {
       "close": "Close reader",
