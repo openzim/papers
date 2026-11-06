@@ -187,16 +187,13 @@ def test_process_ref_indexes_the_book_files_but_not_companions():
     )
 
 
-def test_process_ref_indexes_the_html_even_when_not_requested():
-    # the HTML is always downloaded and stored as the base of the ZIM
+def test_process_ref_indexes_only_requested_formats():
     work = _work_with_shelf("PR")
     files = {"84.html": b"<p>main</p>", "84.epub": b"epub bytes"}
 
     add_search_item = _process_with_files(work, files, ["epub"])
 
-    add_search_item.assert_called_once_with(
-        work, {"html": b"<p>main</p>", "epub": b"epub bytes"}
-    )
+    add_search_item.assert_called_once_with(work, {"epub": b"epub bytes"})
 
 
 def test_process_ref_does_not_index_a_book_that_failed_to_download():

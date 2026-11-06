@@ -102,13 +102,10 @@ def test_all_candidates_of_a_format_are_probed_before_giving_up():
 def test_valid_epub_is_stored(make_epub):
     work = _work()
     epub = make_epub()
-    content, store, _ = _download(
-        work, ["epub"], **{f"pg{BOOK_ID}.epub": epub, f"pg{BOOK_ID}.html": HTML}
-    )
+    content, store, _ = _download(work, ["epub"], **{f"pg{BOOK_ID}.epub": epub})
 
     assert content is not None
-    # HTML is always fetched alongside, as the ZIM's base format
-    assert content.files == {f"{BOOK_ID}.epub": epub, f"{BOOK_ID}.html": HTML}
+    assert content.files == {f"{BOOK_ID}.epub": epub}
     assert work.extra["unsupported_formats"] == []
     assert store.get("gutenberg", BOOK_ID) is work
 
@@ -123,7 +120,6 @@ def test_empty_preferred_epub_falls_back_to_the_readable_one(make_epub):
         **{
             f"pg{BOOK_ID}-images.epub": b"",
             f"pg{BOOK_ID}.epub": epub,
-            f"pg{BOOK_ID}.html": HTML,
         },
     )
 
@@ -135,7 +131,7 @@ def test_empty_preferred_epub_falls_back_to_the_readable_one(make_epub):
         f"pg{BOOK_ID}.epub",
     ]
     assert content is not None
-    assert content.files == {f"{BOOK_ID}.epub": epub, f"{BOOK_ID}.html": HTML}
+    assert content.files == {f"{BOOK_ID}.epub": epub}
     assert work.extra["unsupported_formats"] == []
     assert store.get("gutenberg", BOOK_ID) is work
 
