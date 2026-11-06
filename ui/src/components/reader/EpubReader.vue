@@ -251,6 +251,7 @@ onBeforeUnmount(() => {
   overflow-y: auto;
   padding: 1rem;
   border-inline-end: 1px solid rgb(var(--v-theme-grid));
+  background: rgb(var(--v-theme-surface));
   color: rgb(var(--v-theme-text));
 }
 
@@ -346,7 +347,7 @@ onBeforeUnmount(() => {
   width: min(280px, 80vw);
   padding: 1rem;
   overflow-y: auto;
-  background: #252525;
+  background: rgb(var(--v-theme-surface));
   color: rgb(var(--v-theme-text));
 }
 
