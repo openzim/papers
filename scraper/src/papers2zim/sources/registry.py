@@ -51,6 +51,9 @@ class SourceProfile:
     source_creator: str
     zim_tags: str
     zim_name_prefix: str
+    # Filename of the source's SVG mark under core/assets/icons/sources/,
+    # rasterized into the ZIM illustration and the HTML favicon set
+    icon_svg: str
     # Human-readable source phrase used in the default ZIM description
     tagline: str
     source_description: str
@@ -83,6 +86,7 @@ GUTENBERG_PROFILE = SourceProfile(
     source_creator="gutenberg.org",
     zim_tags="_category:gutenberg;gutenberg",
     zim_name_prefix="gutenberg",
+    icon_svg="gutenberg.svg",
     tagline="the first producer of free eBooks",
     source_description="A library of free ebooks from Project Gutenberg.",
     collection_label="LCC Shelves",
@@ -116,6 +120,7 @@ OPEN_TEXTBOOK_LIBRARY_PROFILE = SourceProfile(
     source_creator="open.umn.edu",
     zim_tags="_category:education;opentextbooks",
     zim_name_prefix="opentextbooks",
+    icon_svg="opentextbooks.svg",
     tagline="free, peer-reviewed, openly licensed textbooks",
     source_description="Free, peer-reviewed, openly licensed textbooks.",
     collection_label="Subjects",
@@ -147,6 +152,7 @@ ONEMORELIBRARY_PROFILE = SourceProfile(
     source_creator="onemorelibrary.com",
     zim_tags="_category:books;onemorelibrary",
     zim_name_prefix="onemorelibrary",
+    icon_svg="onemorelibrary.svg",
     tagline="free public-domain books",
     source_description=("A library of free public-domain books in several languages."),
     collection_label="Categories",
@@ -178,6 +184,7 @@ WIKISOURCE_PROFILE = SourceProfile(
     source_creator="wikisource.org",
     zim_tags="_category:wikisource;wikisource",
     zim_name_prefix="wikisource-export",
+    icon_svg="wikisource.svg",
     tagline="the free library",
     source_description="A library of free source texts from Wikisource.",
     collection_label="Collections",

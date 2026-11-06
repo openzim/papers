@@ -99,10 +99,18 @@ def test_zim_metadata_and_main_page(zim: Archive, expected: ZimExpectation):
     assert zim.get_text_metadata("Creator") == expected.source_creator
     assert zim.get_text_metadata("Publisher") == "openZIM"
     assert "papers2zim-" in zim.get_text_metadata("Scraper")
-    favicon = zim.get_item("favicon.png")
-    assert favicon
-    assert favicon.mimetype == "image/png"
-    assert len(favicon.content) > 0
+    for path, mimetype in (
+        ("favicon.svg", "image/svg+xml"),
+        ("favicon.ico", "image/vnd.microsoft.icon"),
+        ("apple-touch-icon.png", "image/png"),
+        ("web-app-manifest-192x192.png", "image/png"),
+        ("web-app-manifest-512x512.png", "image/png"),
+        ("site.webmanifest", "application/manifest+json"),
+    ):
+        item = zim.get_item(path)
+        assert item
+        assert item.mimetype == mimetype
+        assert len(item.content) > 0
 
 
 def test_zim_contains_the_selected_work(zim: Archive, expected: ZimExpectation):

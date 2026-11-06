@@ -2,26 +2,28 @@
 
 from unittest.mock import MagicMock
 
-from papers2zim.constants import FAVICON_BYTES
 from papers2zim.core.exporters.ui_dist_exporter import export_ui_dist
 
 
-def test_exports_fallback_favicon_when_the_ui_build_has_none(tmp_path):
+def test_rewrites_the_index_title_and_copies_other_files_as_is(tmp_path):
     (tmp_path / "index.html").write_text(
         "<html><head><title>Library</title></head></html>", encoding="utf-8"
     )
+    (tmp_path / "app.js").write_text("console.log('hi')", encoding="utf-8")
     assembler = MagicMock(name="assembler")
 
     export_ui_dist(tmp_path, "Test Library", assembler)
 
-    favicon_call = next(
-        call
+    calls_by_path = {
+        call.kwargs["path"]: call.kwargs
         for call in assembler.add_item_for.call_args_list
-        if call.kwargs["path"] == "favicon.png"
-    )
-    assert favicon_call.kwargs == {
-        "path": "favicon.png",
-        "content": FAVICON_BYTES,
-        "mimetype": "image/png",
-        "is_front": False,
     }
+
+    assert calls_by_path["index.html"]["content"] == (
+        "<html><head><title>Test Library</title></head></html>"
+    )
+    assert calls_by_path["index.html"]["mimetype"] == "text/html"
+    assert calls_by_path["index.html"]["is_front"] is True
+
+    assert calls_by_path["app.js"]["fpath"] == tmp_path / "app.js"
+    assert calls_by_path["app.js"]["is_front"] is False

@@ -27,7 +27,7 @@ from zimscraperlib.zim.metadata import (
     TitleMetadata,
 )
 
-from papers2zim.constants import FAVICON_BYTES, VERSION, logger
+from papers2zim.constants import VERSION, logger
 
 
 class ZimAssembler:
@@ -44,6 +44,7 @@ class ZimAssembler:
         publisher: str,
         source_creator: str,
         tags: str,
+        illustration_png: bytes,
         long_description: str | None = None,
         scraper_name: str | None = None,
         with_fulltext_index: bool = True,
@@ -72,7 +73,9 @@ class ZimAssembler:
                     Tags=TagsMetadata(tags),
                     Scraper=ScraperMetadata(scraper_name or f"papers2zim-{VERSION}"),
                     Date=DateMetadata(date.today()),
-                    Illustration_48x48_at_1=DefaultIllustrationMetadata(FAVICON_BYTES),
+                    Illustration_48x48_at_1=DefaultIllustrationMetadata(
+                        illustration_png
+                    ),
                 )
             )
             .config_verbose(debug)

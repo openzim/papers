@@ -19,7 +19,12 @@ from papers2zim.config import ScrapeConfig
 from papers2zim.constants import logger
 from papers2zim.core import i18n, optimization_cache
 from papers2zim.core.download_engine import DownloadEngine
+from papers2zim.core.exporters.favicon_exporter import export_favicons
 from papers2zim.core.exporters.ui_dist_exporter import export_ui_dist
+from papers2zim.core.icon_rendering import (
+    build_source_icon_set,
+    resolve_source_icon_svg,
+)
 from papers2zim.core.language import (
     ISO_MATRIX,
     ISO_MATRIX_REV,
@@ -224,8 +229,11 @@ def build_zimfile(
         logger.info(f"Removing existing ZIM file {zim_file}")
         zim_path.unlink(missing_ok=True)
 
+    icon_set = build_source_icon_set(resolve_source_icon_svg(profile.icon_svg))
+
     assembler = ZimAssembler(
         filename=zim_path,
+        illustration_png=icon_set.illustration_png,
         language=zim_languages
         or get_zim_language_metadata(
             languages,
@@ -303,6 +311,7 @@ def build_zimfile(
 
         # Export Vue.js UI dist folder
         export_ui_dist(ui_dist, title, assembler)
+        export_favicons(icon_set, title, assembler)
 
     except KeyboardInterrupt:
         assembler.can_finish = False
