@@ -25,6 +25,7 @@ as of 2.0.0.
 - UI: filter books, authors and collections by book language from a single control in the breadcrumbs bar, applied everywhere (books list, authors list, collections, home's popular/selected sections, author and collection detail pages). Author and collection previews now carry a per-language book count/popularity breakdown so filtered counts stay accurate without extra fetches (#101)
 - Index the full text of each book in its search entry, from one format per book (HTML, then EPUB, then PDF), with `--index-format` to force one (#43)
 - Wikisource: add book descriptions, sourced from each work's Wikidata item, since the ws-export OPDS feed carries none (#21)
+- Add a proper per-source ZIM illustration and HTML favicon set: each source ships one SVG mark, rasterized at export time into the ZIM illustration metadata and a minimal favicon.svg/.ico, apple-touch-icon.png and web app manifest icon set, wired into both the Vue UI and the no-JS fallback pages with paths relative to the page so they resolve under kiwix-serve (#110)
 
 ### Changed
 

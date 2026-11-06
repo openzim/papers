@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Placeholder mark for Wikisource: swap for the source's real logo when available -->
+  <rect x="16" y="16" width="480" height="480" rx="96" fill="#4a5568" />
+  <path
+    d="M256,170 C210,150 150,150 120,170 L120,330 C150,310 210,310 256,330 Z"
+    fill="#ffffff"
+  />
+  <path
+    d="M256,170 C302,150 362,150 392,170 L392,330 C362,310 302,310 256,330 Z"
+    fill="#ffffff"
+    fill-opacity="0.92"
+  />
+  <line x1="256" y1="168" x2="256" y2="332" stroke="#4a5568" stroke-width="3" />
+</svg>

@@ -4,7 +4,7 @@ import re
 from html import escape
 from pathlib import Path
 
-from papers2zim.constants import FAVICON_BYTES, logger
+from papers2zim.constants import logger
 from papers2zim.core.zim_assembler import ZimAssembler
 
 
@@ -15,12 +15,10 @@ def export_ui_dist(ui_dist: Path, title: str, assembler: ZimAssembler) -> None:
 
     logger.info(f"Adding Vue.js UI files from {ui_dist}")
     file_count = 0
-    has_favicon = False
     for file in ui_dist.rglob("*"):
         if file.is_dir():
             continue
         path = file.relative_to(ui_dist).as_posix()
-        has_favicon = has_favicon or path == "favicon.png"
         logger.debug(f"Adding {path} to ZIM")
 
         # Update index.html title
@@ -44,13 +42,5 @@ def export_ui_dist(ui_dist: Path, title: str, assembler: ZimAssembler) -> None:
                 fpath=file,
                 is_front=False,
             )
-        file_count += 1
-    if not has_favicon:
-        assembler.add_item_for(
-            path="favicon.png",
-            content=FAVICON_BYTES,
-            mimetype="image/png",
-            is_front=False,
-        )
         file_count += 1
     logger.info(f"Successfully added {file_count} UI files to ZIM")
