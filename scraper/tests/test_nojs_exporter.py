@@ -70,10 +70,14 @@ def test_book_format_links_are_url_encoded():
         indexes=IndexBuilder(store).build(display_name="Project Gutenberg"),
     )
 
-    page = _item_call(assembler, "noscript/book_11.html").kwargs["content"]
+    page = _item_call(
+        assembler, "noscript/book_alice-s-adventures-in-wonderland.html"
+    ).kwargs["content"]
     assert "Alice%27s%20Adventures%20in%20Wonderland.11" in page
     assert "Alice%27s%20Adventures%20in%20Wonderland.11.epub" in page
     assert "Alice%27s%20Adventures%20in%20Wonderland.11.pdf" in page
+    assert 'href="author_lewis-carroll.html"' in page
+    assert "alice-s-adventures-in-wonderland" in page
 
 
 def test_author_page_renders_bio_portrait_and_wikipedia_link():
@@ -98,7 +102,7 @@ def test_author_page_renders_bio_portrait_and_wikipedia_link():
         indexes=IndexBuilder(store).build(display_name="Project Gutenberg"),
     )
 
-    page = _item_call(assembler, "noscript/author_68.html").kwargs["content"]
+    page = _item_call(assembler, "noscript/author_jane-austen.html").kwargs["content"]
     assert "authors/68.webp" in page
     assert "An English novelist." in page
     assert "en.wikipedia.org/wiki/Jane_Austen" in page
@@ -125,7 +129,7 @@ def _book_page(license_text: str | None) -> str:
         indexes=IndexBuilder(store).build(display_name="Wikisource"),
     )
 
-    return _item_call(assembler, "noscript/book_7.html").kwargs["content"]
+    return _item_call(assembler, "noscript/book_old-book.html").kwargs["content"]
 
 
 def test_book_page_shows_a_creative_commons_license_as_a_link():

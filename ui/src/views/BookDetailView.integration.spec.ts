@@ -94,6 +94,28 @@ describe('BookDetailView Integration', () => {
 
       expect(store.fetchBook).toHaveBeenCalledWith('42')
     })
+
+    it('replaces an internal id in the route with the canonical slug', async () => {
+      vi.spyOn(store, 'fetchBook').mockResolvedValue({ ...mockBookData, id: 'bleak-house' })
+      router.push('/book/22094')
+      await router.isReady()
+
+      mount(BookDetailView, { global: { plugins: [pinia, router] } })
+      await flushPromises()
+
+      expect(router.currentRoute.value.fullPath).toBe('/book/bleak-house')
+    })
+
+    it('leaves a canonical slug untouched', async () => {
+      vi.spyOn(store, 'fetchBook').mockResolvedValue({ ...mockBookData, id: 'bleak-house' })
+      router.push('/book/bleak-house')
+      await router.isReady()
+
+      mount(BookDetailView, { global: { plugins: [pinia, router] } })
+      await flushPromises()
+
+      expect(router.currentRoute.value.fullPath).toBe('/book/bleak-house')
+    })
   })
 
   describe('Book Information Display', () => {

@@ -15,7 +15,7 @@ from papers2zim.sources.wikisource.catalog import WIKISOURCE_SOURCE, slugify
 
 def author_id(name: str) -> str:
     """Deterministic, path-safe id shared by every work of the same author."""
-    slug = slugify(name)
+    slug = slugify(name, max_encoded_length=80)
     digest = hashlib.sha256(name.encode()).hexdigest()[:8]
     return f"{slug}-{digest}" if slug else digest
 

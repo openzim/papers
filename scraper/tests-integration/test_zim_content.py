@@ -2,6 +2,7 @@
 
 import json
 import os
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -112,11 +113,11 @@ def test_zim_contains_the_selected_work(zim: Archive, expected: ZimExpectation):
     assert config["source"]["slug"] == expected.source_slug
     assert books["totalCount"] == 1
     books_page = _read_json(zim, "books-pages/popularity/0.json")
-    work_id = expected.work_id
-    assert books_page["books"][0]["id"] == work_id
+    book_id = books_page["books"][0]["id"]
+    assert re.fullmatch(r"[\w-]+", book_id), book_id
     assert books_page["books"][0]["availableFormats"] == [expected.format_name]
-    book = _read_json(zim, f"books/{work_id}.json")
-    assert book["id"] == work_id
+    book = _read_json(zim, f"books/{book_id}.json")
+    assert book["id"] == book_id
 
     (format_info,) = [
         format_info
@@ -128,3 +129,27 @@ def test_zim_contains_the_selected_work(zim: Archive, expected: ZimExpectation):
     assert edition
     assert edition.mimetype == expected.mimetype
     assert len(edition.content) > 0
+
+
+def test_book_search_entry_links_by_source_id(zim: Archive, expected: ZimExpectation):
+    """The search entry written while processing still reaches the book."""
+    preview = _read_json(zim, "books-pages/popularity/0.json")["books"][0]
+    search_entry = bytes(zim.get_item(f"index/book_{expected.work_id}").content)
+
+    assert f"#/book/{expected.work_id}".encode() in search_entry
+    assert _read_json(zim, f"books/{expected.work_id}.json")["id"] == preview["id"]
+
+
+def test_edition_links_reach_the_ui_data(zim: Archive, expected: ZimExpectation):
+    """A mirrored edition still opens the detail page of its own book."""
+    if expected.format_name != "html":
+        pytest.skip("only an HTML edition links back to the UI")
+    preview = _read_json(zim, "books-pages/popularity/0.json")["books"][0]
+    book = _read_json(zim, f"books/{preview['id']}.json")
+    (edition,) = [item for item in book["formats"] if item["format"] == "html"]
+    edition_html = bytes(zim.get_item(edition["path"]).content)
+
+    link = re.search(rb"#/book/([\w-]+)", edition_html)
+    assert link
+    assert link[1].decode() == expected.work_id
+    assert _read_json(zim, f"books/{expected.work_id}.json")["id"] == preview["id"]

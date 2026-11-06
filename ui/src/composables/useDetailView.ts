@@ -1,9 +1,10 @@
 import { ref, onMounted, watch, onBeforeUnmount } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useMainStore } from '@/stores/main'
 
 export function useDetailView<T>(fetchFn: (id: string) => Promise<T>, paramName: string = 'id') {
   const route = useRoute()
+  const router = useRouter()
   const main = useMainStore()
   const data = ref<T | null>(null)
   const notFound = ref(false)
@@ -17,6 +18,15 @@ export function useDetailView<T>(fetchFn: (id: string) => Promise<T>, paramName:
       if ('name' in obj) return String(obj.name)
     }
     return 'Details'
+  }
+
+  function replaceRequestedParam(item: T) {
+    if (typeof item !== 'object' || item === null || !route.name) return
+    const canonical = (item as Record<string, unknown>).id
+    const param = route.params[paramName]
+    const requested = Array.isArray(param) ? param[0] : param
+    if (typeof canonical !== 'string' || !requested || canonical === requested) return
+    router.replace({ name: route.name, params: { ...route.params, [paramName]: canonical } })
   }
 
   function loadData() {
@@ -33,6 +43,7 @@ export function useDetailView<T>(fetchFn: (id: string) => Promise<T>, paramName:
       .then((result) => {
         if (!isMounted) return
         data.value = result
+        replaceRequestedParam(result)
         if (route.meta.title) {
           document.title = `${getTitle(result)} - ${main.config?.source.name || 'Library'}`
         }

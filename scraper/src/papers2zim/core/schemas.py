@@ -68,7 +68,7 @@ class BookFormat(CamelModel):
 class BookPreview(CamelModel):
     """Book preview for list views"""
 
-    id: str  # source-specific work id (not necessarily numeric)
+    id: str  # slug of the title, unique in the catalog
     title: str
     author: AuthorRef
     languages: list[str]

@@ -21,10 +21,10 @@
     <div class="detail-info">
         <dl>
             <dt>Author</dt>
-            <dd><a href="author_{{ book.author.id }}.html">{{ book.author.name }}</a></dd>
+            <dd><a href="author_{{ book.author.slug }}.html">{{ book.author.name }}</a></dd>
 
             <dt>Book ID</dt>
-            <dd>{{ book.id }}</dd>
+            <dd>{{ book.slug }}</dd>
 
             {% if book.languages %}
             <dt>Languages</dt>

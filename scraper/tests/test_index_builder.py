@@ -94,6 +94,20 @@ def test_search_entries_leave_books_to_the_pipeline():
     assert not [e for e in indexes.search_entries if e.fname.startswith("book_")]
 
 
+def test_search_entries_use_unique_slugs_for_authors():
+    store = _store_with(
+        _work("1", "Bleak House", creators=[DICKENS]),
+        _work("2", "Emma", creators=[Creator(id="99", display_name="Charles Dickens")]),
+    )
+    entries = {
+        entry.fname: entry
+        for entry in IndexBuilder(store).build(display_name="Test").search_entries
+    }
+
+    assert entries["author_charles-dickens"].route == "author/charles-dickens"
+    assert entries["author_charles-dickens-1"].route == "author/charles-dickens-1"
+
+
 def test_search_entries_for_collections():
     store = _store_with(
         _work("1", "Bleak House", creators=[DICKENS], collections=[LCC_SHELF]),

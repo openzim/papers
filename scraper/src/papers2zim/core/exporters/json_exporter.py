@@ -38,6 +38,7 @@ from papers2zim.core.schemas import (
 from papers2zim.core.schemas import (
     Book as BookSchema,
 )
+from papers2zim.core.slugs import Slugs, build_slugs
 from papers2zim.core.utils import (
     ALL_FORMATS,
     archive_name_for,
@@ -119,10 +120,10 @@ def _language_breakdown(works_by_key: dict[str, list[Work]]) -> LanguageBreakdow
     return LanguageBreakdown(languages, book_counts, popularities)
 
 
-def _creator_to_ref(creator: Creator) -> AuthorRef:
+def _creator_to_ref(creator: Creator, slugs: Slugs) -> AuthorRef:
     """Convert Creator to the minimal AuthorRef embedded in a BookPreview."""
     return AuthorRef(
-        id=creator.id,
+        id=slugs.authors[creator.id],
         display_name=creator.display_name,
         sort_name=creator.sort_name or "",
     )
@@ -132,6 +133,7 @@ def _creator_to_preview(
     creator: Creator,
     author_stats: dict[str, tuple[int, float]],
     author_languages: LanguageBreakdown,
+    slugs: Slugs,
 ) -> AuthorPreview:
     """Convert Creator to AuthorPreview schema"""
     book_count, total_popularity = author_stats.get(creator.id, (0, 0))
@@ -139,7 +141,7 @@ def _creator_to_preview(
         author_languages.for_key(creator.id)
     )
     return AuthorPreview(
-        id=creator.id,
+        id=slugs.authors[creator.id],
         display_name=creator.display_name,
         sort_name=creator.sort_name or "",
         book_count=book_count,
@@ -155,6 +157,7 @@ def _creator_to_schema(
     creator: Creator,
     author_stats: dict[str, tuple[int, float]],
     author_languages: LanguageBreakdown,
+    slugs: Slugs,
 ) -> AuthorSchema:
     """Convert Creator to Author schema"""
     book_count, total_popularity = author_stats.get(creator.id, (0, 0))
@@ -162,7 +165,7 @@ def _creator_to_schema(
         author_languages.for_key(creator.id)
     )
     return AuthorSchema(
-        id=creator.id,
+        id=slugs.authors[creator.id],
         sort_name=creator.sort_name or "",
         birth_year=creator_birth_year(creator),
         death_year=creator_death_year(creator),
@@ -183,12 +186,12 @@ def _cover_path_for(work: Work) -> str | None:
     return f"covers/{work.id}_cover_image.webp" if has_cover else None
 
 
-def _work_to_preview(work: Work, formats: list[str]) -> BookPreview:
+def _work_to_preview(work: Work, formats: list[str], slugs: Slugs) -> BookPreview:
     """Convert Work to BookPreview schema"""
     return BookPreview(
-        id=work.id,
+        id=slugs.works[work.id],
         title=work.title,
-        author=_creator_to_ref(primary_creator(work)),
+        author=_creator_to_ref(primary_creator(work), slugs),
         languages=work.languages,
         popularity=float(work.popularity or 0),
         flames=work.flames or 0,
@@ -212,6 +215,7 @@ def _work_to_schema(
     formats: list[str],
     author_stats: dict[str, tuple[int, float]],
     author_languages: LanguageBreakdown,
+    slugs: Slugs,
 ) -> BookSchema:
     """Convert Work to Book schema with formats"""
     book_formats: list[BookFormat] = []
@@ -240,11 +244,11 @@ def _work_to_schema(
             )
 
     return BookSchema(
-        id=work.id,
+        id=slugs.works[work.id],
         title=work.title,
         subtitle=work.subtitle,
         author=_creator_to_schema(
-            primary_creator(work), author_stats, author_languages
+            primary_creator(work), author_stats, author_languages, slugs
         ),
         languages=work.languages,
         license=work.license or "Public domain in the USA.",
@@ -307,10 +311,11 @@ def generate_json_files(
     all_creators = indexes.authors
     author_stats = indexes.author_stats
     author_languages = _language_breakdown(indexes.by_author)
+    slugs = build_slugs(all_works)
 
     logger.info("Generating high-level JSON files")
     logger.debug("Generating books.json and books-pages/{order}/*.json")
-    books_preview = [_work_to_preview(work, formats) for work in all_works]
+    books_preview = [_work_to_preview(work, formats, slugs) for work in all_works]
     total_pages = (
         math.ceil(len(books_preview) / books_page_size) if books_preview else 0
     )
@@ -340,7 +345,7 @@ def generate_json_files(
 
     logger.debug("Generating authors.json")
     authors_preview = [
-        _creator_to_preview(creator, author_stats, author_languages)
+        _creator_to_preview(creator, author_stats, author_languages, slugs)
         for creator in all_creators
     ]
     authors_collection = Authors(
@@ -438,13 +443,21 @@ def generate_json_files(
     logger.info("Generating detail JSON files")
     logger.debug("Generating book detail files")
     for work in all_works:
-        book_detail = _work_to_schema(work, formats, author_stats, author_languages)
+        slug = slugs.works[work.id]
+        book_detail = _work_to_schema(
+            work, formats, author_stats, author_languages, slugs
+        )
+        detail_path = f"books/{slug}.json"
         assembler.add_item_for(
-            path=f"books/{work.id}.json",
+            path=detail_path,
             content=book_detail.model_dump_json(by_alias=True, indent=2),
             mimetype="application/json",
             is_front=False,
         )
+        if work.id != slug:
+            assembler.add_alias(
+                path=f"books/{work.id}.json", title="", target=detail_path
+            )
 
     for collection_id in collection_ids:
         collection_works = collection_works_map[collection_id]
@@ -459,7 +472,7 @@ def generate_json_files(
             languages=languages,
             book_count_by_language=book_count_by_language,
             total_popularity_by_language=total_popularity_by_language,
-            books=[_work_to_preview(work, formats) for work in collection_works],
+            books=[_work_to_preview(work, formats, slugs) for work in collection_works],
         )
         assembler.add_item_for(
             path=f"collections/{collection_key(collection_id)}.json",
@@ -471,14 +484,14 @@ def generate_json_files(
     logger.debug("Generating author detail files")
     for creator in all_creators:
         creator_works = [
-            _work_to_preview(work, formats)
+            _work_to_preview(work, formats, slugs)
             for work in indexes.by_author.get(creator.id, [])
         ]
         languages, book_count_by_language, total_popularity_by_language = (
             author_languages.for_key(creator.id)
         )
         author_detail = AuthorDetail(
-            id=creator.id,
+            id=slugs.authors[creator.id],
             sort_name=creator.sort_name or "",
             birth_year=creator_birth_year(creator),
             death_year=creator_death_year(creator),
@@ -495,7 +508,7 @@ def generate_json_files(
         )
 
         assembler.add_item_for(
-            path=f"authors/{creator.id}.json",
+            path=f"authors/{slugs.authors[creator.id]}.json",
             content=author_detail.model_dump_json(by_alias=True, indent=2),
             mimetype="application/json",
             is_front=False,

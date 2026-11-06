@@ -22,7 +22,7 @@
     <div class="detail-info">
         <dl>
             <dt>Author ID</dt>
-            <dd>{{ author.id }}</dd>
+            <dd>{{ author.slug }}</dd>
 
             {% if author.birth_year or author.death_year %}
             <dt>Lifespan</dt>
@@ -48,12 +48,12 @@
         
         {% for book in author_books %}
         <div class="book-item">
-            <a href="book_{{ book.id }}.html">{{ book.title }}</a>
+            <a href="book_{{ book.slug }}.html">{{ book.title }}</a>
             {% if book.subtitle %}
             <div class="book-meta">{{ book.subtitle }}</div>
             {% endif %}
             <div class="book-meta">
-                Book ID: {{ book.id }}
+                Book ID: {{ book.slug }}
                 {% if book.languages %} | Languages: {{ book.languages|join(", ") }}{% endif %}
             </div>
         </div>

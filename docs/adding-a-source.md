@@ -277,6 +277,18 @@ Before adding source-local helpers, check the facilities already exposed by
   metadata;
 - `WorkStore`: thread-safe storage keyed by `(source, work ID)`.
 
+Readable URLs, JSON detail paths, author and collection search entries and
+No-JS page names are derived from `Work.title` and `Creator.display_name` by
+the export-time slug registry (`core.slugs`). `Work.id` stays the internal
+key for deduplication and source links, so a source never has to mint
+URL-friendly ids itself.
+
+Items written while processing cannot know their slug yet, so mirrored
+editions and book search entries link to the UI by `Work.id`; the JSON
+exporter keeps that path resolving, as an alias of the slug detail file. Slug
+assignment avoids every other work's `Work.id`, so that alias path is always
+free.
+
 The orchestrator owns `ZimAssembler.start()`/`finish()`, progress totals, the
 top-level `parallel_map()`, `IndexBuilder`, UI/No-JS/search exporters, and i18n
 setup. Source code should consume their results through `Pipeline`, not run a
