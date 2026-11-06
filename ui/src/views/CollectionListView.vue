@@ -164,8 +164,13 @@ function selectCollection(id: string | null) {
 
 .collection-view-view__content {
   flex: 1;
-  padding-inline-start: 1.5rem;
   min-width: 0;
+}
+
+@media (min-width: 768px) {
+  .collection-view-view__content {
+    padding-inline-start: 1.5rem;
+  }
 }
 
 .collection-view-view__loading {
