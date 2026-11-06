@@ -22,12 +22,12 @@ describe('Main Store Integration', () => {
   })
 
   describe('Data Fetching', () => {
-    it('fetches books and updates count', async () => {
+    it('fetches the books manifest and updates count', async () => {
       const store = useMainStore()
-      const mockData = { totalCount: 100, books: [] }
+      const mockData = { totalCount: 100, pageSize: 500, totalPages: 1, bookCountByLanguage: {} }
       vi.mocked(axios.get).mockResolvedValue({ data: mockData })
 
-      const result = await store.fetchBooks()
+      const result = await store.fetchBooksManifest()
 
       expect(axios.get).toHaveBeenCalledWith('./books.json')
       expect(result).toEqual(mockData)
@@ -134,13 +134,10 @@ describe('Main Store Integration', () => {
     it('sets loading during fetch', async () => {
       const store = useMainStore()
       vi.mocked(axios.get).mockImplementation(
-        () =>
-          new Promise((resolve) =>
-            setTimeout(() => resolve({ data: { totalCount: 0, books: [] } }), 50)
-          )
+        () => new Promise((resolve) => setTimeout(() => resolve({ data: { books: [] } }), 50))
       )
 
-      const promise = store.fetchBooks()
+      const promise = store.fetchBooksPage('popularity', 0)
       expect(store.loading).toBe(true)
 
       await promise
@@ -153,7 +150,7 @@ describe('Main Store Integration', () => {
       const store = useMainStore()
       vi.mocked(axios.get).mockRejectedValue(new Error('Network error'))
 
-      await expect(store.fetchBooks()).rejects.toThrow('Network error')
+      await expect(store.fetchBooksPage('popularity', 0)).rejects.toThrow('Network error')
 
       expect(store.errorMessage).toBe('Network error')
       expect(store.loading).toBe(false)
@@ -163,7 +160,7 @@ describe('Main Store Integration', () => {
       const store = useMainStore()
       vi.mocked(axios.get).mockRejectedValue(new Error(''))
 
-      await expect(store.fetchBooks()).rejects.toThrow()
+      await expect(store.fetchBooksPage('title', 0)).rejects.toThrow()
 
       expect(store.errorMessage).toBe('Failed to load books')
     })
@@ -181,9 +178,9 @@ describe('Main Store Integration', () => {
       const store = useMainStore()
       store.errorMessage = 'Previous error'
 
-      vi.mocked(axios.get).mockResolvedValue({ data: { totalCount: 0, books: [] } })
+      vi.mocked(axios.get).mockResolvedValue({ data: { books: [] } })
 
-      await store.fetchBooks()
+      await store.fetchBooksPage('popularity', 0)
 
       expect(store.errorMessage).toBeNull()
     })
@@ -192,70 +189,83 @@ describe('Main Store Integration', () => {
       const store = useMainStore()
       vi.mocked(axios.get).mockResolvedValue({ data: null })
 
-      await expect(store.fetchBooks()).rejects.toThrow('Empty response from ./books.json')
+      await expect(store.fetchBooksPage('popularity', 0)).rejects.toThrow(
+        'Empty response from ./books-pages/popularity/0.json'
+      )
       expect(store.errorMessage).toContain('Empty response')
     })
   })
 
   describe('Books pagination', () => {
-    it('fetches the manifest and merges every page into one Books result', async () => {
+    it('reads a page from the directory of the sort it belongs to', async () => {
       const store = useMainStore()
       vi.mocked(axios.get).mockImplementation((url) => {
-        if (url === './books.json') {
-          return Promise.resolve({ data: { totalCount: 3, pageSize: 2, totalPages: 2 } })
-        }
-        if (url === './books-pages/0.json') {
+        if (url === './books-pages/author/3.json') {
           return Promise.resolve({ data: { books: [{ id: '1' }, { id: '2' }] } })
-        }
-        if (url === './books-pages/1.json') {
-          return Promise.resolve({ data: { books: [{ id: '3' }] } })
         }
         return Promise.reject(new Error(`Unexpected URL: ${url}`))
       })
 
-      const result = await store.fetchBooks()
-
-      expect(result).toEqual({
-        totalCount: 3,
-        books: [{ id: '1' }, { id: '2' }, { id: '3' }]
-      })
-      expect(store.booksCount).toBe(3)
-      expect(axios.get).toHaveBeenCalledTimes(3)
+      expect(await store.fetchBooksPage('author', 3)).toEqual([{ id: '1' }, { id: '2' }])
+      expect(axios.get).toHaveBeenCalledTimes(1)
     })
 
-    it('fetches no pages when the catalog is empty', async () => {
+    it('caches the manifest and the book count it carries', async () => {
       const store = useMainStore()
       vi.mocked(axios.get).mockResolvedValue({
-        data: { totalCount: 0, pageSize: 500, totalPages: 0 }
+        data: { totalCount: 7, pageSize: 500, totalPages: 1, bookCountByLanguage: { en: 7 } }
       })
 
-      const result = await store.fetchBooks()
+      const manifest = await store.fetchBooksManifest()
+      const again = await store.fetchBooksManifest()
 
-      expect(result).toEqual({ totalCount: 0, books: [] })
+      expect(again).toEqual(manifest)
       expect(axios.get).toHaveBeenCalledTimes(1)
+      expect(store.booksCount).toBe(7)
+    })
+
+    it('caches a page without refetching it', async () => {
+      const store = useMainStore()
+      vi.mocked(axios.get).mockImplementation((url) =>
+        Promise.resolve({
+          data:
+            url === './books-pages/popularity/0.json'
+              ? { books: [{ id: '1' }, { id: '2' }] }
+              : { totalCount: 4, pageSize: 2, totalPages: 2 }
+        })
+      )
+
+      const first = await store.fetchBooksPage('popularity', 0)
+      const second = await store.fetchBooksPage('popularity', 0)
+
+      expect(second).toBe(first)
+      expect(axios.get).toHaveBeenCalledTimes(1)
+    })
+
+    it('keeps the pages of the sort being browsed and drops the others', async () => {
+      const store = useMainStore()
+      vi.mocked(axios.get).mockImplementation((url) =>
+        Promise.resolve({ data: { books: [{ id: url }] } })
+      )
+
+      const firstPopularity = await store.fetchBooksPage('popularity', 0)
+      await store.fetchBooksPage('popularity', 1)
+      expect(await store.fetchBooksPage('popularity', 0)).toBe(firstPopularity)
+      expect(axios.get).toHaveBeenCalledTimes(2)
+
+      await store.fetchBooksPage('title', 0)
+      await store.fetchBooksPage('popularity', 0)
+
+      expect(vi.mocked(axios.get).mock.calls.map(([url]) => url)).toEqual([
+        './books-pages/popularity/0.json',
+        './books-pages/popularity/1.json',
+        './books-pages/title/0.json',
+        './books-pages/popularity/0.json'
+      ])
     })
   })
 
   describe('Response Caching', () => {
-    it('returns cached books without refetching', async () => {
-      const store = useMainStore()
-      vi.mocked(axios.get).mockImplementation((url) => {
-        if (url === './books.json') {
-          return Promise.resolve({ data: { totalCount: 1, pageSize: 500, totalPages: 1 } })
-        }
-        return Promise.resolve({ data: { books: [{ id: '1', title: 'Book 1' }] } })
-      })
-
-      const result1 = await store.fetchBooks()
-      expect(axios.get).toHaveBeenCalledTimes(2) // manifest + one page
-      expect(result1).toEqual({ totalCount: 1, books: [{ id: '1', title: 'Book 1' }] })
-
-      const result2 = await store.fetchBooks()
-      // Should not make further requests
-      expect(axios.get).toHaveBeenCalledTimes(2)
-      expect(result2).toEqual(result1)
-    })
-
     it('returns cached authors without refetching', async () => {
       const store = useMainStore()
       const mockData = { totalCount: 50, authors: [{ id: 'a1', name: 'Author 1' }] }
@@ -297,31 +307,31 @@ describe('Main Store Integration', () => {
   describe('Request Deduplication', () => {
     it('deduplicates identical concurrent requests', async () => {
       const store = useMainStore()
-      const mockData = { totalCount: 0, books: [] }
+      const mockData = { books: [{ id: '1' }] }
       vi.mocked(axios.get).mockResolvedValue({ data: mockData })
 
       const [result1, result2, result3] = await Promise.all([
-        store.fetchBooks(),
-        store.fetchBooks(),
-        store.fetchBooks()
+        store.fetchBooksPage('popularity', 0),
+        store.fetchBooksPage('popularity', 0),
+        store.fetchBooksPage('popularity', 0)
       ])
 
       expect(axios.get).toHaveBeenCalledTimes(1)
-      expect(result1).toEqual(mockData)
-      expect(result2).toEqual(mockData)
-      expect(result3).toEqual(mockData)
+      expect(result1).toEqual(mockData.books)
+      expect(result2).toBe(result1)
+      expect(result3).toBe(result1)
     })
 
     it('allows different requests concurrently', async () => {
       const store = useMainStore()
       vi.mocked(axios.get).mockImplementation((url) => {
-        if (url === './books.json') {
-          return Promise.resolve({ data: { totalCount: 0, books: [] } })
+        if (url.startsWith('./books-pages/')) {
+          return Promise.resolve({ data: { books: [] } })
         }
         return Promise.resolve({ data: { totalCount: 0, authors: [] } })
       })
 
-      await Promise.all([store.fetchBooks(), store.fetchAuthors()])
+      await Promise.all([store.fetchBooksPage('popularity', 0), store.fetchAuthors()])
 
       expect(axios.get).toHaveBeenCalledTimes(2)
     })

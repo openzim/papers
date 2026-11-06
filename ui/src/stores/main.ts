@@ -2,15 +2,16 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import axios from 'axios'
 import type {
-  Books,
   BooksManifest,
   BooksPage,
   Book,
+  BookPreview,
   Authors,
   AuthorDetail,
   Collections,
   Collection,
-  Config
+  Config,
+  SortOption
 } from '@/types'
 
 export const useMainStore = defineStore('main', () => {
@@ -31,7 +32,9 @@ export const useMainStore = defineStore('main', () => {
   const selectedLanguage = ref<string | null>(null)
 
   // Cached list data to avoid refetching across views
-  const books = ref<Books | null>(null)
+  const bookPages = new Map<number, BookPreview[]>()
+  let cachedSort: SortOption | null = null
+  const booksManifest = ref<BooksManifest | null>(null)
   const authors = ref<Authors | null>(null)
   const collections = ref<Collections | null>(null)
 
@@ -88,27 +91,32 @@ export const useMainStore = defineStore('main', () => {
     return result
   }
 
-  async function fetchBooks(): Promise<Books> {
-    if (books.value) {
-      return books.value
+  async function fetchBooksManifest(): Promise<BooksManifest> {
+    if (booksManifest.value) {
+      return booksManifest.value
     }
-    // books.json has no natural per-entity split (unlike authors/collections,
-    // one file per id), so the catalog is chunked into books-pages/{page}.json;
-    // fetch the manifest, then every page, and merge into the Books shape
-    // every caller already expects.
-    const manifest = await fetchData<BooksManifest>('./books.json', 'Failed to load books')
-    const pages = await Promise.all(
-      Array.from({ length: manifest.totalPages }, (_, page) =>
-        fetchData<BooksPage>(`./books-pages/${page}.json`, 'Failed to load books')
-      )
+    booksManifest.value = await fetchData<BooksManifest>('./books.json', 'Failed to load books')
+    booksCount.value = booksManifest.value.totalCount
+    return booksManifest.value
+  }
+
+  // books-pages holds one page set per sort option value. Only the set being
+  // browsed is kept; switching sort drops the previous one from memory.
+  async function fetchBooksPage(sort: SortOption, page: number): Promise<BookPreview[]> {
+    if (cachedSort !== sort) {
+      bookPages.clear()
+      cachedSort = sort
+    }
+    const cached = bookPages.get(page)
+    if (cached) {
+      return cached
+    }
+    const result = await fetchData<BooksPage>(
+      `./books-pages/${sort}/${page}.json`,
+      'Failed to load books'
     )
-    const result: Books = {
-      books: pages.flatMap((page) => page.books),
-      totalCount: manifest.totalCount
-    }
-    booksCount.value = result.totalCount
-    books.value = result
-    return result
+    bookPages.set(page, result.books)
+    return result.books
   }
 
   function fetchBook(id: string) {
@@ -171,7 +179,8 @@ export const useMainStore = defineStore('main', () => {
     booksCount,
     authorsCount,
     collectionsCount,
-    fetchBooks,
+    fetchBooksManifest,
+    fetchBooksPage,
     fetchBook,
     fetchAuthors,
     fetchAuthor,

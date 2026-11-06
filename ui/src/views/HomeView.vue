@@ -10,6 +10,7 @@ import SelectedBooksSection from '@/components/home/SelectedBooksSection.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import { useHasPopularity } from '@/composables/useHasPopularity'
 import { useHasMultipleCollections } from '@/composables/useHasMultipleCollections'
+import { useBooksWindow } from '@/composables/useBooksWindow'
 import { useLanguageFilter } from '@/composables/useLanguageFilter'
 import { matchesLanguage, withLanguageCounts } from '@/utils/language-filter'
 import { LAYOUT } from '@/constants/theme'
@@ -30,12 +31,7 @@ const collectionBooksLoading = ref(false)
 const authors = ref<AuthorPreview[]>([])
 const authorsLoading = ref(false)
 
-const books = ref<BookPreview[]>([])
-const booksLoading = ref(false)
-
-const filteredBooks = computed(() =>
-  books.value.filter((book) => matchesLanguage(book.languages, selectedLanguage.value))
-)
+const { books, loading: booksLoading, load: loadBooks } = useBooksWindow()
 
 const filteredCollectionBooks = computed(() =>
   collectionBooks.value.filter((book) => matchesLanguage(book.languages, selectedLanguage.value))
@@ -99,19 +95,6 @@ async function loadAuthors() {
   }
 }
 
-async function loadBooks() {
-  booksLoading.value = true
-  try {
-    const result = await main.fetchBooks()
-    books.value = result.books
-  } catch (error) {
-    console.error('Failed to load books', error)
-    books.value = []
-  } finally {
-    booksLoading.value = false
-  }
-}
-
 watch(activeCollectionId, (newCode) => {
   if (newCode) {
     loadCollectionBooks(newCode)
@@ -168,16 +151,10 @@ onMounted(() => {
         v-if="!authorsLoading && popularAuthors.length > 0"
         :authors="popularAuthors"
       />
-      <selected-books-section
-        v-if="!booksLoading && filteredBooks.length > 0"
-        :books="filteredBooks"
-      />
+      <selected-books-section v-if="!booksLoading && books.length > 0" :books="books" />
     </template>
     <template v-else>
-      <selected-books-section
-        v-if="!booksLoading && filteredBooks.length > 0"
-        :books="filteredBooks"
-      />
+      <selected-books-section v-if="!booksLoading && books.length > 0" :books="books" />
       <selected-authors-carousel
         v-if="!authorsLoading && popularAuthors.length > 0"
         :authors="popularAuthors"

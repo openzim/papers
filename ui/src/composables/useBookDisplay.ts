@@ -1,5 +1,6 @@
 import { ref, computed, watch, nextTick, onMounted, onUnmounted, type Ref } from 'vue'
 import type { BookPreview, SortOption, SortOrder } from '@/types'
+import type { CatalogWindow, SortState } from '@/composables/useBooksWindow'
 import { useInfiniteScroll } from './useInfiniteScroll'
 import { useSorting, type SortConfig } from './useSorting'
 import { useHasPopularity } from './useHasPopularity'
@@ -21,14 +22,25 @@ const sortOptions: SortConfig<BookPreview>[] = [
   }
 ]
 
-export function useBookDisplay(books: Ref<BookPreview[]>) {
+/**
+ * Sort state comes from `sort` when the caller keeps it (the catalog window
+ * does, so a reader's choice outlives the spinner shown while a different
+ * page set loads). Lists without a catalog own their choice here instead.
+ */
+export function useBookDisplay(
+  books: Ref<BookPreview[]>,
+  catalog?: CatalogWindow,
+  sort?: SortState
+) {
   const hasPopularity = useHasPopularity()
-  const sortBy = ref<SortOption>(hasPopularity.value ? 'popularity' : 'title')
-  const sortOrder = ref<SortOrder>(hasPopularity.value ? 'desc' : 'asc')
+  const ownSort = ref<SortOption>(hasPopularity.value ? 'popularity' : 'title')
+  const ownSortOrder = ref<SortOrder>(hasPopularity.value ? 'desc' : 'asc')
+  const sortBy = sort?.sortBy ?? ownSort
+  const sortOrder = sort?.sortOrder ?? ownSortOrder
   const viewMode = ref<'grid' | 'list'>('grid')
 
   watch(hasPopularity, (available) => {
-    if (!available) {
+    if (!available && !sort) {
       sortBy.value = 'title'
       sortOrder.value = 'asc'
     }
@@ -41,10 +53,22 @@ export function useBookDisplay(books: Ref<BookPreview[]>) {
   // Infinite scroll
   const {
     displayedItems: displayedBooks,
-    hasMore: infiniteHasMore,
-    loadMore: infiniteLoadMore,
+    hasMore: hasMoreDisplayed,
+    loadMore: loadMoreDisplayed,
     reset: infiniteReset
-  } = useInfiniteScroll(() => sortedBooks.value, DEFAULT_BATCH_SIZE)
+  } = useInfiniteScroll(() => sortedBooks.value, DEFAULT_BATCH_SIZE, { resetOnItemsChange: false })
+
+  const hasMoreBooks = computed(() => hasMoreDisplayed.value || (catalog?.hasMore() ?? false))
+
+  const catalogTotal = computed(() => (catalog ? catalog.total() : sortedBooks.value.length))
+
+  async function loadMoreBooks(): Promise<void> {
+    if (hasMoreDisplayed.value) {
+      loadMoreDisplayed()
+      return
+    }
+    await catalog?.loadMore()
+  }
 
   const displayedRange = computed(() => `1-${sortedBooks.value.length}`)
 
@@ -58,8 +82,8 @@ export function useBookDisplay(books: Ref<BookPreview[]>) {
     nextTick(() => {
       observer = new IntersectionObserver(
         (entries) => {
-          if (entries[0]?.isIntersecting && infiniteHasMore.value) {
-            infiniteLoadMore()
+          if (entries[0]?.isIntersecting && hasMoreBooks.value) {
+            void loadMoreBooks()
           }
         },
         { rootMargin: '100px' }
@@ -74,7 +98,18 @@ export function useBookDisplay(books: Ref<BookPreview[]>) {
     infiniteReset()
     setupObserver()
   })
-  watch(() => books.value.length, setupObserver)
+
+  let sourceLength = books.value.length
+  watch(
+    () => books.value.length,
+    (length) => {
+      if (length < sourceLength) {
+        infiniteReset()
+      }
+      sourceLength = length
+      setupObserver()
+    }
+  )
 
   onMounted(setupObserver)
   onUnmounted(() => {
@@ -94,9 +129,10 @@ export function useBookDisplay(books: Ref<BookPreview[]>) {
     sortedBooks,
     displayedBooks,
     displayedRange,
+    catalogTotal,
 
     // Infinite scroll
-    infiniteHasMore,
+    hasMoreBooks,
     sentinelRef,
     setupObserver
   }

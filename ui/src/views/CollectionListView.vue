@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useMainStore } from '@/stores/main'
@@ -10,6 +10,7 @@ import CollectionSidebar from '@/components/collection/CollectionSidebar.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import { useListLoader } from '@/composables/useListLoader'
+import { useBooksWindow } from '@/composables/useBooksWindow'
 import { useLanguageFilter } from '@/composables/useLanguageFilter'
 import { matchesLanguage, withLanguageCounts } from '@/utils/language-filter'
 import { LAYOUT } from '@/constants/theme'
@@ -31,11 +32,6 @@ const {
 )
 
 loadCollections()
-const totalBooks = ref(0)
-
-const sidebarCollections = computed(() =>
-  withLanguageCounts(collections.value, selectedLanguage.value)
-)
 
 const activeCollectionId = computed(() => {
   const id = route.query.collection as string | undefined
@@ -45,28 +41,42 @@ const collectionIconStyle = computed(
   () => main.config?.theme.collectionIconStyle || 'classification'
 )
 
+const {
+  books: catalogBooks,
+  loading: catalogLoading,
+  catalog,
+  sort,
+  load: loadCatalog,
+  loadCounts
+} = useBooksWindow(() => activeCollectionId.value === null)
+
 const collectionBooks = ref<BookPreview[]>([])
-const collectionBooksLoading = ref(false)
+const booksLoading = ref(false)
 
-async function loadCollectionBooks(id: string | null) {
-  collectionBooksLoading.value = true
-  try {
-    const allBooks = await main.fetchBooks()
-    if (activeCollectionId.value !== id) return
-    totalBooks.value = allBooks.books.filter((book) =>
-      matchesLanguage(book.languages, selectedLanguage.value)
-    ).length
+const sidebarCollections = computed(() =>
+  withLanguageCounts(collections.value, selectedLanguage.value)
+)
 
-    if (!id) {
-      collectionBooks.value = allBooks.books.filter((book) =>
+const totalBooks = computed(() => catalog.total())
+
+const filteredCollectionBooks = computed(() =>
+  selectedLanguage.value === null
+    ? collectionBooks.value
+    : collectionBooks.value.filter((book) =>
         matchesLanguage(book.languages, selectedLanguage.value)
       )
-    } else {
+)
+
+async function loadBooks(id: string | null) {
+  booksLoading.value = true
+  try {
+    if (id) {
+      await loadCounts()
       const collection = await main.fetchCollection(id)
       if (activeCollectionId.value !== id) return
-      collectionBooks.value = collection.books.filter((book) =>
-        matchesLanguage(book.languages, selectedLanguage.value)
-      )
+      collectionBooks.value = collection.books
+    } else {
+      await loadCatalog()
     }
   } catch {
     if (activeCollectionId.value === id) {
@@ -74,12 +84,12 @@ async function loadCollectionBooks(id: string | null) {
     }
   } finally {
     if (activeCollectionId.value === id) {
-      collectionBooksLoading.value = false
+      booksLoading.value = false
     }
   }
 }
 
-watch([activeCollectionId, selectedLanguage], () => loadCollectionBooks(activeCollectionId.value), {
+watch([activeCollectionId, selectedLanguage], () => loadBooks(activeCollectionId.value), {
   immediate: true
 })
 
@@ -104,21 +114,35 @@ function selectCollection(id: string | null) {
 
       <div class="collection-view-view__content">
         <div
-          v-if="collectionsLoading || collectionBooksLoading"
+          v-if="collectionsLoading || booksLoading || catalogLoading"
           class="collection-view-view__loading"
         >
           <loading-spinner :message="t('common.loading')" />
         </div>
 
-        <book-display
-          v-else-if="collectionBooks.length > 0"
-          :books="collectionBooks"
-          :columns="4"
-          variant="wide"
-          type="books"
-        />
+        <template v-else-if="activeCollectionId">
+          <book-display
+            v-if="filteredCollectionBooks.length > 0"
+            :books="filteredCollectionBooks"
+            :columns="4"
+            variant="wide"
+            type="books"
+          />
+          <empty-state v-else :message="t(MESSAGES.NO_BOOKS)" type="info" />
+        </template>
 
-        <empty-state v-else :message="t(MESSAGES.NO_BOOKS)" type="info" />
+        <template v-else>
+          <book-display
+            v-if="catalogBooks.length > 0"
+            :books="catalogBooks"
+            :catalog="catalog"
+            :sort="sort"
+            :columns="4"
+            variant="wide"
+            type="books"
+          />
+          <empty-state v-else :message="t(MESSAGES.NO_BOOKS)" type="info" />
+        </template>
       </div>
     </div>
 

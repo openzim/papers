@@ -101,13 +101,22 @@ class BooksManifest(CamelModel):
 
     The catalog itself (unlike collections/authors, which are naturally
     split one-file-per-id) has no per-entity split, so it's chunked into
-    `books-pages/{page}.json` files of `page_size` BookPreview each; this
-    manifest tells the UI how many pages to fetch.
+    `books-pages/{order}/{page}.json` files of `page_size` BookPreview each;
+    this manifest tells the UI how many pages to fetch, per `order`.
+
+    One set of pages exists per sort criterion the UI offers (`popularity`,
+    `title`, `author`), each cut in the direction the UI sorts it by default.
+    A prefix of the set a reader is on is therefore what a fully-loaded
+    catalog would have shown them first, for any sort, without the UI loading
+    the catalog at all. `book_count_by_language` lets it state a language's
+    book count without merging every page, counting a multilingual book under
+    each of its languages.
     """
 
     total_count: int
     page_size: int
     total_pages: int
+    book_count_by_language: dict[str, int] = {}
 
 
 class BooksPage(CamelModel):
