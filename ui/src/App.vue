@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useMainStore } from '@/stores/main'
 import { useTheme } from '@/composables/useTheme'
+import { useLanguageFilter } from '@/composables/useLanguageFilter'
 import { LAYOUT } from '@/constants/theme'
 
 import AppHeader from '@/components/layout/AppHeader.vue'
@@ -15,6 +16,7 @@ import LanguageFilterControl from '@/components/common/LanguageFilterControl.vue
 const { t } = useI18n()
 const route = useRoute()
 const main = useMainStore()
+const { showLanguageFilter } = useLanguageFilter()
 useTheme()
 
 const breadcrumbItems = computed(() => {
@@ -99,7 +101,7 @@ watch(
     <div v-if="showBreadcrumbs" class="app-breadcrumbs-wrapper">
       <div class="app-breadcrumbs-inner">
         <breadcrumbs :items="breadcrumbItems" />
-        <language-filter-control v-if="(main.config?.bookLanguages.length ?? 0) > 1" />
+        <language-filter-control v-if="showLanguageFilter" />
       </div>
     </div>
 
