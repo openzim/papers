@@ -113,13 +113,11 @@ class GutenbergPipeline(Pipeline):
                 _zim_name=self.zim_name,
                 _title_search=self.title_search,
             )
-            # the HTML is always downloaded and stored, requested or not
-            index_formats = {"html", *requested_formats(work, self.formats)}
             self.add_book_search_item(
                 work,
                 {
                     fmt: book_content.files[fname_for(work, fmt)]
-                    for fmt in index_formats
+                    for fmt in requested_formats(work, self.formats)
                     if fname_for(work, fmt) in book_content.files
                 },
             )

@@ -129,10 +129,6 @@ def download_book(
     # apply filters (copy to avoid mutating caller's list or the global ALL_FORMATS)
     requested = list(formats or ALL_FORMATS)
 
-    # HTML is our base for ZIM so add it if not present
-    if "html" not in requested:
-        requested.append("html")
-
     book_content = BookContent(work=work)
     resolver = GutenbergFormatResolver(mirror_url)
     unsupported_formats = work.extra.setdefault("unsupported_formats", [])

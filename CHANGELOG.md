@@ -29,6 +29,7 @@ as of 2.0.0.
 ### Changed
 
 - UI: when `--languages` is passed, the language filter is hidden if a single language was requested, and otherwise only lists the requested languages, even if some books also carry other languages (#148)
+- Gutenberg: do not force HTML format when other formats are requested (#152)
 - Gutenberg: scrape only the catalog entries typed `Text`. The dump also lists ~1250 audio recordings, images and datasets whose info page is all the mirror has; they used to be downloaded, fail in every format, and be dropped again with 1128 "could not be downloaded in any format" warnings in every run's log (#129)
 - UI: upgrade to Vuetify 4, migrating to the Material Design 3 typography classes, grid alignment utility classes, and restoring the CSS reset the new version dropped (#26)
 - UI: replace book grid borders with rounded card backgrounds, highlighted on hover, in book grid, book list, book carousel and author carousel (#61, #82)
