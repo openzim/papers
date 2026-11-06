@@ -46,6 +46,7 @@ as of 2.0.0.
 
 ### Fixed
 
+- UI: fix contrast in the EPUB reader table of contents pane in light mode (#158)
 - Fix the HTML reader's book-information icon showing an exclamation mark instead of an "i" (#147)
 - UI: cap the book-language filter dropdown's height with a scrollbar instead of letting it grow unbounded, and add the same type-to-filter search box the interface-language switcher already had (#145)
 - Gutenberg: stop a corrupted book file (an HTML error page served with a 200 status, a truncated transfer) from dropping the whole book. Downloaded EPUB/PDF content is validated before it is stored, an unreadable EPUB costs its format instead of the book, and a readable EPUB that cannot be optimized is kept unoptimized instead of re-raising into the pipeline's generic handler (#135)
