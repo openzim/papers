@@ -7,10 +7,15 @@ source-agnostic `MetadataPort` interface.
 import re
 from collections.abc import Iterable
 
+import requests
 from bs4 import BeautifulSoup, Tag
 
 from papers2zim.constants import logger
-from papers2zim.core.download_engine import DownloadEngine, fetch_bytes_with_retry
+from papers2zim.core.download_engine import (
+    DownloadEngine,
+    fetch_bytes_with_retry,
+    is_fatal_http_error,
+)
 from papers2zim.core.models import CollectionRef, Cover, Creator, Work
 from papers2zim.core.ports import DownloadRequest, MetadataPort, WorkRef
 from papers2zim.core.utils import normalize
@@ -333,27 +338,38 @@ def fetch_book_metadata(
             a plain in-memory fetch.
 
     Returns:
-        Work if successful, None only for expected unusable books
-        (no license, no title, etc.)
+        Work if successful, None for expected unusable books (no license, no
+        title, ...) and for books whose RDF this mirror does not have
 
     Raises:
-        requests.RequestException: If RDF download fails (retries handled by caller)
+        requests.RequestException: If the RDF download fails for a reason other
+            than this mirror not having the file (retries handled by the
+            download itself)
         RdfParseError: If RDF parsing fails
     """
     rdf_url = f"{mirror_url}/cache/epub/{book_id}/pg{book_id}.rdf"
 
     logger.debug(f"Downloading RDF for book {book_id} from {rdf_url}")
 
-    if engine is not None and engine.cache_enabled:
-        # cached on disk by URL hash; cache hits return without any HTTP call
-        rdf_data = engine.download(
-            DownloadRequest(url=rdf_url, format_name="rdf")
-        ).path.read_bytes()
-    elif engine is not None:
-        rdf_data = engine.fetch_bytes(rdf_url)
-    else:
-        # Plain fetch (no disk cache); retry is per-download, errors bubble up
-        rdf_data = fetch_bytes_with_retry(rdf_url)
+    try:
+        if engine is not None and engine.cache_enabled:
+            # cached on disk by URL hash; cache hits return without any HTTP call
+            rdf_data = engine.download(
+                DownloadRequest(url=rdf_url, format_name="rdf")
+            ).path.read_bytes()
+        elif engine is not None:
+            rdf_data = engine.fetch_bytes(rdf_url)
+        else:
+            # Plain fetch (no disk cache); retry is per-download, errors bubble up
+            rdf_data = fetch_bytes_with_retry(rdf_url)
+    except requests.RequestException as exc:
+        if exc.response is None or not is_fatal_http_error(exc):
+            raise
+        logger.warning(
+            f"\tNo RDF for book {book_id} on {mirror_url} "
+            f"(HTTP {exc.response.status_code}), skipping book"
+        )
+        return None
 
     parser = RdfParser(rdf_data, str(book_id)).parse()
 
