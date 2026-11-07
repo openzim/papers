@@ -211,6 +211,28 @@ def test_discover_ignores_unknown_acquisition_media_types():
     assert [name for name, _mt, _url in ref.extra["formats"]] == ["epub"]
 
 
+def test_discover_ignores_mobi_links():
+    catalog, _ = _catalog(
+        _feed(
+            _entry("First_Book", "First Book", mobi=True),
+            _entry("Second_Book", "Second Book", epub=False, mobi=True),
+        )
+    )
+
+    refs = list(catalog.discover(CatalogFilters(languages=["en"])))
+
+    # mobi can never be requested, so a mobi-only entry has nothing to download
+    assert len(refs) == 1
+    assert [name for name, _mt, _url in refs[0].extra["formats"]] == ["epub"]
+
+
+def test_discover_error_does_not_offer_mobi():
+    catalog, _ = _catalog(_feed(_entry("First_Book", "First Book", mobi=True)))
+
+    with pytest.raises(CriticalError, match=r"ws-export offers: epub\.$"):
+        list(catalog.discover(CatalogFilters(languages=["en"], formats=["html"])))
+
+
 def test_discover_selects_by_catalog_position():
     catalog, _ = _catalog(
         _feed(
