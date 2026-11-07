@@ -29,7 +29,6 @@ BASE_URL = "https://ws-export.wmcloud.org"
 # OPDS acquisition media type -> the format name used across the pipeline.
 FORMAT_BY_MEDIA_TYPE = {
     "application/epub+zip": "epub",
-    "application/x-mobipocket-ebook": "mobi",
 }
 
 ACQUISITION_REL = "http://opds-spec.org/acquisition"
