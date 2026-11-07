@@ -61,6 +61,7 @@ as of 2.0.0.
 
 - Promote Wikisource `issued` to standard `published` metadata (#10)
 - Wikisource: stop offering the withdrawn `xhtml` format, and fail early when a requested format is not offered by ws-export (#11)
+- Wikisource: stop offering the `mobi` format, which could never be requested or downloaded (#12)
 - About page: render the introduction and mission paragraphs a source declares, instead of a fixed number, so a source with no mission no longer prints raw translation keys (#18, #19)
 - Fix UI browser language detection: use all preferred browser languages and stop persisting the auto-detected language (#50)
 - UI: sort collections alphabetically by display name in sidebar (#48)
