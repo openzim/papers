@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch, nextTick } from 'vue'
+import { computed, watch, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { AuthorPreview, AuthorDetail } from '@/types'
 import AuthorCard from './AuthorCard.vue'
@@ -25,38 +25,141 @@ const currentIndex = computed(() =>
   sortedAuthors.value.findIndex((a) => a.id === props.currentAuthor.id)
 )
 
+const BUFFER_BEFORE = 10
+const BUFFER_AFTER = 20
+const BATCH_SIZE = 15
+
+const startIndex = ref(0)
+const endIndex = ref(0)
+
+function resetWindow() {
+  const total = sortedAuthors.value.length
+  if (total === 0) {
+    startIndex.value = 0
+    endIndex.value = 0
+    return
+  }
+  const curr = currentIndex.value >= 0 ? currentIndex.value : 0
+  startIndex.value = Math.max(0, curr - BUFFER_BEFORE)
+  endIndex.value = Math.min(total, curr + BUFFER_AFTER)
+}
+
+const displayedAuthors = computed(() => sortedAuthors.value.slice(startIndex.value, endIndex.value))
+
 const { trackRef, hasPrevious, hasNext, updateScrollState, shiftPrevious, shiftNext } =
   useScrollTrack({
-    cellSelector: '.carousel-cell--others'
+    cellSelector: '.carousel-cell'
   })
 
-// Scroll to current author
-watch(
-  currentIndex,
-  async () => {
-    await nextTick()
-    if (trackRef.value) {
-      const currentCell = trackRef.value.querySelector('.carousel-cell--current') as HTMLElement
-      if (currentCell) {
-        if (isRtl.value) {
-          const track = trackRef.value
-          const offsetFromStart =
-            track.scrollWidth - (currentCell.offsetLeft + currentCell.clientWidth)
-          if (mobile.value) {
-            track.scrollTo({ left: -offsetFromStart })
-          } else {
-            track.scrollTo({
-              left: -Math.max(0, offsetFromStart - currentCell.clientWidth * 2)
-            })
-          }
-        } else if (mobile.value) {
-          trackRef.value.scrollTo({ left: currentCell.offsetLeft })
-        } else {
-          trackRef.value.scrollTo({ left: currentCell.offsetLeft - currentCell.clientWidth * 2 })
-        }
-        updateScrollState()
-      }
+const canGoPrevious = computed(() => hasPrevious.value || startIndex.value > 0)
+const canGoNext = computed(() => hasNext.value || endIndex.value < sortedAuthors.value.length)
+
+let isLoadingPrevious = false
+
+async function loadNext() {
+  if (endIndex.value >= sortedAuthors.value.length) return
+  endIndex.value = Math.min(sortedAuthors.value.length, endIndex.value + BATCH_SIZE)
+  await nextTick()
+  updateScrollState()
+}
+
+async function loadPrevious() {
+  if (startIndex.value <= 0 || isLoadingPrevious) return
+  isLoadingPrevious = true
+  const track = trackRef.value
+  const prevScrollWidth = track ? track.scrollWidth : 0
+  const prevScrollLeft = track ? track.scrollLeft : 0
+
+  startIndex.value = Math.max(0, startIndex.value - BATCH_SIZE)
+  await nextTick()
+
+  if (track) {
+    const diff = track.scrollWidth - prevScrollWidth
+    if (diff > 0) {
+      track.scrollLeft = isRtl.value ? prevScrollLeft - diff : prevScrollLeft + diff
     }
+    updateScrollState()
+  }
+  isLoadingPrevious = false
+}
+
+async function checkAndLoadMore() {
+  const track = trackRef.value
+  if (!track) return
+
+  const maxScroll = track.scrollWidth - track.clientWidth
+  const scrollFromStart = isRtl.value ? Math.abs(track.scrollLeft) : track.scrollLeft
+  const scrollFromEnd = maxScroll - scrollFromStart
+
+  if (scrollFromEnd <= 400) {
+    await loadNext()
+  }
+
+  if (scrollFromStart <= 400) {
+    await loadPrevious()
+  }
+}
+
+function onTrackScroll() {
+  updateScrollState()
+  checkAndLoadMore()
+}
+
+async function handleShiftPrevious() {
+  const track = trackRef.value
+  if (track) {
+    const scrollFromStart = isRtl.value ? Math.abs(track.scrollLeft) : track.scrollLeft
+    if (scrollFromStart <= 100) {
+      await loadPrevious()
+    }
+  }
+  shiftPrevious()
+}
+
+async function handleShiftNext() {
+  const track = trackRef.value
+  if (track) {
+    const maxScroll = track.scrollWidth - track.clientWidth
+    const scrollFromStart = isRtl.value ? Math.abs(track.scrollLeft) : track.scrollLeft
+    const scrollFromEnd = maxScroll - scrollFromStart
+    if (scrollFromEnd <= 200) {
+      await loadNext()
+    }
+  }
+  shiftNext()
+}
+
+async function scrollToCurrentAuthor() {
+  await nextTick()
+  if (trackRef.value) {
+    const currentCell = trackRef.value.querySelector('.carousel-cell--current') as HTMLElement
+    if (currentCell) {
+      if (isRtl.value) {
+        const track = trackRef.value
+        const offsetFromStart =
+          track.scrollWidth - (currentCell.offsetLeft + currentCell.clientWidth)
+        if (mobile.value) {
+          track.scrollTo?.({ left: -offsetFromStart })
+        } else {
+          track.scrollTo?.({
+            left: -Math.max(0, offsetFromStart - currentCell.clientWidth * 2)
+          })
+        }
+      } else if (mobile.value) {
+        trackRef.value.scrollTo?.({ left: currentCell.offsetLeft })
+      } else {
+        trackRef.value.scrollTo?.({ left: currentCell.offsetLeft - currentCell.clientWidth * 2 })
+      }
+      updateScrollState()
+    }
+  }
+}
+
+watch(
+  [() => props.currentAuthor.id, () => sortedAuthors.value.length],
+  async () => {
+    resetWindow()
+    await scrollToCurrentAuthor()
   },
   { immediate: true }
 )
@@ -68,15 +171,15 @@ watch(
       <div class="carousel-arrow-wrapper carousel-arrow-wrapper--left" v-if="!mobile">
         <carousel-arrow
           direction="prev"
-          :disabled="!hasPrevious"
+          :disabled="!canGoPrevious"
           :ariaLabel="t('common.previous')"
-          @click="shiftPrevious"
+          @click="handleShiftPrevious"
         />
       </div>
 
       <div class="carousel-track-wrapper">
-        <div ref="trackRef" class="carousel-track" @scroll.passive="updateScrollState">
-          <template v-for="author in sortedAuthors" :key="author.id">
+        <div ref="trackRef" class="carousel-track" @scroll.passive="onTrackScroll">
+          <template v-for="author in displayedAuthors" :key="author.id">
             <div
               class="carousel-cell"
               :class="{ 'carousel-cell--current': author.id === currentAuthor.id }"
@@ -95,9 +198,9 @@ watch(
       <div class="carousel-arrow-wrapper carousel-arrow-wrapper--right" v-if="!mobile">
         <carousel-arrow
           direction="next"
-          :disabled="!hasNext"
+          :disabled="!canGoNext"
           :ariaLabel="t('common.next')"
-          @click="shiftNext"
+          @click="handleShiftNext"
         />
       </div>
     </div>
@@ -137,6 +240,7 @@ watch(
   width: 100%;
   align-items: stretch;
   overflow-x: auto;
+  overflow-anchor: none;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
