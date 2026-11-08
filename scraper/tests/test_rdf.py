@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock
 
 import pytest
+import requests
 
 from papers2zim.core.download_engine import DownloadEngine
 from papers2zim.sources.gutenberg.metadata import (
@@ -618,3 +619,54 @@ def test_fetch_book_metadata_caches_rdf_on_disk(tmp_path):
     assert work2 is not None
     assert work2.id == work.id
     session.get.assert_not_called()
+
+
+def _rdf_error_response(status_code: int) -> MagicMock:
+    response = MagicMock(name="response")
+    response.__enter__.return_value = response
+    response.status_code = status_code
+    response.raise_for_status.side_effect = requests.HTTPError(response=response)
+    return response
+
+
+@pytest.mark.parametrize("with_disk_cache", [False, True])
+def test_fetch_book_metadata_skips_book_when_mirror_has_no_rdf(
+    with_disk_cache, tmp_path
+):
+    """A mirror serving no RDF for a book is the routine gap a missing format
+    already is: the book is dropped instead of raising into the per-book safety
+    net, which reports it as a fatal error with a traceback."""
+    session = MagicMock(name="session")
+    session.get.return_value = _rdf_error_response(404)
+    engine = DownloadEngine(
+        cache_dir=tmp_path / "cache" if with_disk_cache else None, session=session
+    )
+
+    assert (
+        fetch_book_metadata(43931, "https://mirror.example.org", engine=engine) is None
+    )
+
+
+def test_fetch_book_metadata_skips_book_without_engine_when_mirror_has_no_rdf(
+    monkeypatch,
+):
+    """Same skip on the session-less fetch used when the caller passes no engine."""
+    monkeypatch.setattr(
+        requests, "get", MagicMock(return_value=_rdf_error_response(404))
+    )
+
+    assert fetch_book_metadata(43931, "https://mirror.example.org") is None
+
+
+def test_fetch_book_metadata_raises_when_rdf_failure_is_not_a_missing_book():
+    """A failure that does not say "this mirror has no such book" stays an
+    exception, so the run still reports it with its traceback."""
+    session = MagicMock(name="session")
+    session.get.return_value = _rdf_error_response(500)
+
+    with pytest.raises(requests.HTTPError):
+        fetch_book_metadata(
+            43931,
+            "https://mirror.example.org",
+            engine=DownloadEngine(session=session, max_retry_time=1),
+        )
