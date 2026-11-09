@@ -12,16 +12,16 @@ dependencies = [
   "Babel==2.18.0",
   "lxml==6.1.3",
   "docopt==0.6.2",
-  "chardet==7.6.0",
-  "apsw==3.53.4.0",
+  "chardet==7.7.0",
+  "apsw==3.54.1.0",
   "requests==2.34.2",
-  "kiwixstorage==0.10.1",
-  "zimscraperlib==5.5.1",
+  "kiwixstorage==0.11.0",
+  "zimscraperlib==5.5.2",
   "schedule==1.2.2",
   "backoff==2.2.1",
   "i18nice==0.16.0",
-  "pydantic==2.13.5",
-  "PyMuPDF==1.28.2",
+  "pydantic==2.14.3",
+  "pymupdf-lite==2.1",
 ]
 dynamic = [
   "authors",
@@ -35,14 +35,14 @@ dynamic = [
 
 [project.optional-dependencies]
 scripts = ["invoke==3.0.3"]
-lint = ["black==26.5.1", "ruff==0.16.8"]
+lint = ["black==26.10.1", "ruff==0.17.4"]
 check = ["pyright==1.1.414"]
-test = ["pytest==9.1.1", "coverage==7.16.1"]
+test = ["pytest==9.2.0", "coverage==7.17.2"]
 dev = [
-  "pre-commit==4.6.2",
+  "pre-commit==4.7.0",
   "debugpy==1.8.22",
   "ipdb==0.13.13",
-  "ipython==9.17.1",
+  "ipython==9.18.1",
   "papers2zim[scripts]",
   "papers2zim[lint]",
   "papers2zim[test]",
