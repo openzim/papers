@@ -1,0 +1,108 @@
+diff --git a/node_modules/foliate-js/fixed-layout.js b/node_modules/foliate-js/fixed-layout.js
+index b648a0d..cfd438d 100644
+--- a/node_modules/foliate-js/fixed-layout.js
++++ b/node_modules/foliate-js/fixed-layout.js
+@@ -89,20 +89,20 @@ export class FixedLayout extends HTMLElement {
+         iframe.setAttribute('part', 'filter')
+         this.#root.append(element)
+         if (!src) return { blank: true, element, iframe }
+-        return new Promise(resolve => {
+-            iframe.addEventListener('load', () => {
+-                const doc = iframe.contentDocument
+-                this.dispatchEvent(new CustomEvent('load', { detail: { doc, index } }))
+-                const { width, height } = getViewport(doc, this.defaultViewport)
+-                resolve({
+-                    element, iframe,
+-                    width: parseFloat(width),
+-                    height: parseFloat(height),
+-                    onZoom,
+-                })
+-            }, { once: true })
+-            iframe.src = src
+-        })
++        // PATCHED: see paginator.js `load()` for why this avoids `iframe.src =`.
++        const html = await fetch(src).then(res => res.text())
++        const doc = iframe.contentDocument
++        doc.open()
++        doc.write(html)
++        doc.close()
++        this.dispatchEvent(new CustomEvent('load', { detail: { doc, index } }))
++        const { width, height } = getViewport(doc, this.defaultViewport)
++        return {
++            element, iframe,
++            width: parseFloat(width),
++            height: parseFloat(height),
++            onZoom,
++        }
+     }
+     #render(side = this.#side) {
+         if (!side) return
+diff --git a/node_modules/foliate-js/paginator.js b/node_modules/foliate-js/paginator.js
+index 95c4d0d..eb10cd2 100644
+--- a/node_modules/foliate-js/paginator.js
++++ b/node_modules/foliate-js/paginator.js
+@@ -242,37 +242,37 @@ class View {
+     }
+     async load(src, afterLoad, beforeRender) {
+         if (typeof src !== 'string') throw new Error(`${src} is not string`)
+-        return new Promise(resolve => {
+-            this.#iframe.addEventListener('load', () => {
+-                const doc = this.document
+-                afterLoad?.(doc)
++        // PATCHED: avoid navigating the iframe to the blob: URL (`src=`),
++        // which some embedding webviews treat as an external-open request.
++        // Writing into the already-open document is not a navigation.
++        const html = await fetch(src).then(res => res.text())
++        const doc = this.#iframe.contentDocument
++        doc.open()
++        doc.write(html)
++        doc.close()
++        afterLoad?.(doc)
+ 
+-                // it needs to be visible for Firefox to get computed style
+-                this.#iframe.style.display = 'block'
+-                const { vertical, rtl } = getDirection(doc)
+-                this.docBackground = getBackground(doc)
+-                doc.body.style.background = 'none'
+-                const background = this.docBackground
+-                this.#iframe.style.display = 'none'
++        // it needs to be visible for Firefox to get computed style
++        this.#iframe.style.display = 'block'
++        const { vertical, rtl } = getDirection(doc)
++        this.docBackground = getBackground(doc)
++        doc.body.style.background = 'none'
++        const background = this.docBackground
++        this.#iframe.style.display = 'none'
+ 
+-                this.#vertical = vertical
+-                this.#rtl = rtl
+-
+-                this.#contentRange.selectNodeContents(doc.body)
+-                const layout = beforeRender?.({ vertical, rtl, background })
+-                this.#iframe.style.display = 'block'
+-                this.render(layout)
+-                this.#observer.observe(doc.body)
++        this.#vertical = vertical
++        this.#rtl = rtl
+ 
+-                // the resize observer above doesn't work in Firefox
+-                // (see https://bugzilla.mozilla.org/show_bug.cgi?id=1832939)
+-                // until the bug is fixed we can at least account for font load
+-                doc.fonts.ready.then(() => this.expand())
++        this.#contentRange.selectNodeContents(doc.body)
++        const layout = beforeRender?.({ vertical, rtl, background })
++        this.#iframe.style.display = 'block'
++        this.render(layout)
++        this.#observer.observe(doc.body)
+ 
+-                resolve()
+-            }, { once: true })
+-            this.#iframe.src = src
+-        })
++        // the resize observer above doesn't work in Firefox
++        // (see https://bugzilla.mozilla.org/show_bug.cgi?id=1832939)
++        // until the bug is fixed we can at least account for font load
++        doc.fonts.ready.then(() => this.expand())
+     }
+     render(layout) {
+         if (!layout || !this.document) return
