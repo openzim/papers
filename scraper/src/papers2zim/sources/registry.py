@@ -33,6 +33,13 @@ from papers2zim.sources.opentextbooks import cli as opentextbooks_cli
 from papers2zim.sources.opentextbooks.catalog import OpenTextbookLibraryCatalog
 from papers2zim.sources.opentextbooks.metadata import OpenTextbookLibraryMetadata
 from papers2zim.sources.opentextbooks.pipeline import OpenTextbookLibraryPipeline
+from papers2zim.sources.usaiddec import cli as usaiddec_cli
+from papers2zim.sources.usaiddec.catalog import (
+    DEFAULT_CATALOG_URL as USAIDDEC_CATALOG_URL,
+)
+from papers2zim.sources.usaiddec.catalog import UsaidDecCatalog
+from papers2zim.sources.usaiddec.metadata import UsaidDecMetadata
+from papers2zim.sources.usaiddec.pipeline import UsaidDecPipeline
 from papers2zim.sources.wikisource import cli as wikisource_cli
 from papers2zim.sources.wikisource.catalog import WikisourceCatalog
 from papers2zim.sources.wikisource.metadata import WikisourceMetadata
@@ -176,6 +183,35 @@ ONEMORELIBRARY_PROFILE = SourceProfile(
     pipeline_class=OnemorelibraryPipeline,
 )
 
+USAIDDEC_PROFILE = SourceProfile(
+    slug="usaiddec",
+    aliases=("USAID",),
+    locale_namespace="usaiddec",
+    display_name="USAID DEC Archive",
+    source_creator="aiddata.org",
+    zim_tags="_category:usaiddec;usaiddec",
+    zim_name_prefix="usaiddec",
+    icon_svg="usaiddec.svg",
+    tagline="USAID evaluation reports preserved by AidData",
+    source_description=(
+        "USAID's Development Experience Clearinghouse evaluation reports, "
+        "archived by AidData."
+    ),
+    collection_label="Subjects",
+    collection_icon_style="subject",
+    has_popularity=False,
+    default_mirror_url=USAIDDEC_CATALOG_URL,
+    catalog_feed_path="",
+    catalog=UsaidDecCatalog,
+    cli_options=usaiddec_cli.CLI_OPTIONS,
+    parse_cli_options=usaiddec_cli.parse_options,
+    handle_cli_action=usaiddec_cli.handle_cli_action,
+    pipeline_options=lambda _mirror_url, _cache_dir, _source_options, _languages: {},
+    metadata_options=lambda _mirror_url, _cache_dir, _engine: {},
+    metadata_class=UsaidDecMetadata,
+    pipeline_class=UsaidDecPipeline,
+)
+
 WIKISOURCE_PROFILE = SourceProfile(
     slug="wikisource",
     aliases=("WS",),
@@ -281,3 +317,4 @@ register_source(GUTENBERG_PROFILE)
 register_source(OPEN_TEXTBOOK_LIBRARY_PROFILE)
 register_source(WIKISOURCE_PROFILE)
 register_source(ONEMORELIBRARY_PROFILE)
+register_source(USAIDDEC_PROFILE)

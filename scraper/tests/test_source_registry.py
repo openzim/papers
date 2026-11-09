@@ -14,6 +14,8 @@ from papers2zim.sources.onemorelibrary.metadata import OnemorelibraryMetadata
 from papers2zim.sources.opentextbooks.catalog import OpenTextbookLibraryCatalog
 from papers2zim.sources.opentextbooks.metadata import OpenTextbookLibraryMetadata
 from papers2zim.sources.registry import get_source
+from papers2zim.sources.usaiddec.catalog import UsaidDecCatalog
+from papers2zim.sources.usaiddec.metadata import UsaidDecMetadata
 from papers2zim.sources.wikisource.catalog import WikisourceCatalog
 from papers2zim.sources.wikisource.metadata import WikisourceMetadata
 
@@ -42,6 +44,8 @@ def _profile(slug: str, aliases: tuple[str, ...]):
         ("OTL", "opentextbooks"),
         ("OML", "onemorelibrary"),
         ("oml", "onemorelibrary"),
+        ("USAID", "usaiddec"),
+        ("usaid", "usaiddec"),
         ("WS", "wikisource"),
         ("ws", "wikisource"),
     ),
@@ -104,10 +108,23 @@ def test_wikisource_profile_is_registered_with_its_opds_adapters():
     assert profile.has_popularity is False
 
 
+def test_usaiddec_profile_is_registered_with_its_adapters():
+    profile = get_source("usaiddec")
+
+    assert profile.display_name == "USAID DEC Archive"
+    assert profile.has_popularity is False
+    assert profile.catalog is UsaidDecCatalog
+    assert isinstance(profile.catalog, type)
+    assert issubclass(profile.catalog, CatalogPort)
+    assert profile.metadata_class is UsaidDecMetadata
+    assert profile.pipeline_class is not None
+
+
 def test_popularity_is_declared_per_source():
     assert get_source("gutenberg").has_popularity is True
     assert get_source("opentextbooks").has_popularity is True
     assert get_source("onemorelibrary").has_popularity is True
+    assert get_source("usaiddec").has_popularity is False
     assert get_source("wikisource").has_popularity is False
 
 
