@@ -46,6 +46,7 @@ as of 2.0.0.
 
 ### Fixed
 
+- UI: drive the author carousels' arrows, their initial position and their progressive-loading thresholds from measured card geometry plus one throwaway scroll probe per carousel, instead of assuming the browser's RTL `scrollLeft` convention (#98)
 - HTML reader: isolate reader buttons from book stylesheets (#164)
 - UI: fix the EPUB reader failing to open in kiwix-android, kiwix-desktop and kiwix-apple, which hand `blob:` iframe navigations (how `foliate-js` renders each section) off to an external app instead of letting the in-page viewer handle them; patch `foliate-js` to write section content into the iframe's document directly instead of navigating it (#169)
 - UI: fix contrast in the EPUB reader table of contents pane in light mode (#158)

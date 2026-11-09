@@ -6,11 +6,10 @@ import AuthorCard from './AuthorCard.vue'
 import CarouselArrow from '@/components/common/CarouselArrow.vue'
 import { compareAuthorNames } from '@/utils/format-utils'
 import { useScrollTrack } from '@/composables/useScrollTrack'
-import { useDisplay, useRtl } from 'vuetify'
+import { useDisplay } from 'vuetify'
 import { LAYOUT } from '@/constants/theme.ts'
 
 const { mobile } = useDisplay()
-const { isRtl } = useRtl()
 
 const props = defineProps<{
   authors: AuthorPreview[]
@@ -46,10 +45,20 @@ function resetWindow() {
 
 const displayedAuthors = computed(() => sortedAuthors.value.slice(startIndex.value, endIndex.value))
 
-const { trackRef, hasPrevious, hasNext, updateScrollState, shiftPrevious, shiftNext } =
-  useScrollTrack({
-    cellSelector: '.carousel-cell'
-  })
+const {
+  trackRef,
+  hasPrevious,
+  hasNext,
+  updateScrollState,
+  alignCell,
+  distanceOf,
+  distanceToStart,
+  distanceToEnd,
+  shiftPrevious,
+  shiftNext
+} = useScrollTrack({
+  cellSelector: '.carousel-cell'
+})
 
 const canGoPrevious = computed(() => hasPrevious.value || startIndex.value > 0)
 const canGoNext = computed(() => hasNext.value || endIndex.value < sortedAuthors.value.length)
@@ -66,36 +75,27 @@ async function loadNext() {
 async function loadPrevious() {
   if (startIndex.value <= 0 || isLoadingPrevious) return
   isLoadingPrevious = true
-  const track = trackRef.value
-  const prevScrollWidth = track ? track.scrollWidth : 0
-  const prevScrollLeft = track ? track.scrollLeft : 0
+  const anchor = trackRef.value?.querySelector('.carousel-cell') ?? null
+  const anchorDistance = anchor ? distanceOf(anchor) : 0
 
   startIndex.value = Math.max(0, startIndex.value - BATCH_SIZE)
   await nextTick()
 
-  if (track) {
-    const diff = track.scrollWidth - prevScrollWidth
-    if (diff > 0) {
-      track.scrollLeft = isRtl.value ? prevScrollLeft - diff : prevScrollLeft + diff
-    }
-    updateScrollState()
+  if (anchor) {
+    alignCell(anchor, anchorDistance)
   }
+  updateScrollState()
   isLoadingPrevious = false
 }
 
 async function checkAndLoadMore() {
-  const track = trackRef.value
-  if (!track) return
+  if (!trackRef.value) return
 
-  const maxScroll = track.scrollWidth - track.clientWidth
-  const scrollFromStart = isRtl.value ? Math.abs(track.scrollLeft) : track.scrollLeft
-  const scrollFromEnd = maxScroll - scrollFromStart
-
-  if (scrollFromEnd <= 400) {
+  if (distanceToEnd() <= 400) {
     await loadNext()
   }
 
-  if (scrollFromStart <= 400) {
+  if (distanceToStart() <= 400) {
     await loadPrevious()
   }
 }
@@ -106,52 +106,30 @@ function onTrackScroll() {
 }
 
 async function handleShiftPrevious() {
-  const track = trackRef.value
-  if (track) {
-    const scrollFromStart = isRtl.value ? Math.abs(track.scrollLeft) : track.scrollLeft
-    if (scrollFromStart <= 100) {
-      await loadPrevious()
-    }
+  if (trackRef.value && distanceToStart() <= 100) {
+    await loadPrevious()
   }
   shiftPrevious()
 }
 
 async function handleShiftNext() {
-  const track = trackRef.value
-  if (track) {
-    const maxScroll = track.scrollWidth - track.clientWidth
-    const scrollFromStart = isRtl.value ? Math.abs(track.scrollLeft) : track.scrollLeft
-    const scrollFromEnd = maxScroll - scrollFromStart
-    if (scrollFromEnd <= 200) {
-      await loadNext()
-    }
+  if (trackRef.value && distanceToEnd() <= 200) {
+    await loadNext()
   }
   shiftNext()
 }
 
 async function scrollToCurrentAuthor() {
   await nextTick()
-  if (trackRef.value) {
-    const currentCell = trackRef.value.querySelector('.carousel-cell--current') as HTMLElement
-    if (currentCell) {
-      if (isRtl.value) {
-        const track = trackRef.value
-        const offsetFromStart =
-          track.scrollWidth - (currentCell.offsetLeft + currentCell.clientWidth)
-        if (mobile.value) {
-          track.scrollTo?.({ left: -offsetFromStart })
-        } else {
-          track.scrollTo?.({
-            left: -Math.max(0, offsetFromStart - currentCell.clientWidth * 2)
-          })
-        }
-      } else if (mobile.value) {
-        trackRef.value.scrollTo?.({ left: currentCell.offsetLeft })
-      } else {
-        trackRef.value.scrollTo?.({ left: currentCell.offsetLeft - currentCell.clientWidth * 2 })
-      }
-      updateScrollState()
-    }
+  const track = trackRef.value
+  if (!track) return
+  const cells = Array.from(track.querySelectorAll('.carousel-cell'))
+  const index = cells.findIndex((cell) => cell.classList.contains('carousel-cell--current'))
+  if (index < 0) return
+  const target = cells[mobile.value ? index : Math.max(0, index - 2)]
+  if (target) {
+    alignCell(target)
+    updateScrollState()
   }
 }
 
