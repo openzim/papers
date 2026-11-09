@@ -39,6 +39,9 @@
 				"other": "فارمیٹ"
 			}
 		},
+		"languageFilter": {
+			"allLanguages": "ساریاں زباناں"
+		},
 		"common": {
 			"sortTitle": "عنوان",
 			"listView": "تندیر نظارہ",

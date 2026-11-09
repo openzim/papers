@@ -9,14 +9,21 @@
 	"common": {
 		"nav": {
 			"home": "Anasayfa",
+			"authors": "Yazarlar",
+			"collections": "Derlemler",
 			"about": "Hakkında",
 			"books": "Kitaplar"
 		},
 		"home": {
+			"allAuthors": "Tüm yazarlar",
 			"allCollections": "Tüm derlemler",
-			"popularCollections": "Popüler derlemler"
+			"discoverAllBooks": "Tüm kitapları keşfet",
+			"popularCollections": "Popüler derlemler",
+			"selectedAuthors": "Seçili yazarlar",
+			"selectedBooks": "Seçili kitaplar"
 		},
 		"book": {
+			"title": "Kitaplar",
 			"downloads": "indirme",
 			"downloadCount": "İndirme sayısı",
 			"languages": "Dil(ler)",
@@ -26,19 +33,27 @@
 			"licensePd": "ABD'de kamu malı.",
 			"licenseCopyright": "Telif hakkı saklıdır. Ayrıntılar için kitabın içindeki telif hakkı bildirimini okuyun.",
 			"fullName": "Tam İsim",
+			"worksAvailable": "Mevcut Eser",
 			"unknown": "Bilinmiyor",
 			"cover": "Kitap Kapağı",
 			"coverLabel": "(kapak)",
 			"anonymous": "Anonim",
 			"various": "Çeşitli",
 			"download": "İndir",
-			"sameCollectionBooks": "Aynı koleksiyondaki kitaplar"
+			"sameCollectionBooks": "Aynı koleksiyondaki kitaplar",
+			"view": "Görüntüle"
 		},
 		"author": {
+			"viewAuthor": "Yazarı görüntüle: {name} ({bookCount})",
 			"wikipediaSource": "Kaynak: Vikipedi"
 		},
 		"collection": {
-			"booksIn": "{collection} içindeki kitaplar"
+			"booksIn": "{collection} içindeki kitaplar",
+			"allCollections": "Tüm derlemler"
+		},
+		"licenses": {
+			"termBy": "Atıf",
+			"termSeparator": "-"
 		},
 		"zimInfo": {
 			"trigger": "Bu ZIM hakkında bilgi",
@@ -80,6 +95,7 @@
 			"loadingBook": "Kitap bilgileri yükleniyor...",
 			"loadingAuthor": "Yazar bilgileri yükleniyor...",
 			"loadingItems": "{type} yükleniyor...",
+			"showing": "Gösterilen:",
 			"of": "/",
 			"sortPopularity": "Popülerlik",
 			"sortTitle": "Başlık",
@@ -89,8 +105,10 @@
 			"gridView": "Izgara görünümü",
 			"listView": "Liste görünümü",
 			"browseAll": "Tümünü Görüntüle",
+			"browseAllAuthors": "Tüm Yazarları Görüntüle",
 			"returnHome": "Ana sayfaya dön",
 			"toggleNavigationMenu": "Gezinme menüsünü aç/kapat",
+			"mobileNavigation": "Mobil gezinti",
 			"navigateToItem": "{item} ögesine git",
 			"close": "Kapat",
 			"all": "Tümü",
@@ -108,6 +126,7 @@
 			"noAuthors": "Yazar bulunamadı.",
 			"noCollections": "Koleksiyon bulunamadı.",
 			"noBooksForAuthor": "Bu yazara ait hiçbir kitap mevcut değil.",
+			"noBooksInCollection": "Bu koleksiyonda mevcut kitap bulunmamaktadır.",
 			"noLanguages": "Kullanılabilir dil yok.",
 			"noFormats": "Kullanılabilir biçim yok.",
 			"notFoundBook": "Kitap bulunamadı. Aradığınız kitap mevcut değil veya kaldırılmış.",
@@ -129,13 +148,25 @@
 			"introParagraph3": "O zamandan beri binlerce gönüllü dünya çapındaki yayınları dijitalleştirdi ve titizlikle düzeltmelerini yaptı. Project Gutenberg koleksiyonunun tamamı sizin.",
 			"introParagraph4": "Project Gutenberg'in tüm e-kitapları tamamen ücretsizdir ve her zaman da öyle kalacaktır.",
 			"missionAuthor": "Michael Hart’tan",
+			"missionHeading": "Misyon Bildirisi",
 			"missionParagraph1": "Project Gutenberg'in misyonu basittir: E-kitapların oluşturulmasını ve dağıtımını teşvik etmek.",
+			"missionParagraph2": "Bu misyonun amacı, e-kitap oluşturmak ve bunları ücretsiz olarak dağıtmaya yardımcı olmakla ilgilenen herkesi olabildiğince teşvik etmektir.",
+			"missionParagraph3": "Aslında, Project Gutenberg, e-kitaplarımızı çoğaltıp ücretsiz olarak dağıtmak isteyenlerin taleplerinin yaklaşık %99'unu, yerel telif hakkı kısıtlamaları dahilinde onaylıyor.",
+			"missionParagraph4": "Project Gutenberg fikirler, idealler ve idealizmle beslenir.",
+			"missionParagraph5": "Project Gutenberg maddi veya siyasi güç sayesinde ayakta durmaz.",
+			"missionParagraph6": "Tamamen gönüllülerden oluşan bir ekip olduğumuz için, gönüllülerimizin ne yapması gerektiği veya bunu nasıl yapması gerektiği konusunda çok baskıcı olmaktan çekiniriz.",
+			"missionParagraph7": "Gönüllülerimize, hangi kitapları yapacakları, hangi biçimlerde yapacakları veya \"e-kitap oluşturma ve dağıtımı\" ile ilgili sahip olabilecekleri diğer fikirler konusunda mümkün olduğunca fazla özgürlük sunuyoruz.",
+			"missionParagraph11": "Daha önce kim olduğumuzu, ne yaptığımızı veya nasıl yaptığımızı bilmeden bile e-kitap oluşturmuş olan herkesi bize e-kitap göndermeye teşvik etmeye devam etmek istiyoruz.",
 			"missionParagraph12": "Project Gutenberg'e herkes katkıda bulunmaya davetlidir.",
+			"missionParagraph13": "Dolayısıyla, aidat yok, üyelik şartı yok; ve, Project Gutenberg için e-kitap oluşturmaya dair sadece en genel yönergeler var.",
+			"missionParagraph14": "Amacımız, tüm dünyanın olabildiğince çok dilde okuyabileceği, olabildiğince çok biçimde olabildiğince çok e-kitap sunmaktır.",
+			"missionParagraph15": "Bu nedenle, ister tek bir sevilen kitabı, ister yeni bir dili erişilebilir kılmak, isterse de kitap üstüne kitap konusunda bize yardımcı olmak olsun, sürekli olarak yeni gönüllüler arıyoruz.",
 			"missionParagraph16": "Project Gutenberg'te herkese yer vardır.",
 			"missionParagraph17": "Herkes kendi e-kitaplarını kendi yöntemleriyle oluşturmakta özgürdür."
 		},
 		"metadata_defaults": {
-			"title": "Project Gutenberg Kütüphanesi"
+			"title": "Project Gutenberg Kütüphanesi",
+			"description": "Ücretsiz e-kitapların ilk üreticisinden İngilizce olarak yazılmış tüm kitaplar"
 		},
 		"nav": {
 			"collections": "Raflar"
@@ -147,10 +178,17 @@
 		},
 		"collection": {
 			"allCollections": "Tüm raflar"
+		},
+		"collections": {
+			"PR": "İngiliz edebiyatı",
+			"PS": "Amerikan edebiyatı",
+			"PT": "Almanca, Hollanda dili, Felemenkçe, Afrikaansça, İskandinavca, Norsça, Eski İzlandaca, Eski Norveççe, Modern İzlandaca, Faroe dili, Danca, Norveççe ve İsveççe Edebiyatı"
 		}
 	},
 	"opentextbooks": {
 		"about": {
+			"attribution": "Açık Derslik Kütüphanesi tarafından sağlanan bilgi ve bilgiler.",
+			"introHeading": "Açık Derslik Kütüphanesi hakkında",
 			"missionHeading": "Açık eğitim",
 			"missionAuthor": "Açık Derslik Kütüphanesi",
 			"missionParagraph4": "Açık lisanslar, eğitim materyallerinin geniş çapta paylaşılmasına olanak tanırlar.",
@@ -159,7 +197,29 @@
 			"missionParagraph7": "Açık Ders Kitabı Kütüphanesi bu materyalleri tek bir yerde bir araya getirir.",
 			"missionParagraph8": "Koleksiyonu, çeşitli konularda öğretim ve öğrenmeyi desteklemektedir."
 		},
+		"nav": {
+			"collections": "Konular"
+		},
+		"home": {
+			"allCollections": "Tüm Konular",
+			"mostPopular": "En çok değerlendirilen",
+			"popularCollections": "Popüler konular"
+		},
+		"collection": {
+			"booksIn": "{collection} içindeki kitaplar",
+			"allCollections": "Tüm konular"
+		},
+		"messages": {
+			"noCollections": "Konu bulunamadı.",
+			"noBooksInCollection": "Bu konuda mevcut kitap bulunmamakta.",
+			"notFoundCollection": "Konu bulunamadı. Aradığınız konu mevcut değil veya kaldırılmış."
+		},
+		"itemTypes": {
+			"collections": "konu | konu"
+		},
 		"footer": {
+			"createdBy": "Oluşturan:",
+			"packagedBy": "Paketleyen:",
 			"kiwix": "Kiwix"
 		},
 		"book": {
@@ -170,6 +230,7 @@
 			"2": "İşletme",
 			"3": "Bilgisayar Bilimleri",
 			"5": "Eğitim",
+			"6": "Beşeri bilimler",
 			"7": "Matematik",
 			"8": "Doğa Bilimleri",
 			"9": "Sosyal Bilimler",
@@ -189,7 +250,19 @@
 			"attribution": "Bu metin, ücretsiz kütüphane Vikikaynak tarafından sağlanmıştır.",
 			"introHeading": "Vikikaynak Hakkında",
 			"introParagraph1": "Vikikaynak, herkesin geliştirebileceği ücretsiz bir çevrimiçi kaynak metin kütüphanesidir.",
-			"introParagraph2": "Gönüllüleri kitapların, belgelerin ve diğer yayınlanmış eserlerin yazıya geçirilmesi ve düzeltilmesi işlemlerini gerçekleştirirler."
+			"introParagraph2": "Gönüllüleri kitapların, belgelerin ve diğer yayınlanmış eserlerin yazıya geçirilmesi ve düzeltilmesi işlemlerini gerçekleştirirler.",
+			"missionHeading": "Misyonumuz"
+		},
+		"footer": {
+			"kiwix": "Kiwix"
+		}
+	},
+	"onemorelibrary": {
+		"about": {
+			"attribution": "Kitap üstverileri ve kapak görselleri One More Library tarafından sağlanmıştır.",
+			"introHeading": "One More Library Hakkında",
+			"missionAuthor": "One More Library topluluğu",
+			"missionHeading": "Herkes için ücretsiz kitaplar"
 		}
 	}
 }

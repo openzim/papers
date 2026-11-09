@@ -11,7 +11,7 @@
 	"common": {
 		"nav": {
 			"home": "الصفحة الرئيسية",
-			"authors": "Authors",
+			"authors": "المؤلفون",
 			"about": "بخصوص"
 		},
 		"book": {
@@ -50,7 +50,7 @@
 			"description": "جميع الكتب باللغة العربية من أول منتج للكتب الإلكترونية المجانية"
 		},
 		"nav": {
-			"collections": "Shelves"
+			"collections": "أرفف"
 		}
 	}
 }
