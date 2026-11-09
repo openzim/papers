@@ -3,7 +3,8 @@
 		"authors": [
 			"Benoit74",
 			"Chpol",
-			"Dash777"
+			"Dash777",
+			"Léo Delebarre"
 		]
 	},
 	"language": "Français",
@@ -12,14 +13,25 @@
 		"nav": {
 			"home": "Page d'accueil",
 			"authors": "Auteurs",
+			"collections": "Collections",
 			"about": "À propos",
 			"books": "Livres"
+		},
+		"home": {
+			"allAuthors": "Tous les auteurs",
+			"allCollections": "Toutes les collections",
+			"discoverAllBooks": "Découvrir tous les livres",
+			"popularCollections": "Collections populaires",
+			"selectedAuthors": "Auteurs sélectionnés",
+			"selectedBooks": "Livres sélectionnés"
 		},
 		"book": {
 			"title": "Titre",
 			"downloads": "téléchargements",
 			"downloadCount": "Nombre de téléchargements",
 			"languages": "Langue",
+			"collection": "Collection",
+			"published": "Publication",
 			"license": "Licence",
 			"licensePd": "Domaine public aux États-Unis.",
 			"licenseCopyright": "Protégé par le droit d'auteur. Consultez la mention de droit d'auteur à l'intérieur de ce livre pour plus de détails.",
@@ -27,12 +39,71 @@
 			"worksAvailable": "Œuvres disponibles",
 			"unknown": "Non disponible",
 			"cover": "Couverture du livre",
+			"coverAlt": "Couverture de {title}",
 			"coverLabel": "(couverture)",
 			"anonymous": "Anonyme",
-			"various": "Plusieurs"
+			"various": "Plusieurs",
+			"download": "Télécharger",
+			"sameCollectionBooks": "Livres dans la même collection",
+			"view": "Voir"
 		},
 		"author": {
-			"bookCount": "{n} livre | {n} livres"
+			"bookCount": "{n} livre | {n} livres",
+			"viewAuthor": "Voir l'auteur : {name} ({bookCount})",
+			"wikipediaSource": "Source : Wikipédia"
+		},
+		"collection": {
+			"booksIn": "Livres dans {collection}",
+			"allCollections": "Toutes les collections"
+		},
+		"licenses": {
+			"termBy": "Crédits",
+			"termNc": "Non commercial",
+			"termNd": "Sans dérivés",
+			"termSa": "Partage similaire",
+			"termSeparator": "-",
+			"ccName": "Creative Commons {terms} {version}",
+			"ccNameUnversioned": "Creative Commons {terms}",
+			"cc0Name": "CC0 1.0 Universel"
+		},
+		"zimInfo": {
+			"trigger": "Informations sur ce ZIM",
+			"title": "Informations sur ce ZIM",
+			"source": "Source",
+			"collections": {
+				"one": "Collection",
+				"other": "Collections"
+			},
+			"books": {
+				"one": "Livre",
+				"other": "Livres"
+			},
+			"language": {
+				"one": "Langue",
+				"other": "Langues"
+			},
+			"formats": {
+				"one": "Format",
+				"other": "Formats"
+			},
+			"dateScraped": "Date de création"
+		},
+		"languageFilter": {
+			"trigger": "Filtrer par langue de livre",
+			"allLanguages": "Toutes langues"
+		},
+		"reader": {
+			"close": "Fermer le lecteur",
+			"closeTableOfContents": "Fermer la table des matières",
+			"contents": "Sommaire",
+			"epub": "Lecteur EPUB",
+			"nextSection": "Session suivante",
+			"pdf": "Lecteur PDF",
+			"previousSection": "Section précédente",
+			"tableOfContents": "Sommaire",
+			"toggleTableOfContents": "Afficher/masquer le sommaire",
+			"unableToOpenEpub": "Impossible d'ouvrir le fichier EPUB.",
+			"unableToOpenPdf": "Impossible d'ouvrir le PDF."
 		},
 		"common": {
 			"loading": "Chargement...",
@@ -43,7 +114,9 @@
 			"of": "sur",
 			"sortPopularity": "Trier les livres par popularité",
 			"sortTitle": "Trier les livres par titre",
+			"backToTop": "Retour en haut",
 			"selectInterfaceLanguage": "Sélectionner la langue de l’interface",
+			"changeInterfaceLanguage": "Changer la langue de l’interface",
 			"filterBy": "Filtrer par",
 			"filterByTitle": "Filtrer par {title}",
 			"gridView": "Affichage en grille",
@@ -56,25 +129,63 @@
 			"mobileNavigationMenu": "Menu de navigation mobile",
 			"mobileNavigation": "Navigation mobile",
 			"navigateToItem": "Accédez à {item}",
+			"close": "Fermer",
+			"all": "Tous",
+			"next": "Suivant",
+			"previous": "Précédent",
+			"readMore": "Lire la suite",
+			"showMore": "Afficher plus",
+			"scrollLeft": "Défiler à gauche",
+			"scrollRight": "Défiler à droite",
+			"showLess": "Afficher moins",
 			"sortAuthor": "Auteur"
 		},
 		"messages": {
 			"noBooks": "Pas de données disponibles",
 			"noAuthors": "Aucun auteur trouvé.",
+			"noCollections": "Aucune collection trouvée.",
 			"noBooksForAuthor": "Aucun livre n'est disponible pour cet auteur.",
+			"noBooksInCollection": "Aucun livre disponible dans cette collection.",
 			"noLanguages": "Aucune langue disponible.",
 			"noFormats": "Aucun format disponible.",
 			"notFoundBook": "Livre introuvable. Le livre que vous recherchez n'existe pas ou a été supprimé.",
-			"notFoundAuthor": "Auteur introuvable. L'auteur que vous recherchez n'existe pas ou a été supprimé."
+			"notFoundAuthor": "Auteur introuvable. L'auteur que vous recherchez n'existe pas ou a été supprimé.",
+			"notFoundCollection": "Collection introuvable. La collection que vous recherchez n'existe pas ou a été supprimée.",
+			"noAuthorsForLetter": "Aucun auteur trouvé pour la lettre {letter}."
 		},
 		"itemTypes": {
 			"books": "livre | livres",
-			"authors": "auteur | auteurs"
+			"authors": "auteur | auteurs",
+			"collections": "collection | collections"
 		}
 	},
 	"gutenberg": {
 		"about": {
-			"introHeading": "À propos du projet Gutenberg"
+			"attribution": "Écrit par Michael S. Hart le 20 juin 2004. Mis à jour le 23 octobre 2004 et le 25 décembre 2007.",
+			"introHeading": "À propos du projet Gutenberg",
+			"introParagraph1": "Le projet Gutenberg est une bibliothèque en ligne proposant plus de 75 000 livres numériques gratuits.",
+			"introParagraph2": "Michael Hart, fondateur du projet Gutenberg, a inventé les livres numériques en 1971 et son souvenir continue d'inspirer la création de livres numériques et de contenus connexes aujourd'hui.",
+			"introParagraph3": "Depuis, des milliers de bénévoles ont numérisé et relu avec soin la littérature mondiale. L'intégralité du catalogue du Projet Gutenberg est à votre disposition.",
+			"introParagraph4": "Tous les livres numériques du Projet Gutenberg sont et resteront toujours entièrement gratuits.",
+			"missionAuthor": "par Michael Hart",
+			"missionHeading": "Déclaration de mission",
+			"missionParagraph1": "La mission du projet Gutenberg est simple : encourager la création et la diffusion de livres numériques.",
+			"missionParagraph2": "Cette mission consiste, autant que possible, à encourager tous ceux qui s'intéressent à la création de livres numériques et à leur diffusion gratuite.",
+			"missionParagraph3": "En réalité, le projet Gutenberg approuve environ 99 % des demandes de ceux qui souhaitent créer et distribuer gratuitement nos livres numériques, dans le respect des différentes limitations locales en matière de droits d'auteur.",
+			"missionParagraph4": "Le projet Gutenberg est alimenté par des idées, des idéaux et par l'idéalisme.",
+			"missionParagraph5": "Le projet Gutenberg n'est pas financé par des pouvoirs financiers ou politiques.",
+			"missionParagraph6": "Étant donné que nous fonctionnons entièrement grâce à des bénévoles, nous hésitons à être trop directifs quant à ce que nos bénévoles devraient faire ou comment le faire.",
+			"missionParagraph7": "Nous offrons à nos bénévoles une liberté maximale quant au choix des livres à traiter, des formats à utiliser, ou de toute autre idée qu'ils pourraient avoir concernant « la création et la distribution de livres numériques ».",
+			"missionParagraph8": "Le projet Gutenberg n'a pas pour vocation d'établir des normes. Si tel était le cas, nous aurions accepté avec plaisir la demande de convertir une partie de nos livres numériques au format HTML lorsque le Web n'en était qu'à ses balbutiements en 1993 ; nous sommes heureux de proposer des livres numériques à nos lecteurs dans autant de formats que nos bénévoles le souhaitent.",
+			"missionParagraph9": "De plus, nous n'exigeons pas un niveau de précision supérieur à celui recommandé par des institutions comme la Bibliothèque du Congrès des États-Unis (99,95 %). Bien que la plupart de nos livres numériques dépassent ces normes et soient disponibles dans les formats les plus courants, cela n'est pas obligatoire. Nous encourageons donc chacun à nous envoyer des livres numériques, quel que soit leur format ou leur niveau de précision. Nous ferons appel à des bénévoles pour les convertir et corriger progressivement les erreurs.",
+			"missionParagraph10": "Nombre de nos livres numériques les plus populaires comportaient initialement de nombreuses erreurs ; ce n’est que plus tard qu’ils ont atteint le niveau de qualité que l’on leur connaît aujourd’hui. En réalité, beaucoup de nos livres numériques ont été réalisés sans aucune supervision, par des personnes qui n’avaient jamais entendu parler du Projet Gutenberg, et ne nous ont été envoyés qu’après coup.",
+			"missionParagraph11": "Nous souhaitons continuer à encourager tout le monde à nous envoyer des livres numériques, même s'ils en ont déjà créé sans savoir qui nous étions, ce que nous faisions ni comment nous le faisions.",
+			"missionParagraph12": "Toute personne souhaitant contribuer au projet Gutenberg est la bienvenue.",
+			"missionParagraph13": "Il n'y a donc ni cotisation, ni conditions d'adhésion : et seulement les directives les plus générales concernant la création de livres numériques pour le projet Gutenberg.",
+			"missionParagraph14": "Nous souhaitons proposer le plus grand nombre possible de livres numériques, dans le plus grand nombre possible de formats, afin que le monde entier puisse les lire dans le plus grand nombre de langues possible.",
+			"missionParagraph15": "C’est pourquoi nous recherchons constamment de nouveaux bénévoles, que ce soit pour rendre disponible un seul livre favori, pour rendre disponible une nouvelle langue ou pour nous aider à publier livre après livre.",
+			"missionParagraph16": "Tout le monde est le bienvenu ici, au Projet Gutenberg.",
+			"missionParagraph17": "Chacun est libre de créer ses propres livres numériques à sa manière."
 		},
 		"metadata_defaults": {
 			"title": "Projet Bibliothèque Gutenberg",
@@ -83,12 +194,27 @@
 		"nav": {
 			"collections": "Bibliothèques"
 		},
+		"home": {
+			"allCollections": "Tous les rayons",
+			"mostPopular": "Les plus téléchargés",
+			"popularCollections": "Rayons populaires"
+		},
+		"collection": {
+			"allCollections": "Tous les rayons"
+		},
 		"book": {
-			"collection": "Bibliothèque LCC"
+			"collection": "Bibliothèque LCC",
+			"sameCollectionBooks": "Livres sur le même rayon"
+		},
+		"footer": {
+			"createdBy": "Créé par",
+			"packagedBy": "Emballé par",
+			"kiwix": "Kiwix"
 		},
 		"collections": {
 			"A": "Généralités",
 			"B": "Philosophie, psychologie, religion",
+			"CDEF": "Histoire",
 			"C": "Sciences auxiliaires de l'histoire",
 			"D": "Histoire du monde et histoire de l'Europe, l'Asie, l'Afrique, l'Australie, la Nouvelle-Zélande, etc.",
 			"E": "Histoire des Amériques (généralités et États-Unis)",
@@ -126,6 +252,22 @@
 			"PS": "Littérature américaine",
 			"PT": "Littératures allemande, néerlandaise, flamande, afrikaans, scandinave, vieux norrois, ancienne islandaise, vieux norvégien, islandais moderne, féroïen, danois, norvégien et suédois",
 			"PZ": "Fiction et belles lettres pour jeunes"
+		}
+	},
+	"opentextbooks": {
+		"about": {
+			"attribution": "Informations fournies par \"Open Textbook Library\".",
+			"introHeading": "A propos de Open Textbook Library",
+			"introParagraph1": "Open Textbook Library est une collection de manuels scolaires sous licence libre destinés à l'enseignement supérieur.",
+			"introParagraph2": "Ses manuels scolaires sont accessibles, téléchargeables et adaptables gratuitement, conformément à leurs licences.",
+			"introParagraph3": "Cette collection aide les enseignants à trouver du matériel pédagogique de qualité sans imposer de coûts aux élèves.",
+			"introParagraph4": "Cette bibliothèque met ces manuels scolaires à disposition pour une lecture hors ligne.",
+			"missionHeading": "Éducation ouverte",
+			"missionAuthor": "Open Textbook Library",
+			"missionParagraph4": "Les licences ouvertes permettent une large diffusion des ressources pédagogiques.",
+			"missionParagraph9": "Les livres sont créés et maintenus par des auteurs, des éducateurs et des institutions.",
+			"missionParagraph15": "L'éducation ouverte repose sur la collaboration et le libre échange des connaissances.",
+			"missionParagraph16": "Cette collection contribue à rendre ces connaissances plus faciles à découvrir et à utiliser."
 		}
 	}
 }

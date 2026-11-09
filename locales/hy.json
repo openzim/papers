@@ -27,6 +27,10 @@
 				"other": "Լեզուներ"
 			}
 		},
+		"languageFilter": {
+			"allLanguages": "Բոլոր լեզուները",
+			"select": "Ընտրեք լեզուն"
+		},
 		"common": {
 			"close": "Փակել",
 			"all": "Բոլորը",

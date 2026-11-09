@@ -51,6 +51,10 @@
 				"other": "Formater"
 			}
 		},
+		"languageFilter": {
+			"trigger": "No Sprooch vum Buch filteren",
+			"allLanguages": "All Sproochen"
+		},
 		"reader": {
 			"closeTableOfContents": "Inhaltsverzeechnes zoumaachen",
 			"tableOfContents": "Inhaltsverzeechnes",
@@ -61,6 +65,7 @@
 			"loadingBook": "Buchdetailer gi gelueden...",
 			"sortPopularity": "Bicher no Popularitéit sortéieren",
 			"sortTitle": "Bicher no Titel sortéieren",
+			"changeInterfaceLanguage": "Sprooch vum Interface änneren",
 			"close": "Zoumaachen",
 			"readMore": "Méi liesen",
 			"showMore": "Méi weisen",

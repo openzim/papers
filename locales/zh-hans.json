@@ -88,6 +88,11 @@
 			},
 			"dateScraped": "爬取日期"
 		},
+		"languageFilter": {
+			"trigger": "按书籍语言筛选",
+			"allLanguages": "所有语言",
+			"select": "选择语言"
+		},
 		"reader": {
 			"close": "关闭阅读器",
 			"closeTableOfContents": "关闭目录",
@@ -112,6 +117,7 @@
 			"sortTitle": "按标题对书籍进行排序",
 			"backToTop": "返回顶部",
 			"selectInterfaceLanguage": "选择界面语言",
+			"changeInterfaceLanguage": "更改界面语言",
 			"filterBy": "筛选条件",
 			"filterByTitle": "按{title}筛选",
 			"gridView": "网格视图",

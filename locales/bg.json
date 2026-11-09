@@ -4,9 +4,6 @@
 			"StanProg"
 		]
 	},
-	"common": {
-		"common": {}
-	},
 	"gutenberg": {
 		"metadata_defaults": {
 			"title": "Библиотека на проект Гутенберг",
