@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { useCarousel } from '@/composables/useCarousel'
+import { useInfiniteScroll } from '@/composables/useInfiniteScroll'
 import { ref, watch, nextTick, computed } from 'vue'
 import type { BookPreview } from '@/types'
 import CollectionBookCard from './CollectionBookCard.vue'
 import CarouselArrow from '@/components/common/CarouselArrow.vue'
 import { useI18n } from 'vue-i18n'
 import { TYPOGRAPHY } from '@/constants/theme'
-import { useDisplay } from 'vuetify'
+import { useDisplay, useRtl } from 'vuetify'
 
 const props = defineProps<{
   books: BookPreview[]
@@ -14,25 +15,43 @@ const props = defineProps<{
 
 const { t } = useI18n()
 const { mobile } = useDisplay()
+const { isRtl } = useRtl()
 
 const CARDS_PER_VIEW = 5
+const MOBILE_BATCH_SIZE = 15
 
 const { visibleItems, hasPrevious, hasNext, shiftLeft, shiftRight } = useCarousel(
   () => props.books,
   CARDS_PER_VIEW
 )
 
+const {
+  displayedItems: mobileBooks,
+  hasMore: hasMoreMobile,
+  loadMore: loadMoreMobile
+} = useInfiniteScroll(() => props.books, MOBILE_BATCH_SIZE)
+
 // Mobile scroll to first book
 const trackRef = ref<HTMLElement | null>(null)
 
-const coverHeight = computed(() => (mobile ? 145 : 190))
+const coverHeight = computed(() => (mobile.value ? 145 : 190))
+
+function onMobileScroll() {
+  const track = trackRef.value
+  if (!track || !hasMoreMobile.value) return
+  const maxScroll = track.scrollWidth - track.clientWidth
+  const scrollFromStart = isRtl.value ? Math.abs(track.scrollLeft) : track.scrollLeft
+  if (scrollFromStart >= maxScroll - 300) {
+    loadMoreMobile()
+  }
+}
 
 watch(
   () => props.books,
   async () => {
     await nextTick()
     if (trackRef.value && window.innerWidth <= 1279) {
-      trackRef.value.scrollTo({ left: 0, behavior: 'smooth' })
+      trackRef.value.scrollTo?.({ left: 0, behavior: 'smooth' })
     }
   },
   { deep: true }
@@ -67,10 +86,14 @@ watch(
           </div>
         </div>
 
-        <div ref="trackRef" class="collection-books-scroll g-mobile-only">
+        <div
+          ref="trackRef"
+          class="collection-books-scroll g-mobile-only"
+          @scroll.passive="onMobileScroll"
+        >
           <div class="collection-books-row">
             <div
-              v-for="book in books"
+              v-for="book in mobileBooks"
               :key="book.id"
               class="carousel-card-wrapper carousel-card-wrapper--mobile"
             >
