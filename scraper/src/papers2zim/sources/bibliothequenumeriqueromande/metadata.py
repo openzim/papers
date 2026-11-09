@@ -54,9 +54,7 @@ class BibliothequeNumeriqueRomandeMetadata(MetadataPort):
             ),
             cover=Cover(source_url=cover_url) if cover_url else None,
             collections=[
-                CollectionRef(
-                    id=slug_id(category), name=category, kind="category"
-                )
+                CollectionRef(id=slug_id(category), name=category, kind="category")
                 for category in extra.get("categories") or []
                 if isinstance(category, str) and category
             ],

@@ -7,6 +7,7 @@ language, thumbnail, source page and one ready-made download link for EPUB forma
 `WorkRef` here already holds everything the metadata port needs - no per-book
 fetch
 """
+
 # ruff: noqa: S314
 
 import re

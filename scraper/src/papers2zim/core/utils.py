@@ -97,11 +97,13 @@ def collection_key(collection_id: str) -> str:
     match.
     """
     return "".join(
-        character
-        if not character.isascii()
-        or character.isalnum()
-        or character in "-_.!~*'()"
-        else quote(character, safe="")
+        (
+            character
+            if not character.isascii()
+            or character.isalnum()
+            or character in "-_.!~*'()"
+            else quote(character, safe="")
+        )
         for character in collection_id
     )
 

@@ -191,9 +191,7 @@ def test_discover_deduplicates_books_listed_across_categories():
     )
 
     refs = list(
-        catalog.discover(
-            CatalogFilters(options={"categories": ["Conte", "Jeunesse"]})
-        )
+        catalog.discover(CatalogFilters(options={"categories": ["Conte", "Jeunesse"]}))
     )
 
     assert [ref.id for ref in refs] == [CONTES_UUID, VOLPONE_UUID]
