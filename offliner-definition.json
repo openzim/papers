@@ -10,6 +10,17 @@
       "description": "Book source to scrape. Source-specific options are shown below; do not combine options from different sources.",
       "choices": [
         {
+          "title": "Bibliothèque numérique romande",
+          "value": "bibliothequenumeriqueromande",
+          "dependents": [
+            "bnr_series",
+            "bnr_authors",
+            "bnr_categories",
+            "bnr_titles",
+            "bnr_ids"
+          ]
+        },
+        {
           "title": "Project Gutenberg",
           "value": "gutenberg",
           "dependents": [
@@ -215,6 +226,36 @@
       "title": "Report IDs (USAID DEC Archive only)",
       "description": "Comma-separated exact USAID DEC report IDs (Formatted Document IDs). Cannot be combined with Books."
     },
+    "bnr_series": {
+      "type": "string",
+      "required": false,
+      "title": "Series (Bibliothèque numérique romande only)",
+      "description": "Comma-separated Bibliothèque numérique romande series names. Use only one of Series, Authors, Categories or Title prefixes."
+    },
+    "bnr_authors": {
+      "type": "string",
+      "required": false,
+      "title": "Authors (Bibliothèque numérique romande only)",
+      "description": "Comma-separated Bibliothèque numérique romande author names. Use only one of Series, Authors, Categories or Title prefixes."
+    },
+    "bnr_categories": {
+      "type": "string",
+      "required": false,
+      "title": "Categories (Bibliothèque numérique romande only)",
+      "description": "Comma-separated Bibliothèque numérique romande category names. Use only one of Series, Authors, Categories or Title prefixes."
+    },
+    "bnr_titles": {
+      "type": "string",
+      "required": false,
+      "title": "Title prefixes (Bibliothèque numérique romande only)",
+      "description": "Comma-separated Bibliothèque numérique romande title prefixes (letters or numbers). Use only one of Series, Authors, Categories or Title prefixes. Defaults to the whole catalogue."
+    },
+    "bnr_ids": {
+      "type": "string",
+      "required": false,
+      "title": "Book IDs (Bibliothèque numérique romande only)",
+      "description": "Comma-separated exact Bibliothèque numérique romande book UUIDs. Cannot be combined with Books."
+    },
     "with_author_bio": {
       "type": "boolean",
       "required": false,
@@ -262,6 +303,17 @@
       "description": "URL to a source mirror or API base. Defaults to the selected source's standard endpoint."
     }
   },
+  "modelValidators": [
+    {
+      "name": "check_exclusive_fields",
+      "fields": [
+        "bnr_series",
+        "bnr_authors",
+        "bnr_categories",
+        "bnr_titles"
+      ]
+    }
+  ],
   "zimMetadata": [
     {
       "metadata": "Name",

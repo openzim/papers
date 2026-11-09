@@ -6,7 +6,7 @@ import re
 from collections import deque
 from dataclasses import dataclass
 from typing import Protocol
-from urllib.parse import ParseResult, urldefrag, urljoin, urlparse
+from urllib.parse import ParseResult, quote, urldefrag, urljoin, urlparse
 
 import requests
 from bs4 import BeautifulSoup
@@ -391,7 +391,7 @@ def _inject_reader_controls(
         info = soup.new_tag(
             "a",
             attrs={
-                "href": f"{index_path}#/book/{work.id}",
+                "href": f"{index_path}#/book/{quote(work.id, safe='')}",
                 "class": "html-reader-btn html-reader-btn-info",
                 "aria-label": "View book cover and information",
                 "title": "View book cover and information",
@@ -414,8 +414,8 @@ def _inject_reader_controls(
             download = soup.new_tag(
                 "a",
                 attrs={
-                    "href": posixpath.relpath(
-                        archive_path, posixpath.dirname(page_path)
+                    "href": _encode_url_path(
+                        posixpath.relpath(archive_path, posixpath.dirname(page_path))
                     ),
                     "class": f"html-reader-btn html-reader-btn-{format_name}",
                     "aria-label": f"Download {format_name.upper()} format",
@@ -459,6 +459,11 @@ def _inject_reader_controls(
         body.append(script)
 
 
+def _encode_url_path(path: str) -> str:
+    """Percent-encode each segment of a relative URL path."""
+    return "/".join(quote(segment, safe="") for segment in path.split("/"))
+
+
 def _rewrite_css_references(
     content: bytes, css_url: str, css_path: str, path_by_url: dict[str, str]
 ) -> bytes:
@@ -469,7 +474,9 @@ def _rewrite_css_references(
         target_path = path_by_url.get(_canonical_url(target_url))
         if target_path is None:
             return match.group(0)
-        relative = posixpath.relpath(target_path, posixpath.dirname(css_path))
+        relative = _encode_url_path(
+            posixpath.relpath(target_path, posixpath.dirname(css_path))
+        )
         if fragment:
             relative = f"{relative}#{fragment}"
         return f"url({match['quote']}{relative}{match['quote']})"
@@ -484,7 +491,9 @@ def _rewrite_reference(
     target_path = path_by_url.get(_canonical_url(target_url))
     if target_path is None:
         return
-    relative = posixpath.relpath(target_path, posixpath.dirname(page_path))
+    relative = _encode_url_path(
+        posixpath.relpath(target_path, posixpath.dirname(page_path))
+    )
     element[attribute] = f"{relative}#{fragment}" if fragment else relative
 
 

@@ -67,5 +67,9 @@ export function normalizeZimPath(path: string): string {
     return path
   }
   if (path.startsWith('/')) return path
-  return path.startsWith('./') ? path : `./${path}`
+  const relative = path.startsWith('./') ? path : `./${path}`
+  return relative
+    .split('/')
+    .map((segment) => encodeURIComponent(segment))
+    .join('/')
 }

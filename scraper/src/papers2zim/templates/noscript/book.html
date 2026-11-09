@@ -19,7 +19,7 @@
     {% endif %}
 
     {% if book.has_cover %}
-    <img src="../covers/{{ book.id }}_cover_image.webp" alt="Cover: {{ book.title }}" class="cover-image">
+    <img src="../covers/{{ book.id|urlencode }}_cover_image.webp" alt="Cover: {{ book.title }}" class="cover-image">
     {% endif %}
 
     <div class="detail-info">

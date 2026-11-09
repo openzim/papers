@@ -16,7 +16,7 @@
     <h1>{{ author.name }}</h1>
 
     {% if author.portrait_path %}
-    <img class="author-portrait" src="../{{ author.portrait_path }}" alt="Portrait of {{ author.name }}">
+    <img class="author-portrait" src="../{{ author.portrait_path|urlencode }}" alt="Portrait of {{ author.name }}">
     {% endif %}
 
     {% if author.bio %}

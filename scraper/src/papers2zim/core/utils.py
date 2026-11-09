@@ -88,8 +88,42 @@ def primary_collection_id(work: Work) -> str | None:
 
 
 def collection_key(collection_id: str) -> str:
-    """Return a reversible, path- and URL-safe key for a collection id."""
-    return quote(collection_id, safe="-_.!~*'()")
+    """Return a URL-safe form of a collection id.
+
+    Use this when the id goes into a URL or query string, never when building a
+    ZIM item path: paths are stored raw (see `collections/{id}.json`) and the
+    client's percent-encoded request is decoded by server before lookup, so a
+    path built with this helper would never match.
+
+    Percent-encode ASCII characters reserved in URLs, but keep non-ASCII
+    characters as-is: HTTP clients encode them when building the request URL
+    and servers decode them back.
+    """
+    return "".join(
+        (
+            character
+            if not character.isascii()
+            or character.isalnum()
+            or character in "-_.!~*'()"
+            else quote(character, safe="")
+        )
+        for character in collection_id
+    )
+
+
+def slug_id(value: str) -> str:
+    """Return a deterministic, path-safe id for value."""
+    slug = slugify(value)
+    digest = hashlib.sha256(value.encode()).hexdigest()[:8]
+    return f"{slug}-{digest}" if slug else digest
+
+
+def author_id(name: str) -> str:
+    """Deterministic id shared by every work of the same author."""
+    normalized = " ".join(name.split())
+    slug = slugify(normalized, max_encoded_length=80)
+    digest = hashlib.sha256(normalized.casefold().encode()).hexdigest()[:8]
+    return f"{slug}-{digest}" if slug else digest
 
 
 def atomic_write_text(path: Path, content: str, *, encoding: str = "utf-8") -> None:

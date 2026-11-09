@@ -51,6 +51,15 @@ ZIM_EXPECTATIONS = (
         format_name="epub",
         mimetype="application/epub+zip",
     ),
+    ZimExpectation(
+        filename="bnr-integration.zim",
+        title="BNR Test",
+        source_slug="bibliothequenumeriqueromande",
+        source_creator="ebooks-bnr.com",
+        work_id="bb1677e9-6c0d-1014-a28f-e608d727f541",
+        format_name="epub",
+        mimetype="application/epub+zip",
+    ),
     pytest.param(
         ZimExpectation(
             filename="wikisource-integration.zim",
@@ -82,7 +91,13 @@ def expected(request) -> ZimExpectation:
 
 @pytest.fixture
 def zim_path(expected: ZimExpectation) -> Path:
-    return Path(os.environ["ZIM_DIRECTORY"]) / expected.filename
+    directory = os.environ.get("ZIM_DIRECTORY")
+    if not directory:
+        pytest.skip(
+            "ZIM_DIRECTORY is not set; integration ZIMs are built by CI "
+            "(see .github/workflows/Tests.yaml)"
+        )
+    return Path(directory) / expected.filename
 
 
 @pytest.fixture

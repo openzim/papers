@@ -6,6 +6,7 @@ Source-agnostic: this module contains no source-specific behavior.
 import io
 from dataclasses import asdict
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from bs4 import BeautifulSoup
 from PIL.Image import Resampling
@@ -23,8 +24,10 @@ def rewrite_html_image_references(soup: BeautifulSoup, label: str) -> None:
 
     def rewrite_reference(element, attr, ref_type):
         """Helper to rewrite a single reference attribute."""
-        if attr in element.attrs:
+        if attr in element.attrs and isinstance(element[attr], str):
             old_ref = element[attr]
+            if old_ref.startswith(("/", "#")) or urlsplit(old_ref).scheme:
+                return
             new_ref = ImageProcessor.get_output_filename(old_ref)
             if old_ref != new_ref:
                 element[attr] = new_ref
@@ -60,10 +63,16 @@ class ImageProcessor:
         source files sharing a basename but differing only in extension
         (e.g. ``001.jpg`` and ``001.png``) don't collide on the same output
         path once both are converted to WebP.
+
+        A query string or fragment is not part of the stored path, so it is
+        dropped before the extension is inspected; otherwise the ``.webp``
+        suffix would land after the query (``cover.jpg?v=2.webp``) instead of
+        naming the stored file (``cover.jpg.webp``).
         """
-        if ImageProcessor.should_convert_to_webp(filename):
-            return f"{filename}.webp"
-        return filename
+        path = urlsplit(filename).path or filename
+        if ImageProcessor.should_convert_to_webp(path):
+            return f"{path}.webp"
+        return path
 
     @staticmethod
     def optimize_image_content(

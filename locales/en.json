@@ -152,6 +152,46 @@
       "collections": "collection | collections"
     }
   },
+  "bibliothequenumeriqueromande": {
+    "about": {
+      "attribution": "Book metadata and cover images provided by the Bibliothèque numérique romande.",
+      "introHeading": "About the Bibliothèque numérique romande",
+      "introParagraph1": "The Bibliothèque numérique romande is a free online library of French-language ebooks.",
+      "introParagraph2": "Its collection brings together literary works from French-speaking Switzerland, France and beyond.",
+      "introParagraph3": "Books are available in EPUB format and can be read offline.",
+      "introParagraph4": "This library makes those books available for offline reading.",
+      "missionAuthor": "The Bibliothèque numérique romande team",
+      "missionHeading": "Free French-language books for everyone",
+      "missionParagraph1": "The Bibliothèque numérique romande exists to make French-language literature available to everyone for free.",
+      "missionParagraph2": "Its collection spans novels, poetry, theatre, essays and other works.",
+      "missionParagraph3": "Books are offered in open formats such as EPUB, which work on most devices and readers.",
+      "missionParagraph4": "Keeping these books available offline helps preserve them for readers today and in the future."
+    },
+    "metadata_defaults": {
+      "title": "Bibliothèque numérique romande",
+      "description": "Free French-language ebooks from the Bibliothèque numérique romande"
+    },
+    "nav": {
+      "collections": "Categories"
+    },
+    "home": {
+      "allCollections": "All categories",
+      "mostPopular": "Most popular",
+      "popularCollections": "Popular categories"
+    },
+    "collection": {
+      "allCollections": "All categories"
+    },
+    "book": {
+      "collection": "Category",
+      "sameCollectionBooks": "Books in the same category"
+    },
+    "footer": {
+      "createdBy": "Created by",
+      "packagedBy": "Packaged by",
+      "kiwix": "Kiwix"
+    }
+  },
   "gutenberg": {
     "about": {
       "attribution": "Written by Michael S. Hart June 20, 2004. Updated October 23, 2004; December 25, 2007.",
