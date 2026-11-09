@@ -88,8 +88,22 @@ def primary_collection_id(work: Work) -> str | None:
 
 
 def collection_key(collection_id: str) -> str:
-    """Return a reversible, path- and URL-safe key for a collection id."""
-    return quote(collection_id, safe="-_.!~*'()")
+    """Return a reversible, path- and URL-safe key for a collection id.
+
+    Percent-encode ASCII characters reserved in URL paths, but keep non-ASCII
+    characters as-is: HTTP clients encode them when building the request URL
+    and servers decode them before resolving the ZIM item path, so encoding
+    them here would store a literal percent sequence the decoded request cannot
+    match.
+    """
+    return "".join(
+        character
+        if not character.isascii()
+        or character.isalnum()
+        or character in "-_.!~*'()"
+        else quote(character, safe="")
+        for character in collection_id
+    )
 
 
 def slug_id(value: str) -> str:

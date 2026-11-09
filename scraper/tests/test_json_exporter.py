@@ -413,6 +413,24 @@ def test_collection_detail_path_encodes_unsafe_collection_id():
     assert "collections/A%2FB%20%26%20C.json" in _added_paths(assembler)
 
 
+def test_collection_detail_path_keeps_unicode_collection_id():
+    assembler = MagicMock(name="assembler")
+    creator = Creator(id="1", display_name="Author")
+    store = WorkStore()
+    store.add(_work("1", "Book", creator, "Littérature française"))
+
+    generate_json_files(
+        zim_name="test",
+        formats=["html"],
+        work_store=store,
+        assembler=assembler,
+        display_name="Test Source",
+        indexes=_indexes(store),
+    )
+
+    assert "collections/Littérature française.json" in _added_paths(assembler)
+
+
 def test_config_includes_source_theme_and_features():
     assembler = MagicMock(name="assembler")
     store = _store()
