@@ -92,6 +92,18 @@ def collection_key(collection_id: str) -> str:
     return quote(collection_id, safe="-_.!~*'()")
 
 
+def slug_id(value: str) -> str:
+    """Return a deterministic, path-safe id for value."""
+    slug = slugify(value)
+    digest = hashlib.sha256(value.encode()).hexdigest()[:8]
+    return f"{slug}-{digest}" if slug else digest
+
+
+def author_id(name: str) -> str:
+    """Return a deterministic, path-safe id shared by a work's author."""
+    return slug_id(name)
+
+
 def atomic_write_text(path: Path, content: str, *, encoding: str = "utf-8") -> None:
     """Write text through a sibling temporary file and atomically replace it."""
     temporary_path = path.with_name(f".{path.name}.{uuid4().hex}.tmp")

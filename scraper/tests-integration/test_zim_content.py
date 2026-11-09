@@ -51,6 +51,15 @@ ZIM_EXPECTATIONS = (
         format_name="epub",
         mimetype="application/epub+zip",
     ),
+    ZimExpectation(
+        filename="bnr-integration.zim",
+        title="BNR Test",
+        source_slug="bibliothequenumeriqueromande",
+        source_creator="ebooks-bnr.com",
+        work_id="93a150d8-630a-4b26-b495-2e848bb09b9e",
+        format_name="epub",
+        mimetype="application/epub+zip",
+    ),
     pytest.param(
         ZimExpectation(
             filename="wikisource-integration.zim",

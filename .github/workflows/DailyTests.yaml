@@ -51,6 +51,18 @@ jobs:
             --formats epub \
             --no-index \
             --overwrite
+          docker run --rm -v "$PWD/output:/output" papers papers2zim \
+            --source bibliothequenumeriqueromande \
+            --output /output \
+            --zim-file /output/bnr-integration.zim \
+            --zim-name bnr_integration_test \
+            --zim-title "BNR Test" \
+            --zim-desc "One public-domain book from Bibliothèque numérique romande for integration testing" \
+            --bnr-authors "Wharton Edith" \
+            --bnr-ids 93A150D8-630A-4B26-B495-2E848BB09B9E \
+            --formats epub \
+            --no-index \
+            --overwrite
           # wikisource is temporarily disabled: ws-export is unreachable from CI
           # docker run --rm -v "$PWD/output:/output" papers papers2zim \
           #   --source wikisource \
@@ -73,6 +85,8 @@ jobs:
             ghcr.io/openzim/zim-tools:3.8.0 zimcheck /output/opentextbooks-integration.zim
           docker run --rm -v "$PWD/output:/output" \
             ghcr.io/openzim/zim-tools:3.8.0 zimcheck /output/onemorelibrary-integration.zim
+          docker run --rm -v "$PWD/output:/output" \
+            ghcr.io/openzim/zim-tools:3.8.0 zimcheck /output/bnr-integration.zim
           # wikisource is temporarily disabled: ws-export is unreachable from CI
           # docker run --rm -v "$PWD/output:/output" \
           #   ghcr.io/openzim/zim-tools:3.8.0 zimcheck /output/wikisource-integration.zim

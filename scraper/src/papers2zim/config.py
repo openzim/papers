@@ -176,7 +176,11 @@ def build_scrape_config(arguments: dict) -> ScrapeConfig:
     books = [str(book_id) for book_id in only_books_ids] + list(
         source_options.get("book_ids") or []
     )
-    collections = source_options.get("collections") or source_options.get("subjects")
+    collections = (
+        source_options.get("collections")
+        or source_options.get("subjects")
+        or source_options.get("categories")
+    )
 
     return ScrapeConfig(
         source=source.slug,
@@ -205,7 +209,14 @@ def build_scrape_config(arguments: dict) -> ScrapeConfig:
         zim_tags=(arguments.get("--zim-tags") or "").strip() or None,
         publisher=publisher,
         overwrite=overwrite,
-        is_selection=bool(books or collections or source_options.get("pages")),
+        is_selection=bool(
+            books
+            or collections
+            or source_options.get("pages")
+            or source_options.get("series")
+            or source_options.get("authors")
+            or source_options.get("title")
+        ),
         title_search=title_search,
         with_fulltext_index=with_fulltext_index,
         index_format=index_format,

@@ -77,3 +77,7 @@ output
 
 src/papers2zim/templates/jquery/jquery-1.11.1.min.js
 /.idea/
+*.xml
+.python-version
+*.vim
+wget-log

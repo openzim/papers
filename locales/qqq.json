@@ -157,6 +157,46 @@
 			"collections": "Pluralization for source-defined collection items. Format: singular | plural"
 		}
 	},
+	"bibliothequenumeriqueromande": {
+		"about": {
+			"attribution": "Attribution text for the Bibliothèque numérique romande",
+			"introHeading": "Heading of the Bibliothèque numérique romande introduction",
+			"introParagraph1": "First paragraph introducing the Bibliothèque numérique romande",
+			"introParagraph2": "Second paragraph introducing the Bibliothèque numérique romande",
+			"introParagraph3": "Third paragraph introducing the Bibliothèque numérique romande",
+			"introParagraph4": "Fourth paragraph introducing the Bibliothèque numérique romande",
+			"missionAuthor": "Author line under the mission heading",
+			"missionHeading": "Heading of the mission section",
+			"missionParagraph1": "First paragraph of the mission statement",
+			"missionParagraph2": "Second paragraph of the mission statement",
+			"missionParagraph3": "Third paragraph of the mission statement",
+			"missionParagraph4": "Fourth paragraph of the mission statement"
+		},
+		"metadata_defaults": {
+			"title": "Default ZIM title used in metadata when no specific title is set",
+			"description": "Default ZIM description used in metadata when no specific description is set"
+		},
+		"nav": {
+			"collections": "Navigation and breadcrumb label for the Bibliothèque numérique romande categories page"
+		},
+		"home": {
+			"allCollections": "Link label for browsing all Bibliothèque numérique romande categories",
+			"mostPopular": "Featured-book label for the most popular Bibliothèque numérique romande book",
+			"popularCollections": "Heading for the popular Bibliothèque numérique romande categories section"
+		},
+		"collection": {
+			"allCollections": "All Bibliothèque numérique romande categories link in the sidebar"
+		},
+		"book": {
+			"collection": "Label for the Bibliothèque numérique romande category field",
+			"sameCollectionBooks": "Heading for the carousel of books in the same Bibliothèque numérique romande category"
+		},
+		"footer": {
+			"createdBy": "Footer text preceding the source library link",
+			"packagedBy": "Footer text preceding the Kiwix link",
+			"kiwix": "Footer link text pointing to the Kiwix website"
+		}
+	},
 	"gutenberg": {
 		"about": {
 			"attribution": "Attribution text for Project Gutenberg",
