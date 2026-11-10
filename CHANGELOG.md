@@ -46,6 +46,7 @@ as of 2.0.0.
 
 ### Fixed
 
+- HTML reader: isolate reader buttons from book stylesheets (#164)
 - UI: fix the EPUB reader failing to open in kiwix-android, kiwix-desktop and kiwix-apple, which hand `blob:` iframe navigations (how `foliate-js` renders each section) off to an external app instead of letting the in-page viewer handle them; patch `foliate-js` to write section content into the iframe's document directly instead of navigating it (#169)
 - UI: fix contrast in the EPUB reader table of contents pane in light mode (#158)
 - UI: fix asymmetric left and right margins of the books grid in collections view on mobile (#156)
