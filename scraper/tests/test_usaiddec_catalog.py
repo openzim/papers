@@ -18,6 +18,7 @@ from papers2zim.sources.usaiddec.catalog import (
     _parse_catalog,
     _split_pipe,
     normalize_language,
+    normalize_languages,
 )
 
 CSV_HEADER = [
@@ -135,8 +136,9 @@ def test_parse_catalog_extracts_report_fields():
 
     assert entry.book_id == "PA000001"
     assert entry.title == "Example Evaluation"
-    assert entry.language == "en"
+    assert entry.languages == ("en",)
     assert entry.authors == ("Doe, Jane",)
+    assert entry.class_name == "Education (General)"
     assert entry.pdf_url is not None
     assert entry.pdf_url.endswith("/PA000001.pdf")
     assert entry.subjects[:2] == ("Education", "Health")
@@ -212,7 +214,57 @@ def test_normalize_language_of_blank_values():
 
 
 def test_normalize_language_of_an_unmapped_name_uses_its_iso_code():
-    assert normalize_language("Kinyarwanda") == "kin"
+    assert normalize_language("Kinyarwanda") == "rw"
+    assert normalize_language("German") == "de"
+    assert normalize_language("Haitian Creole") == "ht"
+
+
+def test_normalize_language_accepts_iso_codes():
+    assert normalize_language("en") == "en"
+    assert normalize_language("eng") == "en"
+    assert normalize_language("fra") == "fr"
+
+
+def test_normalize_language_rejects_unknown_labels():
+    assert normalize_language("Klingon") is None
+
+
+def test_normalize_languages_splits_bilingual_values():
+    assert normalize_languages("French|English") == ("fr", "en")
+    assert normalize_languages("English|French") == ("en", "fr")
+    assert normalize_languages("English|English") == ("en",)
+    assert normalize_languages(None) == ()
+
+
+def test_discover_filters_by_iso_language_aliases():
+    engine = StubEngine(
+        _zip_bytes(
+            _csv_text(
+                _row(
+                    **{
+                        "Formatted Document ID": "PA000001",
+                        "Language of Text": "French|English",
+                    }
+                ),
+                _row(
+                    **{
+                        "row_id": "2",
+                        "Formatted Document ID": "PA000002",
+                        "Language of Text": "French",
+                    }
+                ),
+            )
+        )
+    )
+    catalog = UsaidDecCatalog(engine)
+
+    assert [ref.id for ref in catalog.discover(CatalogFilters(languages=["fra"]))] == [
+        "PA000001",
+        "PA000002",
+    ]
+    assert [ref.id for ref in catalog.discover(CatalogFilters(languages=["en"]))] == [
+        "PA000001"
+    ]
 
 
 def test_split_pipe_drops_blank_items():

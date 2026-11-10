@@ -10,10 +10,14 @@ import io
 import zipfile
 from collections.abc import Iterable
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
+
+import babel
 
 from papers2zim.constants import logger
 from papers2zim.core.download_engine import DownloadEngine
+from papers2zim.core.language import ISO_MATRIX, ISO_MATRIX_REV
 from papers2zim.core.ports import CatalogFilters, CatalogPort, WorkRef
 from papers2zim.core.utils import critical_error
 
@@ -25,22 +29,48 @@ DEFAULT_CATALOG_URL = (
 )
 SUPPORTED_FORMATS = frozenset({"pdf"})
 
-_LANGUAGE_MAP = {
-    "english": "en",
-    "french": "fr",
-    "spanish": "es",
-    "portuguese": "pt",
-    "arabic": "ar",
-}
+
+@lru_cache(maxsize=1)
+def _language_name_codes() -> dict[str, str]:
+    """Map English language names ("French") to ISO 639-1 codes ("fr").
+
+    Babel ships the CLDR names, so this stays in sync with the ISO matrix in
+    ``papers2zim.core.language`` instead of duplicating a hand-written map.
+    """
+    codes: dict[str, str] = {}
+    for code in ISO_MATRIX:
+        try:
+            name = babel.Locale(code).get_language_name("en")
+        except (babel.UnknownLocaleError, ValueError) as exc:
+            logger.debug("Cannot resolve the name of language %r: %s", code, exc)
+            continue
+        if name:
+            codes.setdefault(name.casefold(), code)
+    return codes
 
 
 def normalize_language(value: str | None) -> str | None:
+    """Normalize a dataset language label to a valid ISO 639-1 code.
+
+    Accepts ISO codes (``en``/``eng``) as well as English language names
+    (``English``). Unrecognized labels yield ``None`` rather than an invented
+    code such as ``ger``/``hai``, which would surface as a raw fragment in the
+    UI and silently break ``--languages`` filtering.
+    """
     if not value:
         return None
-    value = value.strip()
-    if not value:
+    text = value.strip()
+    if not text:
         return None
-    return _LANGUAGE_MAP.get(value.casefold(), value.casefold()[:3] or None)
+    key = text.casefold()
+    if key in ISO_MATRIX:
+        return key
+    if key in ISO_MATRIX_REV:
+        return ISO_MATRIX_REV[key]
+    code = _language_name_codes().get(key)
+    if code is None:
+        logger.warning("Ignoring unrecognized USAID DEC language label %r", text)
+    return code
 
 
 def _split_pipe(value: str | None) -> list[str]:
@@ -49,18 +79,33 @@ def _split_pipe(value: str | None) -> list[str]:
     return [item.strip() for item in value.split("|") if item.strip()]
 
 
+def normalize_languages(value: str | None) -> tuple[str, ...]:
+    """Normalize a pipe-separated language field into ISO 639-1 codes.
+
+    Reports are often bilingual ("French|English"), so each label is resolved
+    independently and duplicates are dropped while keeping dataset order.
+    """
+    codes: list[str] = []
+    for label in _split_pipe(value):
+        code = normalize_language(label)
+        if code and code not in codes:
+            codes.append(code)
+    return tuple(codes)
+
+
 @dataclass(frozen=True, slots=True)
 class UsaidDecEntry:
     book_id: str
     title: str
     description: str | None
-    language: str | None
+    languages: tuple[str, ...]
     authors: tuple[str, ...]
     date_published: str | None
     pdf_url: str | None
     source_url: str | None
     file_size: str | None
     bibtype: str | None
+    class_name: str | None
     subjects: tuple[str, ...]
     geographies: tuple[str, ...]
 
@@ -127,13 +172,14 @@ def _parse_catalog(csv_text: str) -> list[UsaidDecEntry]:
                 book_id=book_id,
                 title=title,
                 description=description,
-                language=normalize_language(row.get("Language of Text")),
+                languages=normalize_languages(row.get("Language of Text")),
                 authors=authors,
                 date_published=date_published,
                 pdf_url=pdf_url,
                 source_url=(row.get("[DetailLink]") or "").strip() or None,
                 file_size=(row.get("File Size") or "").strip() or None,
                 bibtype=(row.get("Bibtype Name") or "").strip() or None,
+                class_name=class_value or None,
                 subjects=subjects,
                 geographies=geographies,
             )
@@ -217,18 +263,16 @@ class UsaidDecCatalog(CatalogPort):
     ) -> list[UsaidDecEntry]:
         if filters.languages:
             wanted = {lang.casefold() for lang in filters.languages}
-            # accept 2- or 3-letter codes and common names mapped to en
-            mapped = set()
+            # accept ISO 639-1 and 639-3 codes interchangeably
+            mapped = set(wanted)
             for lang in wanted:
-                mapped.add(lang)
-                if lang == "eng":
-                    mapped.add("en")
-                if lang == "en":
-                    mapped.add("eng")
+                mapped.add(ISO_MATRIX.get(lang, lang))
+                mapped.add(ISO_MATRIX_REV.get(lang, lang))
             entries = [
                 entry
                 for entry in entries
-                if not entry.language or entry.language.casefold() in mapped
+                if not entry.languages
+                or any(lang.casefold() in mapped for lang in entry.languages)
             ]
         return entries
 
@@ -240,13 +284,14 @@ class UsaidDecCatalog(CatalogPort):
             extra={
                 "title": entry.title,
                 "description": entry.description,
-                "languages": [entry.language] if entry.language else ["en"],
+                "languages": list(entry.languages) or ["en"],
                 "authors": list(entry.authors),
                 "date_published": entry.date_published,
                 "pdf_url": entry.pdf_url,
                 "source_url": entry.source_url,
                 "file_size": entry.file_size,
                 "bibtype": entry.bibtype,
+                "class_name": entry.class_name,
                 "subjects": list(entry.subjects),
                 "geographies": list(entry.geographies),
             },

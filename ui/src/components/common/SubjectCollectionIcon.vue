@@ -1,24 +1,42 @@
 <script setup lang="ts">
 import {
   mdiAccountGroup,
+  mdiAccountMultiple,
+  mdiBank,
   mdiBookshelf,
   mdiBriefcase,
   mdiCalculatorVariant,
+  mdiChartLine,
+  mdiClipboardCheck,
   mdiCodeBraces,
   mdiCog,
   mdiEarth,
+  mdiFoodApple,
+  mdiGenderFemale,
+  mdiHandHeart,
   mdiHeadLightbulb,
+  mdiHomeHeart,
+  mdiHumanPregnant,
   mdiInformation,
+  mdiLaptop,
+  mdiLeaf,
   mdiLibrary,
+  mdiLightningBolt,
   mdiMicroscope,
+  mdiMotherHeart,
   mdiNewspaperVariant,
   mdiPalette,
+  mdiRibbon,
   mdiScaleBalance,
   mdiSchool,
+  mdiShieldAlert,
+  mdiSprout,
   mdiStethoscope,
   mdiTheater,
   mdiTranslate,
-  mdiTrophyVariant
+  mdiTrophyVariant,
+  mdiVote,
+  mdiWaterPump
 } from '@mdi/js'
 
 const props = defineProps<{
@@ -87,9 +105,33 @@ const ONE_MORE_LIBRARY_CATEGORY_ICONS: Record<string, string> = {
   'الفلسفة وعلم النفس': mdiHeadLightbulb
 }
 
+const USAID_DEC_COLLECTION_ICONS: Record<string, string> = {
+  'Agriculture & Food Security': mdiSprout,
+  'Capacity Building & Evaluation': mdiClipboardCheck,
+  'Conflict & Security': mdiShieldAlert,
+  'Democracy & Civil Society': mdiVote,
+  Education: mdiSchool,
+  'Economic Growth & Trade': mdiChartLine,
+  'Energy & Infrastructure': mdiLightningBolt,
+  'Environment & Climate': mdiLeaf,
+  'Gender Equality': mdiGenderFemale,
+  'Governance & Public Administration': mdiBank,
+  Health: mdiStethoscope,
+  'HIV/AIDS': mdiRibbon,
+  'Humanitarian Assistance & Disaster': mdiHandHeart,
+  'Maternal & Child Health': mdiMotherHeart,
+  Nutrition: mdiFoodApple,
+  'Population & Demography': mdiAccountMultiple,
+  'Poverty & Social Development': mdiHomeHeart,
+  'Reproductive Health & Family Planning': mdiHumanPregnant,
+  'Technology & Communications': mdiLaptop,
+  'Water & Sanitation': mdiWaterPump
+}
+
 const SUBJECT_ICONS: Record<string, string> = {
   ...OPEN_TEXTBOOK_SUBJECT_ICONS,
-  ...ONE_MORE_LIBRARY_CATEGORY_ICONS
+  ...ONE_MORE_LIBRARY_CATEGORY_ICONS,
+  ...USAID_DEC_COLLECTION_ICONS
 }
 
 function getSubjectCollectionIcon(subject: string | null): string {
