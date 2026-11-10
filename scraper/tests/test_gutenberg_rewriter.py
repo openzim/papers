@@ -91,3 +91,42 @@ def test_rewrites_icon_cover_in_non_images_subfolder():
     icon_link = soup.find("link", rel="icon")
     assert icon_link is not None
     assert icon_link["href"] == "11/shavings_files/title.gif"
+
+
+def test_rewrites_every_icon_link_when_the_head_repeats_it():
+    html = (
+        "<html><head>"
+        '<link href="images/cover_front.jpg" rel="icon" type="image/x-cover"'
+        ' id="id-3721072283725311344"/>'
+        '<link href="images/cover_front.jpg" rel="icon" type="image/x-cover"'
+        ' id="id-1536236865570670334"/>'
+        "</head><body></body></html>"
+    )
+    work = _work()
+    soup = update_html_for_static(work, html, [])
+
+    assert work.extra["_cover_href"] == "images/cover_front.jpg"
+    assert [link["href"] for link in soup.find_all("link", rel="icon")] == [
+        "11/images/cover_front.jpg.webp",
+        "11/images/cover_front.jpg.webp",
+    ]
+
+
+def test_ignores_icon_links_that_are_not_local_assets():
+    html = (
+        "<html><head>"
+        '<link rel="icon" href="images/cover.jpg" id="local-href"/>'
+        '<link rel="icon" href="#anchor" id="anchor-href"/>'
+        '<link rel="icon" id="no-href"/>'
+        "</head><body></body></html>"
+    )
+    work = _work()
+    soup = update_html_for_static(work, html, [])
+
+    assert work.extra["_cover_href"] == "images/cover.jpg"
+    icon_links = soup.find_all("link", rel="icon")
+    assert [link.get("href") for link in icon_links] == [
+        "11/images/cover.jpg.webp",
+        "#anchor",
+        None,
+    ]

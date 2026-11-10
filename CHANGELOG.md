@@ -16,6 +16,10 @@ as of 2.0.0.
 
 - Wikisource: use the real logo instead of the placeholder mark (#184)
 
+### Fixed
+
+- Gutenberg: rewrite every `<link rel="icon">` in a book's HTML head instead of only the first one, so books that repeat the cover tag (e.g. `77225`, which carries two identical ones) no longer ship a reference pointing outside the book's own folder — the case that made zimcheck fail on those ZIMs (#176)
+
 ## [1.1.0] - 2026-11-10
 
 ### Added
