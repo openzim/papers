@@ -23,6 +23,9 @@ def _work(book_id="11") -> Work:
     ("path", "expected"),
     [
         ("images/cover.jpg", "11/images/cover.jpg"),
+        ("images/cover.jpg?v=2", "11/images/cover.jpg"),
+        ("images/cover.jpg#frag", "11/images/cover.jpg"),
+        ("images/foo%20bar.jpg", "11/images/foo bar.jpg"),
         ("style/arctic.css", "11/style/arctic.css"),
         ("music/11-1.mid", "11/music/11-1.mid"),
         ("cover.jpg", "11/cover.jpg"),

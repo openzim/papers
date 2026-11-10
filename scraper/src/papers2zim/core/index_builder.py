@@ -17,6 +17,7 @@ so the pipeline writes each one while the book is processed (see
 from collections import defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass, field
+from urllib.parse import quote
 
 from papers2zim.core.models import Creator, Work
 from papers2zim.core.slugs import Slugs, build_slugs
@@ -75,7 +76,7 @@ def book_search_entry(work: Work) -> IndexEntry:
         title=work.title,
         content=". ".join(parts) + ".",
         fname=f"book_{work.id}",
-        route=f"book/{work.id}",
+        route=f"book/{quote(work.id, safe='')}",
     )
 
 
@@ -173,7 +174,7 @@ class IndexBuilder:
             yield IndexEntry(
                 title=f"Collection {collection_id}",
                 content=". ".join(parts) + ".",
-                fname=f"collection_{key}",
+                fname=f"collection_{collection_id}",
                 route=f"collections?collection={key}",
             )
 

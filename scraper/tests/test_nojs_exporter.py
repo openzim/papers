@@ -39,7 +39,7 @@ def test_collection_pages_use_configured_label_and_collection_name():
     )
 
     listing = _item_call(assembler, "noscript/collections.html").kwargs
-    detail = _item_call(assembler, "noscript/collection_Computer%2FScience.html").kwargs
+    detail = _item_call(assembler, "noscript/collection_Computer/Science.html").kwargs
     assert "Subjects" in listing["content"]
     assert "Computer Science" in listing["content"]
     assert 'name="viewport"' in listing["content"]

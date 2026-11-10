@@ -94,6 +94,13 @@ def test_search_entries_leave_books_to_the_pipeline():
     assert not [e for e in indexes.search_entries if e.fname.startswith("book_")]
 
 
+def test_book_search_entry_encodes_reserved_characters_in_route():
+    entry = book_search_entry(_work("A/B & C?", "Book"))
+
+    assert entry.fname == "book_A/B & C?"
+    assert entry.route == "book/A%2FB%20%26%20C%3F"
+
+
 def test_search_entries_use_unique_slugs_for_authors():
     store = _store_with(
         _work("1", "Bleak House", creators=[DICKENS]),
@@ -124,7 +131,7 @@ def test_search_entries_for_collections():
     assert "Bleak House" in entry.content
 
 
-def test_search_entries_encode_collection_ids_in_filenames_and_routes():
+def test_search_entries_keep_raw_collection_ids_in_filenames():
     collection = CollectionRef(
         id="Computer/Science & Maths#1?", name="Computer Science"
     )
@@ -135,7 +142,7 @@ def test_search_entries_encode_collection_ids_in_filenames_and_routes():
         for entry in IndexBuilder(store).build(display_name="Test").search_entries
     }
 
-    entry = entries["collection_Computer%2FScience%20%26%20Maths%231%3F"]
+    entry = entries["collection_Computer/Science & Maths#1?"]
     assert (
         entry.route == "collections?collection=Computer%2FScience%20%26%20Maths%231%3F"
     )

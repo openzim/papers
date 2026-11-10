@@ -19,7 +19,7 @@ from xml.etree import ElementTree as ET
 from papers2zim.constants import logger
 from papers2zim.core.download_engine import DownloadEngine
 from papers2zim.core.ports import CatalogFilters, CatalogPort, WorkRef
-from papers2zim.core.utils import normalize
+from papers2zim.core.utils import critical_error, normalize
 
 BASE_URL = "https://ebooks-bnr.com/opds/index.php"
 BNR_SOURCE = "bibliothequenumeriqueromande"
@@ -199,21 +199,36 @@ class BibliothequeNumeriqueRomandeCatalog(CatalogPort):
         """
 
         if inputs := filters.options.get("series"):
+            filter_kind = "series"
             pages = self._list_series()
         elif inputs := filters.options.get("authors"):
+            filter_kind = "authors"
             pages = self._list_authors()
         elif inputs := filters.options.get("categories"):
+            filter_kind = "categories"
             pages = self._list_categories()
         elif inputs := filters.options.get("title"):
+            filter_kind = "title prefixes"
             pages = self._list_titles()
         else:
+            filter_kind = "all"
             # No filter means the whole catalogue
             return self._list_titles()
 
         requested = {(normalize(value) or "").strip().casefold() for value in inputs}
-        return [
+        matching = [
             page for page in pages if (normalize(page.id) or "").casefold() in requested
         ]
+        if not matching:
+            available = ", ".join(self._sorted_page_ids(pages)) or "(none)"
+            critical_error(
+                "No Bibliothèque numérique romande "
+                f"{filter_kind} matches {', '.join(inputs)!r}. "
+                f"Available {filter_kind}: {available}. "
+                "Use --list-bnr-* to browse them (--bnr-categories for tags and "
+                "--bnr-series for series)."
+            )
+        return matching
 
     def list_series(self) -> list[str]:
         """Return every series name available on BNR, sorted alphabetically."""

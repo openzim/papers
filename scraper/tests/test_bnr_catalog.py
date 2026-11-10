@@ -6,6 +6,7 @@ import pytest
 
 from papers2zim.core.download_engine import DownloadEngine
 from papers2zim.core.ports import CatalogFilters
+from papers2zim.core.utils import CriticalError
 from papers2zim.sources.bibliothequenumeriqueromande.catalog import (
     ACQUISITION_REL,
     BASE_URL,

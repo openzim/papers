@@ -43,7 +43,6 @@ from papers2zim.core.utils import (
     ALL_FORMATS,
     archive_name_for,
     article_name_for,
-    collection_key,
     creator_birth_year,
     creator_death_year,
     primary_collection_id,
@@ -474,8 +473,11 @@ def generate_json_files(
             total_popularity_by_language=total_popularity_by_language,
             books=[_work_to_preview(work, formats, slugs) for work in collection_works],
         )
+        # The id is stored raw: ZIM paths are raw UTF-8 and clients percent-encode
+        # the id when requesting this item (see `collection_key`), which server
+        # decodes back to this exact path.
         assembler.add_item_for(
-            path=f"collections/{collection_key(collection_id)}.json",
+            path=f"collections/{collection_id}.json",
             content=collection.model_dump_json(by_alias=True, indent=2),
             mimetype="application/json",
             is_front=False,

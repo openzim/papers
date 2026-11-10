@@ -88,13 +88,16 @@ def primary_collection_id(work: Work) -> str | None:
 
 
 def collection_key(collection_id: str) -> str:
-    """Return a reversible, path- and URL-safe key for a collection id.
+    """Return a URL-safe form of a collection id.
 
-    Percent-encode ASCII characters reserved in URL paths, but keep non-ASCII
+    Use this when the id goes into a URL or query string, never when building a
+    ZIM item path: paths are stored raw (see `collections/{id}.json`) and the
+    client's percent-encoded request is decoded by server before lookup, so a
+    path built with this helper would never match.
+
+    Percent-encode ASCII characters reserved in URLs, but keep non-ASCII
     characters as-is: HTTP clients encode them when building the request URL
-    and servers decode them before resolving the ZIM item path, so encoding
-    them here would store a literal percent sequence the decoded request cannot
-    match.
+    and servers decode them back.
     """
     return "".join(
         (

@@ -182,9 +182,45 @@ describe('normalizeImagePath', () => {
 })
 
 describe('normalizeZimPath', () => {
-  it('keeps a colon-containing archive path relative', () => {
-    expect(normalizeZimPath('Evidence: Jury Impeachment.108.pdf')).toBe(
-      './Evidence: Jury Impeachment.108.pdf'
-    )
+  it.each([
+    {
+      input: 'Evidence: Jury Impeachment.108.pdf',
+      expected: './Evidence%3A%20Jury%20Impeachment.108.pdf',
+      description: 'encodes a colon and spaces'
+    },
+    { input: 'a#b.pdf', expected: './a%23b.pdf', description: 'encodes a fragment marker' },
+    { input: 'a?b.pdf', expected: './a%3Fb.pdf', description: 'encodes a query marker' },
+    { input: '100%.pdf', expected: './100%25.pdf', description: 'encodes a literal percent' },
+    {
+      input: 'folder/sub/book.epub',
+      expected: './folder/sub/book.epub',
+      description: 'keeps a safe multi-segment path relative'
+    },
+    { input: './book.epub', expected: './book.epub', description: 'keeps the prefix' },
+    {
+      input: '../book.epub',
+      expected: './../book.epub',
+      description: 'keeps the parent segment'
+    },
+    {
+      input: 'https://example.com/a?b=1#c',
+      expected: 'https://example.com/a?b=1#c',
+      description: 'leaves an absolute URL untouched'
+    },
+    {
+      input: '//cdn.example.com/book.epub',
+      expected: '//cdn.example.com/book.epub',
+      description: 'leaves a protocol-relative URL untouched'
+    }
+  ])('handles $description: "$input" -> "$expected"', ({ input, expected }) => {
+    expect(normalizeZimPath(input)).toBe(expected)
+  })
+
+  it('escapes the query marker of a title ending in a question mark', () => {
+    const title = 'ਮੈਂ ਨਾਸਤਿਕ ਕਿਉਂ ਹਾਂ?.pa_1d51d0d1.epub'
+
+    expect(normalizeZimPath(title)).toBe(`./${encodeURIComponent(title)}`)
+    expect(normalizeZimPath(title)).toContain('%3F')
+    expect(normalizeZimPath(title)).not.toContain('?')
   })
 })

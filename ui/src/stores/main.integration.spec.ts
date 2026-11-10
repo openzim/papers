@@ -66,7 +66,13 @@ describe('Main Store Integration', () => {
 
     it.each([
       { method: 'fetchBook' as const, param: '42', url: './books/42.json' },
+      {
+        method: 'fetchBook' as const,
+        param: 'A/B & C?',
+        url: './books/A%2FB%20%26%20C%3F.json'
+      },
       { method: 'fetchAuthor' as const, param: 'austen-jane', url: './authors/austen-jane.json' },
+      { method: 'fetchAuthor' as const, param: 'a#b', url: './authors/a%23b.json' },
       { method: 'fetchCollection' as const, param: 'PR', url: './collections/PR.json' },
       {
         method: 'fetchCollection' as const,

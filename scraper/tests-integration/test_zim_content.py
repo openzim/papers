@@ -91,7 +91,13 @@ def expected(request) -> ZimExpectation:
 
 @pytest.fixture
 def zim_path(expected: ZimExpectation) -> Path:
-    return Path(os.environ["ZIM_DIRECTORY"]) / expected.filename
+    directory = os.environ.get("ZIM_DIRECTORY")
+    if not directory:
+        pytest.skip(
+            "ZIM_DIRECTORY is not set; integration ZIMs are built by CI "
+            "(see .github/workflows/Tests.yaml)"
+        )
+    return Path(directory) / expected.filename
 
 
 @pytest.fixture

@@ -12,6 +12,8 @@ from papers2zim.core.rewriters.image_rewriter import ImageProcessor
         ("001.jpeg", "001.jpeg.webp"),
         ("001.png", "001.png.webp"),
         ("images/001.png", "images/001.png.webp"),
+        ("images/001.png?v=2", "images/001.png.webp"),
+        ("images/001.gif?v=2", "images/001.gif"),
         ("001.webp", "001.webp"),
         ("001.gif", "001.gif"),
         ("notes.txt", "notes.txt"),

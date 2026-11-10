@@ -396,7 +396,7 @@ def test_generate_json_files_does_not_emit_legacy_shelf_files():
     assert not any(path.startswith("lcc_shelves/") for path in paths)
 
 
-def test_collection_detail_path_encodes_unsafe_collection_id():
+def test_collection_detail_path_keeps_raw_collection_id():
     assembler = MagicMock(name="assembler")
     creator = Creator(id="1", display_name="Author")
     store = WorkStore()
@@ -411,7 +411,7 @@ def test_collection_detail_path_encodes_unsafe_collection_id():
         indexes=_indexes(store),
     )
 
-    assert "collections/A%2FB%20%26%20C.json" in _added_paths(assembler)
+    assert "collections/A/B & C.json" in _added_paths(assembler)
 
 
 def test_collection_detail_path_keeps_unicode_collection_id():
