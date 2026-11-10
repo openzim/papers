@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 as of 2.0.0.
 
-## [Unreleased]
+## [1.1.0] - 2026-11-10
 
 ### Added
 
@@ -26,6 +26,7 @@ as of 2.0.0.
 - Index the full text of each book in its search entry, from one format per book (HTML, then EPUB, then PDF), with `--index-format` to force one (#43)
 - Wikisource: add book descriptions, sourced from each work's Wikidata item, since the ws-export OPDS feed carries none (#21)
 - Add a proper per-source ZIM illustration and HTML favicon set: each source ships one SVG mark, rasterized at export time into the ZIM illustration metadata and a minimal favicon.svg/.ico, apple-touch-icon.png and web app manifest icon set, wired into both the Vue UI and the no-JS fallback pages with paths relative to the page so they resolve under kiwix-serve (#110)
+- Add an info panel listing the explicit filters (collections, books, language, formats) used to build the ZIM (#4)
 
 ### Changed
 
@@ -43,6 +44,8 @@ as of 2.0.0.
 - UI: when the application fails to start, explain that reloading is unlikely to help and point to the more limited No-JavaScript interface instead (#119)
 - One More Library and Open Textbook Library: emit one broad collection per book instead of hundreds of leaf categories. OML uses the category above the book's own, OTL resolves every subject to its root through the published subject tree because textbook records often omit the ancestors; document the collection policy, give both sources dedicated category icons, and drop the OTL subject translations that no longer correspond to an emitted collection (#117)
 - UI: stop loading the whole books catalog to display a page of it. `books.json` is now a manifest carrying `bookCountByLanguage`, and the catalog is chunked into `books-pages/{sort}/{n}.json` — one page set per sort criterion the UI offers (`popularity`, `title`, `author`), each cut in the direction the UI sorts it by default, which is the only direction its sort control offers. The books list, home's selected books and the collections sidebar total render from the pages they actually show, fetch the next one as the reader scrolls, and switch directory with a spinner when the reader sorts; a language filter is applied to the pages as they arrive, so no view merges the catalog any more and only the page set being browsed stays in memory (#140)
+- Slim `BookPreview`'s embedded author and description down to a minimal reference and short excerpt, cutting `books.json`/`collections/*.json`/`authors/*.json` bloat (#138)
+- Gutenberg: merge History LCC shelves C, D, E and F into a single shelf, and stop splitting the Language and literature shelf by sub-class for single-language ZIMs (#47)
 
 ### Fixed
 
@@ -63,6 +66,8 @@ as of 2.0.0.
 - Resolve ZIM language metadata for ISO 639-3 codes with no ISO 639-1 equivalent (e.g. `grc`/Ancient Greek) without having to hardcode each one, and fix `fur`/Friulian being mislabeled as the unrelated `fvr`/Fur language (#102)
 - Gutenberg: stop failing to build the `mul` ZIM when any book carries an unmappable language code (`myn`, `nai`); such codes are now dropped from ZIM language metadata, with a warning logged, instead of blocking the whole build (#121)
 - Gutenberg: stop rejecting the whole HTML zip for books that bundle images, stylesheets or audio under a subfolder other than `images/` (e.g. `music/`, `style/`+`img/`); any subfolder layout is now extracted under the book's own ZIM folder, with every reference to it rewritten accordingly, instead of only `images/` being allowed and the rest silently falling back to a worse format (#131)
+- Fix the "see all" arrow in popular-collections and section headers pointing the wrong way in RTL languages (#107)
+- Fix the space before a shelf's book count being included in its link underline (#24)
 
 - Promote Wikisource `issued` to standard `published` metadata (#10)
 - Wikisource: stop offering the withdrawn `xhtml` format, and fail early when a requested format is not offered by ws-export (#11)
