@@ -6,6 +6,7 @@ import pytest
 
 from papers2zim.core.download_engine import DownloadEngine
 from papers2zim.core.ports import CatalogFilters
+from papers2zim.core.utils import CriticalError
 from papers2zim.sources.bibliothequenumeriqueromande.catalog import (
     ACQUISITION_REL,
     BASE_URL,
@@ -15,6 +16,9 @@ from papers2zim.sources.bibliothequenumeriqueromande.catalog import (
     EPUB_MEDIA_TYPE,
     BibliothequeNumeriqueRomandeCatalog,
     uuid_from_feed_id,
+)
+from papers2zim.sources.bibliothequenumeriqueromande.categories import (
+    COLLECTION_ORDER,
 )
 
 NAV_TYPE = "application/atom+xml;profile=opds-catalog;kind=navigation"
@@ -139,7 +143,7 @@ def test_discover_without_filter_reads_every_title_page():
     assert first.source == BNR_SOURCE
     assert first.extra["title"] == "CONTES"
     assert first.extra["author"] == "Charles Perrault"
-    assert first.extra["categories"] == ["17e", "Conte", "Littérature française"]
+    assert first.extra["categories"] == ["Conte"]
     assert first.extra["description"] == CONTES_DESCRIPTION
     assert first.extra["languages"] == [BNR_LANGUAGE]
     assert first.extra["source_url"] == (
@@ -149,11 +153,7 @@ def test_discover_without_filter_reads_every_title_page():
         "https://ebooks-bnr.com/opds/fetch.php?height=164&id=449"
     )
     assert refs[1].extra["author"] == "Ben Jonson"
-    assert refs[1].extra["categories"] == [
-        "17e",
-        "Littérature anglo-saxonne",
-        "Théâtre",
-    ]
+    assert refs[1].extra["categories"] == ["Théâtre"]
     assert refs[1].extra["description"] == VOLPONE_DESCRIPTION
     assert engine.fetched[0] == BASE_URL
 
@@ -165,39 +165,69 @@ def test_discover_returns_nothing_when_no_supported_format_requested():
     assert engine.fetched == []
 
 
-def test_discover_deduplicates_books_listed_across_categories():
+def test_list_categories_returns_the_collapsed_collections():
+    catalog, engine = _catalog({})
+
+    assert catalog.list_categories() == sorted(COLLECTION_ORDER, key=str.casefold)
+    # The list comes from the scraper, not from a BNR tags feed.
+    assert engine.fetched == []
+
+
+def test_discover_filters_by_collapsed_category():
     catalog, _ = _catalog(
         {
-            "https://ebooks-bnr.com/opds/tags.php": _feed(
-                _nav_entry("tag:conte", "Conte", "index.php?page=4&amp;id=1"),
-                _nav_entry("tag:jeunesse", "Jeunesse", "index.php?page=4&amp;id=2"),
+            "https://ebooks-bnr.com/opds/books.php": _feed(
+                _nav_entry("title:c", "C", "books.php?prefix=C"),
             ),
-            "https://ebooks-bnr.com/opds/index.php?page=4&id=1": _feed(
-                _book(CONTES_ID, "CONTES", categories=("Conte", "Jeunesse")),
+            "https://ebooks-bnr.com/opds/books.php?prefix=C": _feed(
+                _book(CONTES_ID, "CONTES"),
                 _book(
                     VOLPONE_ID,
                     "Volpone",
                     author="Ben Jonson",
-                    categories=("Théâtre",),
+                    categories=("17e", "Littérature anglo-saxonne", "Théâtre"),
                     description=VOLPONE_DESCRIPTION,
                     image_id=1020,
                     data_id=680,
                 ),
             ),
-            "https://ebooks-bnr.com/opds/index.php?page=4&id=2": _feed(
-                _book(CONTES_ID, "CONTES", categories=("Conte", "Littérature")),
+        }
+    )
+
+    refs = list(catalog.discover(CatalogFilters(options={"categories": ["conte"]})))
+    assert [ref.id for ref in refs] == [CONTES_UUID]
+
+    refs = list(catalog.discover(CatalogFilters(options={"categories": ["Théâtre"]})))
+    assert [ref.id for ref in refs] == [VOLPONE_UUID]
+
+
+def test_discover_filters_unknown_tags_into_autres():
+    catalog, _ = _catalog(
+        {
+            "https://ebooks-bnr.com/opds/books.php": _feed(
+                _nav_entry("title:c", "C", "books.php?prefix=C"),
+            ),
+            "https://ebooks-bnr.com/opds/books.php?prefix=C": _feed(
+                _book(
+                    CONTES_ID,
+                    "CONTES",
+                    categories=("Conte", "Nouvelle catégorie"),
+                ),
             ),
         }
     )
 
-    refs = list(
-        catalog.discover(CatalogFilters(options={"categories": ["Conte", "Jeunesse"]}))
-    )
+    refs = list(catalog.discover(CatalogFilters(options={"categories": ["Autres"]})))
+    assert [ref.id for ref in refs] == [CONTES_UUID]
 
-    assert [ref.id for ref in refs] == [CONTES_UUID, VOLPONE_UUID]
-    # Only the first occurrence of a book is kept.
-    assert refs[0].extra["categories"] == ["Conte", "Jeunesse"]
-    assert refs[0].extra["title"] == "CONTES"
+
+def test_discover_rejects_unknown_categories():
+    catalog, engine = _catalog({})
+
+    with pytest.raises(CriticalError, match="Available categories"):
+        list(catalog.discover(CatalogFilters(options={"categories": ["17e"]})))
+
+    assert engine.fetched == []
 
 
 def test_discover_skips_entries_without_title_id_or_epub_link():

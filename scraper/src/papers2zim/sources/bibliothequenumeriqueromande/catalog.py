@@ -20,6 +20,11 @@ from papers2zim.constants import logger
 from papers2zim.core.download_engine import DownloadEngine
 from papers2zim.core.ports import CatalogFilters, CatalogPort, WorkRef
 from papers2zim.core.utils import critical_error, normalize
+from papers2zim.sources.bibliothequenumeriqueromande.categories import (
+    COLLECTION_ORDER,
+    collection_names_for_categories,
+    normalize_category,
+)
 
 BASE_URL = "https://ebooks-bnr.com/opds/index.php"
 BNR_SOURCE = "bibliothequenumeriqueromande"
@@ -107,13 +112,13 @@ def _acquisition_url(entry: ET.Element, base_url: str) -> str | None:
 
 
 def _entry_categories(entry: ET.Element) -> list[str]:
-    """Distinct category terms, preserving feed order."""
+    """Collapse an entry's category terms into broad collections."""
     terms: list[str] = []
     for category in entry.findall("atom:category", NAMESPACES):
         term = _normalize_whitespace(category.get("term"))
         if term and term not in terms:
             terms.append(term)
-    return terms
+    return collection_names_for_categories(terms)
 
 
 @dataclass(frozen=True, slots=True)
@@ -168,6 +173,21 @@ class BibliothequeNumeriqueRomandeCatalog(CatalogPort):
             )
             return []
 
+        requested_categories = {
+            normalize_category(category)
+            for category in filters.options.get("categories") or []
+        }
+        if requested_categories:
+            available = {normalize_category(name) for name in COLLECTION_ORDER}
+            unknown = sorted(requested_categories - available)
+            if unknown:
+                critical_error(
+                    "No Bibliothèque numérique romande category matches "
+                    f"{', '.join(unknown)!r}. Available categories: "
+                    f"{', '.join(self.list_categories())}. "
+                    "Use --list-bnr-categories to browse them."
+                )
+
         pages = self._select_filter_pages(filters)
         # The same book is listed once per category/series page it belongs to, so
         # keep only its first occurrence.
@@ -176,6 +196,14 @@ class BibliothequeNumeriqueRomandeCatalog(CatalogPort):
             for book in self._parse_books(page):
                 books_by_id.setdefault(book.id, book)
         books = list(books_by_id.values())
+
+        if requested_categories:
+            books = [
+                book
+                for book in books
+                if requested_categories
+                & {normalize_category(name) for name in book.categories}
+            ]
 
         requested_ids = {
             parsed
@@ -205,13 +233,13 @@ class BibliothequeNumeriqueRomandeCatalog(CatalogPort):
             filter_kind = "authors"
             pages = self._list_authors()
         elif inputs := filters.options.get("categories"):
-            filter_kind = "categories"
-            pages = self._list_categories()
+            # Categories are the collapsed collections, not BNR tags, so the
+            # whole title index is fetched
+            return self._list_titles()
         elif inputs := filters.options.get("title"):
             filter_kind = "title prefixes"
             pages = self._list_titles()
         else:
-            filter_kind = "all"
             # No filter means the whole catalogue
             return self._list_titles()
 
@@ -225,8 +253,7 @@ class BibliothequeNumeriqueRomandeCatalog(CatalogPort):
                 "No Bibliothèque numérique romande "
                 f"{filter_kind} matches {', '.join(inputs)!r}. "
                 f"Available {filter_kind}: {available}. "
-                "Use --list-bnr-* to browse them (--bnr-categories for tags and "
-                "--bnr-series for series)."
+                "Use --list-bnr-* to browse them."
             )
         return matching
 
@@ -239,8 +266,8 @@ class BibliothequeNumeriqueRomandeCatalog(CatalogPort):
         return self._sorted_page_ids(self._list_authors())
 
     def list_categories(self) -> list[str]:
-        """Return every category name available on BNR, sorted alphabetically."""
-        return self._sorted_page_ids(self._list_categories())
+        """Return the broad collection names used for BNR works, sorted."""
+        return sorted(COLLECTION_ORDER, key=str.casefold)
 
     def list_titles(self) -> list[str]:
         """Return every title prefix available on BNR, sorted alphabetically."""
@@ -268,10 +295,6 @@ class BibliothequeNumeriqueRomandeCatalog(CatalogPort):
                 )
             )
         return authors
-
-    def _list_categories(self) -> list[Page]:
-        """List the available category pages on BNR"""
-        return self._list_navigation_entries("cops:tags")
 
     def _list_titles(self) -> list[Page]:
         """List the available title pages on BNR"""

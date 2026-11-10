@@ -1,11 +1,11 @@
 """Bibliothèque numérique romande-specific command-line options.
 
 A BNR scrape selects at most one filter family from the OPDS catalogue: a set of
-series, authors, categories (tags) or title prefixes. These filters are mutually
-exclusive because the catalogue exposes one feed per filter. Without any filter,
-every title page is fetched, which yields the whole catalogue. The available
-filter values can be listed with the ``--list-bnr-*`` options, and specific
-books can be selected by UUID with ``--bnr-ids``.
+series, authors, categories or title prefixes. These filters are mutually
+exclusive because the catalogue exposes one feed per filter. Categories are the
+broad collections derived from BNR tags, not the raw tags themselves. The
+available filter values can be listed with the ``--list-bnr-*`` options, and
+specific books can be selected by UUID with ``--bnr-ids``.
 """
 
 import sys

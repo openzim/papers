@@ -26,7 +26,7 @@ def _ref(**overrides) -> WorkRef:
     extra = {
         "title": "CONTES",
         "source_url": EPUB_URL,
-        "categories": ["17e", "Conte", "Littérature française"],
+        "categories": ["Conte"],
         "author": "Charles Perrault",
         "cover_url": COVER_URL,
         "description": DESCRIPTION,
@@ -59,10 +59,16 @@ def test_fetch_maps_the_feed_fields_to_a_work():
         for collection in work.collections
     ]
     assert collections == [
-        (slug_id("17e"), "17e", "category"),
         (slug_id("Conte"), "Conte", "category"),
-        (slug_id("Littérature française"), "Littérature française", "category"),
     ]
+
+
+def test_fetch_keeps_the_collapsed_categories_from_the_catalog():
+    (work,) = BibliothequeNumeriqueRomandeMetadata().fetch(
+        [_ref(categories=["Roman", "Société"])]
+    )
+
+    assert [collection.name for collection in work.collections] == ["Roman", "Société"]
 
 
 def test_fetch_tolerates_missing_cover_categories_and_download_link():
