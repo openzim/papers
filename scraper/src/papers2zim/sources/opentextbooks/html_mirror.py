@@ -415,9 +415,7 @@ def _inject_reader_controls(
                 "a",
                 attrs={
                     "href": _encode_url_path(
-                        posixpath.relpath(
-                            archive_path, posixpath.dirname(page_path)
-                        )
+                        posixpath.relpath(archive_path, posixpath.dirname(page_path))
                     ),
                     "class": f"html-reader-btn html-reader-btn-{format_name}",
                     "aria-label": f"Download {format_name.upper()} format",
@@ -462,8 +460,7 @@ def _inject_reader_controls(
 
 
 def _encode_url_path(path: str) -> str:
-    """Percent-encode each segment of a relative URL path.
-    """
+    """Percent-encode each segment of a relative URL path."""
     return "/".join(quote(segment, safe="") for segment in path.split("/"))
 
 
