@@ -7,7 +7,7 @@ from the deleted `zim.py`), which creates the `ZimAssembler` and drives the
 source's `Pipeline` resolved from the registry profile.
 """
 
-import datetime
+import datetime as dt
 import logging
 from collections.abc import Callable, Sequence
 from dataclasses import replace
@@ -210,7 +210,7 @@ def build_zimfile(
     if zim_file is None:
         zim_file = "{}_{}.zim".format(
             zim_name,
-            datetime.datetime.now().strftime("%Y-%m"),  # noqa: DTZ005
+            dt.datetime.now().strftime("%Y-%m"),  # noqa: DTZ005
         )
         zim_path = output_folder / zim_file
     else:

@@ -1,4 +1,4 @@
-FROM node:24-alpine AS ui
+FROM node:26-alpine AS ui
 
 WORKDIR /src/ui
 COPY locales /src/locales
