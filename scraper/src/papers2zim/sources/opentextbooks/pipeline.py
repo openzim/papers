@@ -18,6 +18,7 @@ from papers2zim.core.models import Cover, Work
 from papers2zim.core.pipeline import Pipeline
 from papers2zim.core.ports import WorkRef
 from papers2zim.core.utils import archive_name_for
+from papers2zim.sources.opentextbooks.catalog import normalize_language
 from papers2zim.sources.opentextbooks.covers import fetch_page_cover
 from papers2zim.sources.opentextbooks.html_mirror import (
     HtmlEdition,
@@ -68,6 +69,14 @@ class OpenTextbookLibraryPipeline(Pipeline):
         if not works:
             return
         work = works[0]
+        if not self._matches_requested_languages(work):
+            logger.debug(
+                "Skipping OTL textbook #%s: language(s) %s not in requested %s",
+                work.id,
+                ", ".join(work.languages) or "unknown",
+                ", ".join(self.requested_languages or []),
+            )
+            return
         unsupported = work.extra.setdefault("unsupported_formats", [])
         downloaded_formats = self._download_requested_formats(work, unsupported)
 
@@ -105,6 +114,25 @@ class OpenTextbookLibraryPipeline(Pipeline):
             logger.warning(
                 f"OTL textbook #{work.id} has no downloadable requested format"
             )
+
+    def _matches_requested_languages(self, work: Work) -> bool:
+        """Whether a work satisfies the ``--languages`` filter.
+
+        The OTL CSV catalog has no language column, so the filter can only be
+        applied once the per-book JSON metadata is available. Explicitly
+        requested books are always kept, matching the other sources.
+        """
+        if not self.requested_languages or self.books:
+            return True
+        requested = {
+            language
+            for value in self.requested_languages
+            if (language := normalize_language(value))
+        }
+        # `mul` requests every language, it is not a language to match against.
+        if not requested or "mul" in requested:
+            return True
+        return bool(requested.intersection(work.languages))
 
     @staticmethod
     def _index_contents(

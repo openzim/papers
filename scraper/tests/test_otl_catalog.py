@@ -11,6 +11,7 @@ from papers2zim.sources.opentextbooks.catalog import (
     CATALOG_FILENAME,
     OTL_SOURCE,
     OpenTextbookLibraryCatalog,
+    normalize_language,
 )
 
 BASE = "https://open.umn.edu/opentextbooks"
@@ -182,3 +183,61 @@ def test_refresh_catalog_requires_a_cache_dir():
         catalog.refresh()
 
     assert engine.downloaded == []
+
+
+@pytest.mark.parametrize(
+    ("code", "expected"),
+    (
+        ("eng", "en"),
+        ("en", "en"),
+        ("spa", "es"),
+        ("fre", "fr"),
+        ("fra", "fr"),
+        ("ger", "de"),
+        ("deu", "de"),
+        ("dut", "nl"),
+        ("chi", "zh"),
+        ("gre", "el"),
+        ("alb", "sq"),
+        ("mao", "mi"),
+        ("rum", "ro"),
+        ("tib", "bo"),
+        ("wel", "cy"),
+        ("  GER  ", "de"),
+        ("CMN", "zh"),
+        ("grc", "grc"),
+        ("mul", "mul"),
+        ("xyz", "xyz"),
+    ),
+)
+def test_normalize_language_resolves_terminology_and_bibliographic_codes(
+    code, expected
+):
+    assert normalize_language(code) == expected
+
+
+def test_normalize_language_of_blank_values():
+    assert normalize_language(None) is None
+    assert normalize_language("   ") is None
+
+
+def test_discover_advertises_requested_languages_on_refs(tmp_path):
+    catalog, _ = _catalog(
+        tmp_path,
+        ["10,Direct PDF,PDF,https://example.org/book.pdf,,"],
+    )
+
+    (ref,) = catalog.discover(CatalogFilters(languages=["fre", "eng"]))
+
+    assert ref.extra["languages"] == ["en", "fr"]
+
+
+def test_discover_defaults_to_english_when_no_language_requested(tmp_path):
+    catalog, _ = _catalog(
+        tmp_path,
+        ["10,Direct PDF,PDF,https://example.org/book.pdf,,"],
+    )
+
+    (ref,) = catalog.discover(CatalogFilters())
+
+    assert ref.extra["languages"] == ["en"]
