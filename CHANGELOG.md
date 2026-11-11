@@ -19,6 +19,7 @@ as of 2.0.0.
 ### Fixed
 
 - Gutenberg: rewrite every `<link rel="icon">` in a book's HTML head instead of only the first one, so books that repeat the cover tag (e.g. `77225`, which carries two identical ones) no longer ship a reference pointing outside the book's own folder — the case that made zimcheck fail on those ZIMs (#176)
+- UI: hide the empty `#app` div when JavaScript is disabled, so the No-JavaScript fallback message appears at the top of the page instead of below the fold (#182)
 
 ## [1.1.0] - 2026-11-10
 
