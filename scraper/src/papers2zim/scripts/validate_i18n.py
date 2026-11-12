@@ -7,6 +7,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from zimscraperlib.zim.metadata import DescriptionMetadata, TitleMetadata
+
 # ruff: noqa: T201
 
 # Plural messages are objects keyed by CLDR plural category (see
@@ -102,6 +104,38 @@ def validate_plural_messages(data: dict[str, Any], prefix: str = "") -> list[str
             )
         else:
             issues.extend(validate_plural_messages(value, full_key))
+
+    return issues
+
+
+def validate_metadata_defaults_lengths(data: dict[str, Any]) -> list[str]:
+    """Check every source's metadata_defaults.title/description against the
+    same length rules zimscraperlib enforces at ZIM-build time, so an
+    over-length translation is caught here instead of failing a build."""
+    issues: list[str] = []
+
+    for namespace, namespace_data in data.items():
+        if namespace in {"@metadata", "language", "isocode"} or not isinstance(
+            namespace_data, dict
+        ):
+            continue
+        defaults = namespace_data.get("metadata_defaults")
+        if not isinstance(defaults, dict):
+            continue
+
+        title = defaults.get("title")
+        if isinstance(title, str):
+            try:
+                TitleMetadata(title)
+            except ValueError as exc:
+                issues.append(f"   - {namespace}.metadata_defaults.title: {exc}")
+
+        description = defaults.get("description")
+        if isinstance(description, str):
+            try:
+                DescriptionMetadata(description)
+            except ValueError as exc:
+                issues.append(f"   - {namespace}.metadata_defaults.description: {exc}")
 
     return issues
 
@@ -394,10 +428,19 @@ def main() -> int:
     for locale_file in sorted(locales_dir.glob("*.json")):
         if locale_file.name == "qqq.json":
             continue
-        plural_issues = validate_plural_messages(load_json(locale_file))
+        locale_json = load_json(locale_file)
+
+        plural_issues = validate_plural_messages(locale_json)
         if plural_issues:
             errors.append(f"❌ {locale_file.name} has invalid plural messages:")
             errors.extend(plural_issues)
+
+        metadata_length_issues = validate_metadata_defaults_lengths(locale_json)
+        if metadata_length_issues:
+            errors.append(
+                f"❌ {locale_file.name} has over-length ZIM metadata defaults:"
+            )
+            errors.extend(metadata_length_issues)
 
     quality_issues: dict[str, list[str]] = {}
 
