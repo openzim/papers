@@ -21,6 +21,16 @@ from papers2zim.core.download_engine import DownloadEngine
 from papers2zim.core.pipeline import Pipeline
 from papers2zim.core.ports import MetadataPort
 from papers2zim.core.utils import critical_error
+from papers2zim.sources.bibliothequenumeriqueromande import cli as bnr_cli
+from papers2zim.sources.bibliothequenumeriqueromande.catalog import (
+    BibliothequeNumeriqueRomandeCatalog,
+)
+from papers2zim.sources.bibliothequenumeriqueromande.metadata import (
+    BibliothequeNumeriqueRomandeMetadata,
+)
+from papers2zim.sources.bibliothequenumeriqueromande.pipeline import (
+    BibliothequeNumeriqueRomandePipeline,
+)
 from papers2zim.sources.gutenberg import catalog as gutenberg_catalog
 from papers2zim.sources.gutenberg import cli as gutenberg_cli
 from papers2zim.sources.gutenberg.metadata import GutenbergRdfMetadata
@@ -84,6 +94,35 @@ class SourceProfile:
     metadata_class: Callable[..., MetadataPort]
     pipeline_class: Callable[..., Pipeline]
 
+
+BIBLIOTHEQUE_NUMERIQUE_ROMANDE_PROFILE = SourceProfile(
+    slug="bibliothequenumeriqueromande",
+    aliases=("BNR",),
+    locale_namespace="bibliothequenumeriqueromande",
+    display_name="Bibliothèque numérique romande",
+    source_creator="ebooks-bnr.com",
+    icon_svg="bibliothequenumeriqueromande.svg",
+    zim_tags="_category:books;bnr",
+    zim_name_prefix="bnr",
+    tagline="the free French-language ebook library",
+    source_description=(
+        "A library of free French-language ebooks from the Bibliothèque numérique "
+        "romande."
+    ),
+    collection_label="Categories",
+    collection_icon_style="subject",
+    has_popularity=False,
+    default_mirror_url="https://ebooks-bnr.com/opds/index.php",
+    catalog_feed_path="",
+    catalog=BibliothequeNumeriqueRomandeCatalog,
+    cli_options=bnr_cli.CLI_OPTIONS,
+    parse_cli_options=bnr_cli.parse_options,
+    handle_cli_action=bnr_cli.handle_cli_action,
+    pipeline_options=lambda _mirror_url, _cache_dir, _source_options, _languages: {},
+    metadata_options=lambda _mirror_url, _cache_dir, _engine: {},
+    metadata_class=BibliothequeNumeriqueRomandeMetadata,
+    pipeline_class=BibliothequeNumeriqueRomandePipeline,
+)
 
 GUTENBERG_PROFILE = SourceProfile(
     slug="gutenberg",
@@ -318,3 +357,4 @@ register_source(OPEN_TEXTBOOK_LIBRARY_PROFILE)
 register_source(WIKISOURCE_PROFILE)
 register_source(ONEMORELIBRARY_PROFILE)
 register_source(USAIDDEC_PROFILE)
+register_source(BIBLIOTHEQUE_NUMERIQUE_ROMANDE_PROFILE)

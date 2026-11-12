@@ -6,6 +6,7 @@ from papers2zim.core.utils import (
     archive_name_for,
     article_name_for,
     book_name_for_fs,
+    collection_key,
     fname_for,
     normalize,
     slugify,
@@ -88,3 +89,14 @@ def test_slugify_budget_never_splits_a_character():
 
 def test_slugify_strips_trailing_hyphen_after_truncation():
     assert slugify("a" * 5 + "-b" * 5, max_encoded_length=6) == "aaaaa"
+
+
+def test_collection_key_keeps_non_ascii_ids_readable():
+    assert (
+        collection_key("littérature-anglo-saxonne-a0d9cfe3")
+        == "littérature-anglo-saxonne-a0d9cfe3"
+    )
+
+
+def test_collection_key_encodes_ascii_reserved_characters():
+    assert collection_key("A/B & C") == "A%2FB%20%26%20C"

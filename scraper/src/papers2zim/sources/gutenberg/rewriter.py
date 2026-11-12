@@ -42,14 +42,34 @@ def transform_asset_path(book_id: str, path: str) -> str | None:
     subfolders whose name varies per book (`images/`, `style/`, `music/`,
     ...); `handle_zipped_html` extracts them verbatim under the book's own
     `{book_id}/` folder, so any such relative reference just needs that
-    prefix. Returns `None` when `path` isn't a local reference to a bundled
-    file (an external URL, an in-page anchor, or a site-absolute path).
+    prefix. The query string and fragment are dropped (they are not part of
+    the stored path) and percent-escapes are decoded, so the result names the
+    file exactly as it is stored. Returns `None` when `path` isn't a local
+    reference to a bundled file (an external URL, an in-page anchor, or a
+    site-absolute path).
     """
     if not path or path.startswith(("#", "/")):
         return None
-    if urllib.parse.urlsplit(path).scheme:
+    split = urllib.parse.urlsplit(path)
+    if split.scheme or not split.path:
         return None
-    return f"{book_id}/{path}"
+    return f"{book_id}/{urllib.parse.unquote(split.path)}"
+
+
+def _encode_asset_url(value: str) -> str:
+    """Percent-encode the path of a local relative URL, keeping its fragment.
+
+    ZIM item paths are raw UTF-8, so a reference emitted into a page must
+    escape reserved characters (`?`, `#`, `%`, spaces, ...) while leaving
+    external URLs and in-page anchors untouched.
+    """
+    path, separator, fragment = value.partition("#")
+    if not path or path.startswith("/") or urllib.parse.urlsplit(path).scheme:
+        return value
+    encoded = "/".join(
+        urllib.parse.quote(segment, safe="") for segment in path.split("/")
+    )
+    return f"{encoded}{separator}{fragment}"
 
 
 def update_html_for_static(
@@ -141,6 +161,15 @@ def update_html_for_static(
                 asset_href = transform_asset_path(work.id, href)
                 if asset_href is not None:
                     link.attrs["href"] = asset_href
+
+        for element in soup.select("img[src], source[src]"):
+            src = element.get("src")
+            if isinstance(src, str):
+                element["src"] = _encode_asset_url(src)
+        for element in soup.select("link[href], a[href]"):
+            href = element.get("href")
+            if isinstance(href, str):
+                element["href"] = _encode_asset_url(href)
 
     # Add the title
     if not epub:

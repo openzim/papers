@@ -20,6 +20,17 @@ def test_recipe_defines_supported_sources_and_source_specific_filters():
         ),
         "choices": [
             {
+                "title": "Bibliothèque numérique romande",
+                "value": "bibliothequenumeriqueromande",
+                "dependents": [
+                    "bnr_series",
+                    "bnr_authors",
+                    "bnr_categories",
+                    "bnr_titles",
+                    "bnr_ids",
+                ],
+            },
+            {
                 "title": "Project Gutenberg",
                 "value": "gutenberg",
                 "dependents": [
@@ -60,7 +71,52 @@ def test_recipe_defines_supported_sources_and_source_specific_filters():
         "usaid_ids",
         "with_author_bio",
         "with_author_portrait",
+        "bnr_series",
+        "bnr_authors",
+        "bnr_categories",
+        "bnr_titles",
+        "bnr_ids",
     }.issubset(flags)
+
+
+def test_bnr_filter_flags_are_bnr_only_dependents():
+    definition = json.loads(DEFINITION_PATH.read_text(encoding="utf-8"))
+    flags = definition["flags"]
+    bnr_flags = {
+        "bnr_series",
+        "bnr_authors",
+        "bnr_categories",
+        "bnr_titles",
+        "bnr_ids",
+    }
+
+    assert bnr_flags.issubset(flags)
+    for name in bnr_flags:
+        assert flags[name]["required"] is False
+
+    bnr_choices = [
+        choice
+        for choice in flags["source"]["choices"]
+        if choice["value"] == "bibliothequenumeriqueromande"
+    ]
+    assert len(bnr_choices) == 1
+    assert bnr_flags.issubset(bnr_choices[0]["dependents"])
+
+    for choice in flags["source"]["choices"]:
+        if choice["value"] != "bibliothequenumeriqueromande":
+            assert bnr_flags.isdisjoint(choice["dependents"])
+
+    assert definition["modelValidators"] == [
+        {
+            "name": "check_exclusive_fields",
+            "fields": [
+                "bnr_series",
+                "bnr_authors",
+                "bnr_categories",
+                "bnr_titles",
+            ],
+        }
+    ]
 
 
 def test_recipe_uses_enum_choices_for_supported_formats():

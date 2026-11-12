@@ -9,6 +9,7 @@ import pytest
 from papers2zim.core.exporters.json_exporter import generate_json_files
 from papers2zim.core.index_builder import IndexBuilder
 from papers2zim.core.models import CollectionRef, Creator, Work
+from papers2zim.core.utils import slug_id
 from papers2zim.core.work_store import WorkStore
 
 
@@ -395,7 +396,7 @@ def test_generate_json_files_does_not_emit_legacy_shelf_files():
     assert not any(path.startswith("lcc_shelves/") for path in paths)
 
 
-def test_collection_detail_path_encodes_unsafe_collection_id():
+def test_collection_detail_path_keeps_raw_collection_id():
     assembler = MagicMock(name="assembler")
     creator = Creator(id="1", display_name="Author")
     store = WorkStore()
@@ -410,7 +411,26 @@ def test_collection_detail_path_encodes_unsafe_collection_id():
         indexes=_indexes(store),
     )
 
-    assert "collections/A%2FB%20%26%20C.json" in _added_paths(assembler)
+    assert "collections/A/B & C.json" in _added_paths(assembler)
+
+
+def test_collection_detail_path_keeps_unicode_collection_id():
+    assembler = MagicMock(name="assembler")
+    creator = Creator(id="1", display_name="Author")
+    store = WorkStore()
+    collection_id = slug_id("Littérature française")
+    store.add(_work("1", "Book", creator, collection_id))
+
+    generate_json_files(
+        zim_name="test",
+        formats=["html"],
+        work_store=store,
+        assembler=assembler,
+        display_name="Test Source",
+        indexes=_indexes(store),
+    )
+
+    assert f"collections/{collection_id}.json" in _added_paths(assembler)
 
 
 def test_config_includes_source_theme_and_features():

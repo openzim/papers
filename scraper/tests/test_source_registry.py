@@ -9,6 +9,12 @@ from papers2zim.core.download_engine import DownloadEngine
 from papers2zim.core.icon_rendering import resolve_source_icon_svg
 from papers2zim.core.ports import CatalogPort, MetadataPort
 from papers2zim.sources import registry
+from papers2zim.sources.bibliothequenumeriqueromande.catalog import (
+    BibliothequeNumeriqueRomandeCatalog,
+)
+from papers2zim.sources.bibliothequenumeriqueromande.metadata import (
+    BibliothequeNumeriqueRomandeMetadata,
+)
 from papers2zim.sources.onemorelibrary.catalog import OnemorelibraryCatalog
 from papers2zim.sources.onemorelibrary.metadata import OnemorelibraryMetadata
 from papers2zim.sources.opentextbooks.catalog import OpenTextbookLibraryCatalog
@@ -48,6 +54,8 @@ def _profile(slug: str, aliases: tuple[str, ...]):
         ("usaid", "usaiddec"),
         ("WS", "wikisource"),
         ("ws", "wikisource"),
+        ("BNR", "bibliothequenumeriqueromande"),
+        ("bnr", "bibliothequenumeriqueromande"),
     ),
 )
 def test_source_short_names_resolve_case_insensitively(source_name, source_slug):
@@ -120,16 +128,37 @@ def test_usaiddec_profile_is_registered_with_its_adapters():
     assert profile.pipeline_class is not None
 
 
+def test_bibliotheque_numerique_romande_profile_is_registered_with_its_opds_adapters():
+    profile = get_source("bibliothequenumeriqueromande")
+
+    assert profile.display_name == "Bibliothèque numérique romande"
+    assert profile.default_mirror_url == "https://ebooks-bnr.com/opds/index.php"
+    assert profile.catalog is BibliothequeNumeriqueRomandeCatalog
+    assert isinstance(profile.catalog, type)
+    assert issubclass(profile.catalog, CatalogPort)
+    assert profile.metadata_class is BibliothequeNumeriqueRomandeMetadata
+    assert profile.pipeline_class is not None
+    assert profile.has_popularity is False
+
+
 def test_popularity_is_declared_per_source():
     assert get_source("gutenberg").has_popularity is True
     assert get_source("opentextbooks").has_popularity is True
     assert get_source("onemorelibrary").has_popularity is True
     assert get_source("usaiddec").has_popularity is False
     assert get_source("wikisource").has_popularity is False
+    assert get_source("bibliothequenumeriqueromande").has_popularity is False
 
 
 @pytest.mark.parametrize(
-    "source_slug", ("gutenberg", "opentextbooks", "onemorelibrary", "wikisource")
+    "source_slug",
+    (
+        "gutenberg",
+        "opentextbooks",
+        "onemorelibrary",
+        "wikisource",
+        "bibliothequenumeriqueromande",
+    ),
 )
 def test_every_profile_declares_an_existing_icon_svg(source_slug):
     profile = get_source(source_slug)

@@ -5,19 +5,12 @@ field the pipeline needs, including the per-format ws-export download links, so
 this port only maps a `WorkRef` into a `Work` - there is no per-book fetch.
 """
 
-import hashlib
 from collections.abc import Iterable, Iterator
 
 from papers2zim.core.models import Creator, Format, Work
 from papers2zim.core.ports import MetadataPort, WorkRef
-from papers2zim.sources.wikisource.catalog import WIKISOURCE_SOURCE, slugify
-
-
-def author_id(name: str) -> str:
-    """Deterministic, path-safe id shared by every work of the same author."""
-    slug = slugify(name, max_encoded_length=80)
-    digest = hashlib.sha256(name.encode()).hexdigest()[:8]
-    return f"{slug}-{digest}" if slug else digest
+from papers2zim.core.utils import author_id
+from papers2zim.sources.wikisource.catalog import WIKISOURCE_SOURCE
 
 
 class WikisourceMetadata(MetadataPort):

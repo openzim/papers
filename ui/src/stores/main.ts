@@ -121,7 +121,10 @@ export const useMainStore = defineStore('main', () => {
 
   function fetchBook(id: string) {
     currentBook.value = null
-    return fetchData<Book>(`./books/${id}.json`, `Failed to load book ${id}`).then((book) => {
+    return fetchData<Book>(
+      `./books/${encodeURIComponent(id)}.json`,
+      `Failed to load book ${id}`
+    ).then((book) => {
       currentBook.value = book
       return book
     })
@@ -133,12 +136,13 @@ export const useMainStore = defineStore('main', () => {
 
   function fetchAuthor(id: string) {
     currentAuthor.value = null
-    return fetchData<AuthorDetail>(`./authors/${id}.json`, `Failed to load author ${id}`).then(
-      (author) => {
-        currentAuthor.value = author
-        return author
-      }
-    )
+    return fetchData<AuthorDetail>(
+      `./authors/${encodeURIComponent(id)}.json`,
+      `Failed to load author ${id}`
+    ).then((author) => {
+      currentAuthor.value = author
+      return author
+    })
   }
 
   async function fetchCollections() {

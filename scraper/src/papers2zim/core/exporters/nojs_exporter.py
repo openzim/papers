@@ -186,7 +186,7 @@ def generate_noscript_pages(
             collection_label=collection_label,
         )
         assembler.add_item_for(
-            path=f"noscript/collection_{collection_key(collection_id)}.html",
+            path=f"noscript/collection_{collection_id}.html",
             content=collection_html,
             mimetype="text/html",
             is_front=False,

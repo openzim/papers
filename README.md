@@ -1,6 +1,8 @@
 # Papers Offline
 
-This multi-source scraper downloads content from [Project Gutenberg](https://www.gutenberg.org), the [Open Textbook Library](https://open.umn.edu/opentextbooks/), [Wikisource](https://wikisource.org), [One More Library](https://onemorelibrary.com), and the [USAID DEC Archive](https://usaid-archive.aiddata.org/) and packages it into a [ZIM](https://openzim.org) file, a clean and user-friendly format for storing content for offline usage.
+This multi-source scraper downloads content from [Project Gutenberg](https://www.gutenberg.org), the [Open Textbook Library](https://open.umn.edu/opentextbooks/),
+[Wikisource](https://wikisource.org), [USAID DEC Archive](https://usaid-archive.aiddata.org/) and [Bibliothèque numérique romande](https://ebooks-bnr.com/) and packages it into a [ZIM](https://openzim.org) file, 
+a clean and user-friendly format for storing content for offline usage.
 
 The ZIM file includes a modern, responsive Vue.js interface with features like:
 - Browse books by title, author, or source-specific categories such as Library of Congress Classification (LCC) shelves or Open Textbook Library subjects
@@ -67,7 +69,7 @@ The scraper supports several sources, select a source with `--source`:
 
 `--source=<source>`    Source slug or short name:
                      gutenberg (PG), onemorelibrary (OML), opentextbooks (OTL),
-                     usaiddec (USAID) or wikisource (WS)
+                     wikisource (WS), usaiddec (USAID)  or bibliothequenumeriqueromande (BNR)
                      Default: gutenberg
 
 ### Project Gutenberg
@@ -210,6 +212,43 @@ docker run -v $(pwd)/output:/output ghcr.io/openzim/papers \
 
 Spaces and underscores are interchangeable, and percent-encoded names are accepted. A comma inside a page name must be written as `%2C`. Only books in the ws-export feed of the requested languages can be selected. `--books` also works but selects by position in the feed, which changes from day to day; `--wikisource-pages` and `--books` cannot be used together.
 
+### Bibliothèque numérique romande
+
+Select the Bibliothèque numérique romande with `--source=bibliothequenumeriqueromande` (or `--source=BNR`).
+
+BNR publishes its French-language catalogue as OPDS feeds and offers EPUB only. A scrape selects at most one filter family at a time: series, authors, categories, or title prefixes (letters or numbers). Categories are the broad collections derived from BNR tags, and the available filter values can be listed with the `--list-bnr-*` options.
+
+For example:
+
+```bash
+docker run -v $(pwd)/output:/output ghcr.io/openzim/papers \
+  papers2zim --source=bibliothequenumeriqueromande --bnr-categories=Conte
+```
+
+To select specific books by UUID:
+
+```bash
+docker run -v $(pwd)/output:/output ghcr.io/openzim/papers \
+  papers2zim --source=bibliothequenumeriqueromande --bnr-ids=<uuid1>,<uuid2>
+```
+
+The Bibliothèque numérique romande-specific options are:
+
+```text
+--bnr-series=<series>          Comma-separated BNR series names
+--bnr-authors=<authors>        Comma-separated BNR author names
+--bnr-categories=<categories>  Comma-separated BNR category names
+--bnr-titles=<titles>          Comma-separated BNR title prefixes
+                               (letters or numbers)
+--bnr-ids=<ids>                Comma-separated BNR book UUIDs
+--list-bnr-series              List BNR series and exit
+--list-bnr-authors             List BNR authors and exit
+--list-bnr-categories          List BNR categories and exit
+--list-bnr-titles              List BNR title prefixes and exit
+```
+
+Only one of `--bnr-series`, `--bnr-authors`, `--bnr-categories` and `--bnr-titles` can be used at a time. `--books` is not supported.
+
 ## Command-Line Options
 
 ### Source Selection
@@ -217,8 +256,8 @@ Spaces and underscores are interchangeable, and percent-encoded names are accept
 ```text
 --source=<source>                  Source slug or short name:
                                    gutenberg (PG), onemorelibrary (OML),
-                                   opentextbooks (OTL), usaiddec (USAID)
-                                   or wikisource (WS)
+                                   opentextbooks (OTL), wikisource (WS),
+                                   usaiddec (USAID) or bibliothequenumeriqueromande (BNR)
                                    Default: gutenberg
 ```
 
@@ -283,6 +322,21 @@ Spaces and underscores are interchangeable, and percent-encoded names are accept
 ```text
 --usaid-ids=<ids>                   Exact USAID DEC report IDs (Formatted Document IDs)
 --refresh-usaid-catalog             Refresh the USAID DEC dataset catalog and exit
+```
+
+### Bibliothèque numérique romande Options
+
+```text
+--bnr-series=<series>               Comma-separated BNR series names
+--bnr-authors=<authors>             Comma-separated BNR author names
+--bnr-categories=<categories>       Comma-separated BNR category names
+--bnr-titles=<titles>               Comma-separated BNR title prefixes
+                                    (letters or numbers)
+--bnr-ids=<ids>                     Comma-separated BNR book UUIDs
+--list-bnr-series                   List BNR series and exit
+--list-bnr-authors                  List BNR authors and exit
+--list-bnr-categories               List BNR categories and exit
+--list-bnr-titles                   List BNR title prefixes and exit
 ```
 
 ### Caching
@@ -360,6 +414,7 @@ Currently supported sources are:
 - **Project Gutenberg** (`gutenberg` / `PG`)
 - **One More Library** (`onemorelibrary` / `OML`)
 - **Open Textbook Library** (`opentextbooks` / `OTL`)
+- **Bibliothèque numérique romande** (`bibliothequenumeriqueromande` / `BNR`)
 
 The source registry connects each source implementation to the common pipeline.
 
