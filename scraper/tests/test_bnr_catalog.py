@@ -38,11 +38,12 @@ VOLPONE_DESCRIPTION = (
 )
 
 
-def _feed(*entries: str) -> str:
+def _feed(*entries: str, next_href: str | None = None) -> str:
+    next_link = f'<link rel="next" href="{next_href}"/>' if next_href else ""
     return (
         '<?xml version="1.0" encoding="UTF-8"?>'
         '<feed xmlns="http://www.w3.org/2005/Atom">'
-        f"{''.join(entries)}"
+        f"{next_link}{''.join(entries)}"
         "</feed>"
     )
 
@@ -308,6 +309,95 @@ def test_uuid_from_feed_id_extracts_the_uuid():
     feed_id = "urn:uuid:AWP-93A150D8-630A-4B26-B495-2E848BB09B9E"
 
     assert uuid_from_feed_id(feed_id) == "93a150d8-630a-4b26-b495-2e848bb09b9e"
+
+
+def test_discover_follows_book_feed_pagination():
+    second_page = "https://ebooks-bnr.com/opds/books.php?prefix=C&page=2"
+    catalog, engine = _catalog(
+        {
+            "https://ebooks-bnr.com/opds/books.php": _feed(
+                _nav_entry("title:c", "C", "books.php?prefix=C")
+            ),
+            "https://ebooks-bnr.com/opds/books.php?prefix=C": _feed(
+                _book(CONTES_ID, "CONTES"),
+                next_href="books.php?prefix=C&amp;page=2",
+            ),
+            second_page: _feed(
+                _book(
+                    VOLPONE_ID,
+                    "Volpone",
+                    author="Ben Jonson",
+                    categories=("17e", "Littérature anglo-saxonne", "Théâtre"),
+                    description=VOLPONE_DESCRIPTION,
+                    image_id=1020,
+                    data_id=680,
+                )
+            ),
+        }
+    )
+
+    refs = list(catalog.discover(CatalogFilters()))
+
+    assert [ref.id for ref in refs] == [CONTES_UUID, VOLPONE_UUID]
+    assert second_page in engine.fetched
+
+
+def test_discover_stops_on_pagination_loop():
+    feed_url = "https://ebooks-bnr.com/opds/books.php?prefix=C"
+    catalog, engine = _catalog(
+        {
+            "https://ebooks-bnr.com/opds/books.php": _feed(
+                _nav_entry("title:c", "C", "books.php?prefix=C")
+            ),
+            feed_url: _feed(
+                _book(CONTES_ID, "CONTES"),
+                next_href="books.php?prefix=C",
+            ),
+        }
+    )
+
+    refs = list(catalog.discover(CatalogFilters()))
+
+    assert [ref.id for ref in refs] == [CONTES_UUID]
+    assert engine.fetched.count(feed_url) == 1
+
+
+def test_list_series_follows_navigation_pagination():
+    catalog, engine = _catalog(
+        {
+            "https://ebooks-bnr.com/opds/series.php": _feed(
+                _nav_entry("series:1", "Série 1", "series.php?id=1"),
+                next_href="series.php?page=2",
+            ),
+            "https://ebooks-bnr.com/opds/series.php?page=2": _feed(
+                _nav_entry("series:2", "Série 2", "series.php?id=2"),
+            ),
+        }
+    )
+
+    assert catalog.list_series() == ["Série 1", "Série 2"]
+    assert "https://ebooks-bnr.com/opds/series.php?page=2" in engine.fetched
+
+
+def test_list_authors_follows_letter_pagination():
+    second_page = "https://ebooks-bnr.com/opds/authors.php?letter=A&page=2"
+    catalog, engine = _catalog(
+        {
+            "https://ebooks-bnr.com/opds/authors.php": _feed(
+                _nav_entry("authors:a", "A", "authors.php?letter=A"),
+            ),
+            "https://ebooks-bnr.com/opds/authors.php?letter=A": _feed(
+                _nav_entry("author:1", "Austen Jane", "index.php?page=3&amp;id=1"),
+                next_href="authors.php?letter=A&amp;page=2",
+            ),
+            second_page: _feed(
+                _nav_entry("author:2", "Brontë Charlotte", "index.php?page=3&amp;id=2"),
+            ),
+        }
+    )
+
+    assert catalog.list_authors() == ["Austen Jane", "Brontë Charlotte"]
+    assert second_page in engine.fetched
 
 
 def test_uuid_from_feed_id_rejects_non_uuid_ids():

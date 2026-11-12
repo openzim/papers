@@ -11,7 +11,7 @@ fetch
 # ruff: noqa: S314
 
 import re
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, Iterator, Sequence
 from dataclasses import asdict, dataclass
 from urllib.parse import urljoin
 from xml.etree import ElementTree as ET
@@ -54,6 +54,11 @@ UUID_RE = re.compile(
     re.IGNORECASE,
 )
 
+# OPDS feeds paginate through rel="next", and a malformed feed
+# could otherwise loop forever. This is far above any realistic catalogue page
+# count for a single filter.
+MAX_FEED_PAGES = 1000
+
 
 def _normalize_whitespace(value: str | None) -> str | None:
     """Collapse whitespace in value, returning None when it is blank."""
@@ -68,16 +73,14 @@ def parse_uuid(value: str) -> str | None:
     return text.casefold() if UUID_RE.fullmatch(text) else None
 
 
-def uuid_from_feed_id(value: str) -> str:
-    """Return the canonical UUID embedded in a feed id.
-
-    Raises:
-        ValueError: when the feed id contains no UUID.
-    """
-    match = UUID_RE.search(value)
-    if match is None:
-        raise ValueError(f"No UUID found in feed id: {value!r}")
-    return match.group(0).casefold()
+def _parse_id(value: str) -> str:
+    """Return the canonical UUID of a bare UUID string, or None."""
+    return re.sub(
+        r"^(urn:uuid:)+",
+        "",
+        value.strip().casefold(),
+        flags=re.IGNORECASE,
+    )
 
 
 def _element_text(entry: ET.Element, path: str) -> str | None:
@@ -86,6 +89,17 @@ def _element_text(entry: ET.Element, path: str) -> str | None:
     if element is None:
         return None
     return _normalize_whitespace("".join(element.itertext()))
+
+
+def _next_page_url(root: ET.Element, feed_url: str) -> str | None:
+    """Resolve the rel="next" pagination link of a feed, if any."""
+    for link in root.findall("atom:link", NAMESPACES):
+        if link.get("rel") != "next":
+            continue
+        href = (link.get("href") or "").strip()
+        if href:
+            return urljoin(feed_url, href)
+    return None
 
 
 def _link_url(entry: ET.Element, rels: Sequence[str], base_url: str) -> str | None:
@@ -213,6 +227,9 @@ class BibliothequeNumeriqueRomandeCatalog(CatalogPort):
         if filters.options.get("book_ids"):
             books = [book for book in books if book.id in requested_ids]
 
+        if not books:
+            critical_error("No Bibliothèque numérique romande books were discovered")
+
         return [book.to_ref() for book in books]
 
     def _select_filter_pages(self, filters: CatalogFilters) -> list[Page]:
@@ -291,7 +308,8 @@ class BibliothequeNumeriqueRomandeCatalog(CatalogPort):
         for entry in entries:
             authors.extend(
                 self._parse_navigation_feed(
-                    self._engine.fetch_bytes(entry.url).decode("utf-8")
+                    self._engine.fetch_bytes(entry.url).decode("utf-8"),
+                    self._base_url,
                 )
             )
         return authors
@@ -326,58 +344,92 @@ class BibliothequeNumeriqueRomandeCatalog(CatalogPort):
 
             navigation_url = urljoin(self._base_url, href)
             feed = self._engine.fetch_bytes(navigation_url).decode("utf-8")
-            return self._parse_navigation_feed(feed)
+            return self._parse_navigation_feed(feed, self._base_url)
 
         return []
 
-    def _parse_navigation_feed(self, xml: str) -> list[Page]:
-        """Parse a navigation feed into the pages it lists."""
-        root = ET.fromstring(xml)
+    def _iter_feed(self, xml: str, feed_url: str) -> Iterator[tuple[ET.Element, str]]:
+        """Yield each page of an OPDS feed, following ``rel="next"`` links."""
+        seen = {feed_url}
+        current_url, data = feed_url, xml
 
+        while True:
+            root = ET.fromstring(data)
+            yield root, current_url
+
+            next_url = _next_page_url(root, current_url)
+            if next_url is None:
+                return
+            if next_url in seen:
+                logger.warning(f"Pagination loop detected at {next_url}; stopping")
+                return
+            if len(seen) >= MAX_FEED_PAGES:
+                logger.warning(
+                    f"Stopped paginating {feed_url} after {MAX_FEED_PAGES} pages"
+                )
+                return
+
+            seen.add(next_url)
+            current_url = next_url
+            data = self._engine.fetch_bytes(next_url).decode("utf-8")
+
+    def _parse_navigation_feed(
+        self, xml: str, feed_url: str | None = None
+    ) -> list[Page]:
+        """Parse a navigation feed and every page linked by ``rel="next"``."""
+        feed_url = feed_url or self._base_url
         pages: list[Page] = []
-        for entry in root.findall("atom:entry", NAMESPACES):
-            title = _element_text(entry, "atom:title")
-            navigation = entry.find(
-                "atom:link[@type='application/atom+xml;profile=opds-catalog;kind=navigation']",
-                NAMESPACES,
-            )
-            href = (navigation.get("href") if navigation is not None else None) or ""
-            href = href.strip()
-            if not title or not href:
-                continue
 
-            pages.append(Page(id=title, url=urljoin(self._base_url, href)))
+        for root, page_url in self._iter_feed(xml, feed_url):
+            for entry in root.findall("atom:entry", NAMESPACES):
+                title = _element_text(entry, "atom:title")
+                navigation = entry.find(
+                    "atom:link[@type='application/atom+xml;profile=opds-catalog;kind=navigation']",
+                    NAMESPACES,
+                )
+                href = (
+                    navigation.get("href") if navigation is not None else None
+                ) or ""
+                href = href.strip()
+                if not title or not href:
+                    continue
+
+                pages.append(Page(id=title, url=urljoin(page_url, href)))
 
         return pages
 
     def _parse_books(self, page: Page) -> list[BNRCatalogBook]:
-        """Parse a book listings feed into a list of BNRCatalogBook."""
+        """Parse a book listings feed and every page linked by ``rel="next"``."""
         data = self._engine.fetch_bytes(page.url).decode("utf-8")
-        root = ET.fromstring(data)
         books: list[BNRCatalogBook] = []
 
-        for entry in root.findall("atom:entry", NAMESPACES):
-            title = _element_text(entry, "atom:title")
-            feed_id = _element_text(entry, "atom:id")
-            source_url = _acquisition_url(entry, self._base_url)
+        for root, feed_url in self._iter_feed(data, page.url):
+            for entry in root.findall("atom:entry", NAMESPACES):
+                title = _element_text(entry, "atom:title")
+                feed_id = _element_text(entry, "atom:id")
+                source_url = _acquisition_url(entry, self._base_url)
 
-            if not title or not feed_id or not source_url:
-                logger.warning(
-                    f"entry at {page.url} does not have title or book ID or "
-                    f" source URL; {title=}, {feed_id=}, {source_url=}"
-                )
-                continue
+                if feed_id is None:
+                    logger.warning(f"entry at {feed_url} does not have title ")
+                    continue
 
-            books.append(
-                BNRCatalogBook(
-                    id=uuid_from_feed_id(feed_id),
-                    title=title,
-                    source_url=source_url,
-                    categories=_entry_categories(entry),
-                    author=_element_text(entry, "atom:author/atom:name"),
-                    cover_url=_link_url(entry, COVER_RELS, self._base_url),
-                    description=_element_text(entry, "atom:content"),
+                if not title or not feed_id or not source_url:
+                    logger.warning(
+                        f"entry at {feed_url} does not have title or book ID or "
+                        f" source URL; {title=}, {feed_id=}, {source_url=}"
+                    )
+                    continue
+
+                books.append(
+                    BNRCatalogBook(
+                        id=_parse_id(feed_id),
+                        title=title,
+                        source_url=source_url,
+                        categories=_entry_categories(entry),
+                        author=_element_text(entry, "atom:author/atom:name"),
+                        cover_url=_link_url(entry, COVER_RELS, self._base_url),
+                        description=_element_text(entry, "atom:content"),
+                    )
                 )
-            )
 
         return books

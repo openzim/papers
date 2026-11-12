@@ -20,6 +20,8 @@ def fetch_page_cover(engine: CoverFetchEngine, cover_url: str | None) -> bytes |
         return ImageProcessor.optimize_image_content(engine.fetch_bytes(cover_url))
     except Exception as exc:
         logger.debug(
-            "Could not fetch One More Library page cover %s: %s", cover_url, exc
+            "Could not fetch Bibliothèque numérique romande page cover %s: %s",
+            cover_url,
+            exc,
         )
         return None

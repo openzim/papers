@@ -119,8 +119,11 @@ def slug_id(value: str) -> str:
 
 
 def author_id(name: str) -> str:
-    """Return a deterministic, path-safe id shared by a work's author."""
-    return slug_id(name)
+    """Deterministic id shared by every work of the same author."""
+    normalized = " ".join(name.split())
+    slug = slugify(normalized, max_encoded_length=80)
+    digest = hashlib.sha256(normalized.casefold().encode()).hexdigest()[:8]
+    return f"{slug}-{digest}" if slug else digest
 
 
 def atomic_write_text(path: Path, content: str, *, encoding: str = "utf-8") -> None:
