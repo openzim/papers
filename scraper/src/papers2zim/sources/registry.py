@@ -86,6 +86,9 @@ class SourceProfile:
     # orchestrator plus pipeline_options.
     metadata_class: Callable[..., MetadataPort]
     pipeline_class: Callable[..., Pipeline]
+    # Whether the source can supply author biographies/portraits through the
+    # shared Wikipedia enrichment; gates the global --with-author-* options.
+    supports_author_enrichment: bool = False
 
 
 BIBLIOTHEQUE_NUMERIQUE_ROMANDE_PROFILE = SourceProfile(
@@ -111,10 +114,14 @@ BIBLIOTHEQUE_NUMERIQUE_ROMANDE_PROFILE = SourceProfile(
     cli_options=bnr_cli.CLI_OPTIONS,
     parse_cli_options=bnr_cli.parse_options,
     handle_cli_action=bnr_cli.handle_cli_action,
-    pipeline_options=lambda _mirror_url, _cache_dir, _source_options, _languages: {},
+    pipeline_options=lambda _mirror_url, _cache_dir, source_options, _languages: {
+        "with_author_bio": bool(source_options.get("with_author_bio")),
+        "with_author_portrait": bool(source_options.get("with_author_portrait")),
+    },
     metadata_options=lambda _mirror_url, _cache_dir, _engine: {},
     metadata_class=BibliothequeNumeriqueRomandeMetadata,
     pipeline_class=BibliothequeNumeriqueRomandePipeline,
+    supports_author_enrichment=True,
 )
 
 GUTENBERG_PROFILE = SourceProfile(
@@ -149,6 +156,7 @@ GUTENBERG_PROFILE = SourceProfile(
     },
     metadata_class=GutenbergRdfMetadata,
     pipeline_class=GutenbergPipeline,
+    supports_author_enrichment=True,
 )
 
 OPEN_TEXTBOOK_LIBRARY_PROFILE = SourceProfile(

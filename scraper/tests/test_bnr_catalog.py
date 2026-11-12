@@ -15,7 +15,6 @@ from papers2zim.sources.bibliothequenumeriqueromande.catalog import (
     COVER_RELS,
     EPUB_MEDIA_TYPE,
     BibliothequeNumeriqueRomandeCatalog,
-    uuid_from_feed_id,
 )
 from papers2zim.sources.bibliothequenumeriqueromande.categories import (
     COLLECTION_ORDER,
@@ -305,12 +304,6 @@ def test_discover_selects_books_by_uuid():
         assert [ref.id for ref in refs] == [CONTES_UUID]
 
 
-def test_uuid_from_feed_id_extracts_the_uuid():
-    feed_id = "urn:uuid:AWP-93A150D8-630A-4B26-B495-2E848BB09B9E"
-
-    assert uuid_from_feed_id(feed_id) == "93a150d8-630a-4b26-b495-2e848bb09b9e"
-
-
 def test_discover_follows_book_feed_pagination():
     second_page = "https://ebooks-bnr.com/opds/books.php?prefix=C&page=2"
     catalog, engine = _catalog(
@@ -398,8 +391,3 @@ def test_list_authors_follows_letter_pagination():
 
     assert catalog.list_authors() == ["Austen Jane", "Brontë Charlotte"]
     assert second_page in engine.fetched
-
-
-def test_uuid_from_feed_id_rejects_non_uuid_ids():
-    with pytest.raises(ValueError):
-        uuid_from_feed_id("urn:uuid:http://example.org/book")

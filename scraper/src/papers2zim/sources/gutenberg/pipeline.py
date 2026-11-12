@@ -12,6 +12,7 @@ Supplies the source-specific hooks of `core.pipeline.Pipeline`:
 from dataclasses import replace as dataclass_replace
 
 from papers2zim.constants import logger
+from papers2zim.core.author_enrichment import zim_language
 from papers2zim.core.download_engine import DownloadEngine
 from papers2zim.core.exporters.html_reader_controls import (
     export_html_reader_control_assets,
@@ -20,7 +21,7 @@ from papers2zim.core.models import CollectionRef
 from papers2zim.core.pipeline import Pipeline
 from papers2zim.core.ports import WorkRef
 from papers2zim.core.utils import fname_for, requested_formats
-from papers2zim.sources.gutenberg.author_enricher import enrich_authors, zim_language
+from papers2zim.sources.gutenberg.author_enricher import GutenbergAuthorEnricher
 from papers2zim.sources.gutenberg.catalog import (
     LCC_SHELF_KIND,
     collapse_literature_shelf,
@@ -71,8 +72,7 @@ class GutenbergPipeline(Pipeline):
         """Fetch a biography and portrait for each author when requested."""
         if not self.with_author_bio and not self.with_author_portrait:
             return
-        enrich_authors(
-            self.store,
+        enricher = GutenbergAuthorEnricher(
             self.engine,
             self.assembler,
             with_bio=self.with_author_bio,
@@ -80,6 +80,7 @@ class GutenbergPipeline(Pipeline):
             concurrency=self.concurrency,
             language=zim_language(self.requested_languages),
         )
+        enricher.enrich_authors(self.store)
 
     def process_ref(self, ref: WorkRef) -> None:
         """Fetch metadata, download book content and export directly to ZIM"""

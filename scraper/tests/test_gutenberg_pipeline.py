@@ -117,10 +117,13 @@ def _author_pipeline(requested_languages: list[str] | None) -> GutenbergPipeline
 def test_enrich_authors_receives_the_single_zim_language(requested_languages, expected):
     pipeline = _author_pipeline(requested_languages)
 
-    with patch("papers2zim.sources.gutenberg.pipeline.enrich_authors") as enrich:
+    with patch(
+        "papers2zim.sources.gutenberg.pipeline.GutenbergAuthorEnricher"
+    ) as enricher_cls:
         pipeline.enrich_authors()
 
-    assert enrich.call_args.kwargs["language"] == expected
+    assert enricher_cls.call_args.kwargs["language"] == expected
+    enricher_cls.return_value.enrich_authors.assert_called_once_with(pipeline.store)
 
 
 def test_enrich_authors_is_skipped_without_author_details():
@@ -128,10 +131,12 @@ def test_enrich_authors_is_skipped_without_author_details():
     pipeline.with_author_bio = False
     pipeline.with_author_portrait = False
 
-    with patch("papers2zim.sources.gutenberg.pipeline.enrich_authors") as enrich:
+    with patch(
+        "papers2zim.sources.gutenberg.pipeline.GutenbergAuthorEnricher"
+    ) as enricher_cls:
         pipeline.enrich_authors()
 
-    enrich.assert_not_called()
+    enricher_cls.assert_not_called()
 
 
 @pytest.mark.parametrize(
@@ -143,13 +148,16 @@ def test_enrich_authors_forwards_both_flags_and_language(with_bio, with_portrait
     pipeline.with_author_bio = with_bio
     pipeline.with_author_portrait = with_portrait
 
-    with patch("papers2zim.sources.gutenberg.pipeline.enrich_authors") as enrich:
+    with patch(
+        "papers2zim.sources.gutenberg.pipeline.GutenbergAuthorEnricher"
+    ) as enricher_cls:
         pipeline.enrich_authors()
 
-    kwargs = enrich.call_args.kwargs
+    kwargs = enricher_cls.call_args.kwargs
     assert kwargs["with_bio"] is with_bio
     assert kwargs["with_portrait"] is with_portrait
     assert kwargs["language"] == "fr"
+    enricher_cls.return_value.enrich_authors.assert_called_once_with(pipeline.store)
 
 
 def _process_with_files(

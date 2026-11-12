@@ -161,3 +161,12 @@ def test_every_profile_builds_metadata_the_way_the_orchestrator_does(source_slug
     )
 
     assert isinstance(metadata, MetadataPort)
+
+
+def test_author_enrichment_is_declared_per_source():
+    assert get_source("gutenberg").supports_author_enrichment is True
+    assert (
+        get_source("bibliothequenumeriqueromande").supports_author_enrichment
+        is True
+    )
+    assert get_source("wikisource").supports_author_enrichment is False

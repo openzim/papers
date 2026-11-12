@@ -29,6 +29,7 @@ as of 2.0.0.
 
 - Add the `bibliothequenumeriqueromande` source (alias `BNR`) for scraping Bibliothèque numérique romande OPDS catalogue as EPUB with `--bnr-series`, `--bnr-authors`, `--bnr-categories`, `--bnr-titles` and `--bnr-ids` filters
 - UI: give each Bibliothèque numérique romande collection (e.g. Bande dessinée, Policier & Mystère, Science-fiction & Fantastique) a dedicated icon in the collection sidebar and popular-collections bar
+- Bibliothèque numérique romande: add author biographies and portraits from Wikipedia
 
 ### Changed
 
@@ -39,6 +40,7 @@ as of 2.0.0.
 - UI: replace book grid borders with rounded card backgrounds, highlighted on hover, in book grid, book list, book carousel and author carousel (#61, #82)
 - Gutenberg: replace `--with-author-details` with `--with-author-bio` and `--with-author-portrait` (#66)
 - Author details: fetch biographies and portraits in the language the ZIM is built in, resolved through Wikipedia's interlanguage links, and keep the English picture when the localized article has none (#65, #84)
+- Author details: move the Wikipedia bio/portrait enrichment into a shared `WikipediaAuthorEnricher` base class with a per-source `resolve_articles` implementation, and offer `--with-author-bio` / `--with-author-portrait` to every source that declares support. Bibliothèque numérique romande now uses it, using the author name from each book as the French Wikipedia article title
 - Gutenberg: prefer the cover declared by the downloaded EPUB over Project Gutenberg's ~200px `cover.medium.jpg` thumbnail, which yields sharper covers without an extra download; the thumbnail stays as fallback (#68)
 - Fine tune UI display (margins, ...) (#85)
 - UI: blur background content behind ZimInfoDialog (#87)

@@ -72,6 +72,15 @@ def build_scrape_config(arguments: dict) -> ScrapeConfig:
     source = get_source(arguments.get("--source") or "gutenberg")
     _validate_source_cli_options(arguments, source)
     source_options = source.parse_cli_options(arguments)
+    for option, key in (
+        ("--with-author-bio", "with_author_bio"),
+        ("--with-author-portrait", "with_author_portrait"),
+    ):
+        if not _was_option_supplied(arguments.get(option)):
+            continue
+        if not source.supports_author_enrichment:
+            critical_error(f"{option} is not supported by --source {source.slug}")
+        source_options[key] = True
     mirror_url = arguments.get("--mirror-url") or source.default_mirror_url
 
     books_csv = arguments.get("--books") or ""

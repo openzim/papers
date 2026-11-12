@@ -6,17 +6,19 @@ from unittest.mock import MagicMock
 import requests
 from PIL import Image
 
+from papers2zim.core import author_enrichment
+from papers2zim.core.author_enrichment import (
+    article_candidates,
+    fetch_author_summary,
+    fetch_langlink_title,
+    wikipedia_lang,
+    zim_language,
+)
 from papers2zim.core.models import Creator, Work
 from papers2zim.core.work_store import WorkStore
 from papers2zim.sources.gutenberg.author_enricher import (
-    article_candidates,
-    enrich_authors,
-    enrich_creator,
-    fetch_author_summary,
-    fetch_langlink_title,
+    GutenbergAuthorEnricher,
     wikipedia_article,
-    wikipedia_lang,
-    zim_language,
 )
 
 SUMMARY_JSON = b'{"extract": "A short biography.", "thumbnail": {"source": "https://upload.wikimedia.org/thumb.jpg"}}'
@@ -226,7 +228,9 @@ def test_enrich_creator_sets_bio_portrait_and_skips_without_link():
     engine.fetch_bytes.side_effect = [SUMMARY_JSON, _jpeg_bytes()]
     assembler = MagicMock(name="assembler")
 
-    enriched = enrich_creator(_arrow_creator(), engine, assembler)
+    enriched = GutenbergAuthorEnricher(engine, assembler).enrich_creator(
+        _arrow_creator()
+    )
 
     assert enriched.extra["bio"] == "A short biography."
     assert enriched.extra["portrait_path"] == "authors/68.webp"
@@ -237,8 +241,8 @@ def test_enrich_creator_sets_bio_portrait_and_skips_without_link():
     assert isinstance(call.kwargs["content"], bytes) and call.kwargs["content"]
 
     engine.fetch_bytes.reset_mock()
-    unchanged = enrich_creator(
-        Creator(id="216", display_name="Anonymous"), engine, assembler
+    unchanged = GutenbergAuthorEnricher(engine, assembler).enrich_creator(
+        Creator(id="216", display_name="Anonymous")
     )
     assert unchanged == Creator(id="216", display_name="Anonymous")
     engine.fetch_bytes.assert_not_called()
@@ -253,7 +257,9 @@ def test_enrich_creator_prefers_localized_bio_and_portrait():
     ]
     assembler = MagicMock(name="assembler")
 
-    enriched = enrich_creator(_amicis_creator(), engine, assembler, language="it")
+    enriched = GutenbergAuthorEnricher(
+        engine, assembler, language="it"
+    ).enrich_creator(_amicis_creator())
 
     assert enriched.extra["bio"] == "Uno scrittore italiano."
     assert enriched.extra["portrait_path"] == "authors/61885.webp"
@@ -269,14 +275,13 @@ def test_enrich_creator_honours_bio_and_portrait_flags_when_localized():
     ]
     assembler = MagicMock(name="assembler")
 
-    bio_only = enrich_creator(
-        _amicis_creator(),
+    bio_only = GutenbergAuthorEnricher(
         engine,
         assembler,
         with_bio=True,
         with_portrait=False,
         language="it",
-    )
+    ).enrich_creator(_amicis_creator())
 
     assert bio_only.extra["bio"] == "Uno scrittore italiano."
     assert "portrait_path" not in bio_only.extra
@@ -289,14 +294,13 @@ def test_enrich_creator_honours_bio_and_portrait_flags_when_localized():
     ]
     assembler.reset_mock()
 
-    portrait_only = enrich_creator(
-        _amicis_creator(),
+    portrait_only = GutenbergAuthorEnricher(
         engine,
         assembler,
         with_bio=False,
         with_portrait=True,
         language="it",
-    )
+    ).enrich_creator(_amicis_creator())
 
     assert "bio" not in portrait_only.extra
     assert portrait_only.extra["portrait_path"] == "authors/61885.webp"
@@ -307,14 +311,13 @@ def test_enrich_creator_skips_lookup_when_both_flags_are_off():
     engine = MagicMock(name="engine")
     assembler = MagicMock(name="assembler")
 
-    unchanged = enrich_creator(
-        _amicis_creator(),
+    unchanged = GutenbergAuthorEnricher(
         engine,
         assembler,
         with_bio=False,
         with_portrait=False,
         language="it",
-    )
+    ).enrich_creator(_amicis_creator())
 
     assert unchanged == _amicis_creator()
     engine.fetch_bytes.assert_not_called()
@@ -331,7 +334,9 @@ def test_enrich_creator_falls_back_to_english_portrait_when_local_has_none():
     ]
     assembler = MagicMock(name="assembler")
 
-    enriched = enrich_creator(_amicis_creator(), engine, assembler, language="it")
+    enriched = GutenbergAuthorEnricher(
+        engine, assembler, language="it"
+    ).enrich_creator(_amicis_creator())
 
     assert enriched.extra["bio"] == "Solo una biografia."
     assert enriched.extra["portrait_path"] == "authors/61885.webp"
@@ -347,7 +352,9 @@ def test_enrich_creator_stops_once_localized_article_is_complete():
     ]
     assembler = MagicMock(name="assembler")
 
-    enrich_creator(_amicis_creator(), engine, assembler, language="it")
+    GutenbergAuthorEnricher(engine, assembler, language="it").enrich_creator(
+        _amicis_creator()
+    )
 
     assert not any(
         "en.wikipedia.org/api/rest_v1" in call.args[0]
@@ -364,7 +371,9 @@ def test_enrich_creator_keeps_english_bio_when_no_localized_article():
     ]
     assembler = MagicMock(name="assembler")
 
-    enriched = enrich_creator(_amicis_creator(), engine, assembler, language="it")
+    enriched = GutenbergAuthorEnricher(
+        engine, assembler, language="it"
+    ).enrich_creator(_amicis_creator())
 
     assert enriched.extra["bio"] == "A short biography."
     assert enriched.extra["portrait_path"] == "authors/61885.webp"
@@ -385,7 +394,9 @@ def test_enrich_creator_tries_next_article_when_portrait_download_fails():
     engine.fetch_bytes.side_effect = side_effect
     assembler = MagicMock(name="assembler")
 
-    enriched = enrich_creator(_amicis_creator(), engine, assembler, language="it")
+    enriched = GutenbergAuthorEnricher(
+        engine, assembler, language="it"
+    ).enrich_creator(_amicis_creator())
 
     assert enriched.extra["portrait_path"] == "authors/61885.webp"
     assembler.add_item_for.assert_called_once()
@@ -396,7 +407,9 @@ def test_enrich_creator_without_portrait_keeps_bio_only():
     engine.fetch_bytes.return_value = b'{"extract": "Only a bio here."}'
     assembler = MagicMock(name="assembler")
 
-    enriched = enrich_creator(_arrow_creator(), engine, assembler)
+    enriched = GutenbergAuthorEnricher(engine, assembler).enrich_creator(
+        _arrow_creator()
+    )
 
     assert enriched.extra["bio"] == "Only a bio here."
     assert "portrait_path" not in enriched.extra
@@ -414,7 +427,9 @@ def test_enrich_creator_recovers_from_portrait_errors():
     engine.fetch_bytes.side_effect = side_effect
     assembler = MagicMock(name="assembler")
 
-    enriched = enrich_creator(_arrow_creator(), engine, assembler)
+    enriched = GutenbergAuthorEnricher(engine, assembler).enrich_creator(
+        _arrow_creator()
+    )
 
     assert enriched.extra["bio"] == "A short biography."
     assert "portrait_path" not in enriched.extra
@@ -436,7 +451,7 @@ def test_enrich_authors_updates_store_and_deduplicates():
         )
     )
 
-    enrich_authors(store, engine, assembler, concurrency=2)
+    GutenbergAuthorEnricher(engine, assembler, concurrency=2).enrich_authors(store)
 
     creators = {work.creators[0].id: work.creators[0] for work in store.works}
     assert creators["68"].extra["bio"] == "A short biography."
@@ -464,7 +479,9 @@ def test_enrich_authors_prefers_the_requested_zim_language():
         )
     )
 
-    enrich_authors(store, engine, assembler, concurrency=1, language="it")
+    GutenbergAuthorEnricher(
+        engine, assembler, concurrency=1, language="it"
+    ).enrich_authors(store)
 
     assert store.works[0].creators[0].extra["bio"] == "Uno scrittore italiano."
 
@@ -485,7 +502,9 @@ def test_enrich_authors_keeps_curated_link_without_a_requested_language():
         )
     )
 
-    enrich_authors(store, engine, assembler, concurrency=1, language=None)
+    GutenbergAuthorEnricher(
+        engine, assembler, concurrency=1, language=None
+    ).enrich_authors(store)
 
     assert store.works[0].creators[0].extra["bio"] == "A short biography."
     assert engine.fetch_bytes.call_count == 2
@@ -496,7 +515,7 @@ def test_enrich_authors_ignores_authors_without_wikipedia():
     assembler = MagicMock(name="assembler")
     store = _store_with_creator(Creator(id="216", display_name="Anonymous"))
 
-    enrich_authors(store, engine, assembler, concurrency=1)
+    GutenbergAuthorEnricher(engine, assembler, concurrency=1).enrich_authors(store)
 
     assert store.works[0].creators[0].extra == {}
     engine.fetch_bytes.assert_not_called()
@@ -509,7 +528,7 @@ def test_enrich_authors_keeps_running_when_some_authors_fail():
     assembler = MagicMock(name="assembler")
     store = _store_with_creator(_arrow_creator())
 
-    enrich_authors(store, engine, assembler, concurrency=1)
+    GutenbergAuthorEnricher(engine, assembler, concurrency=1).enrich_authors(store)
 
     assert store.works[0].creators[0].extra.get("webpage_resource")
     assert "bio" not in store.works[0].creators[0].extra
@@ -519,7 +538,9 @@ def test_enrich_authors_handles_empty_store():
     engine = MagicMock(name="engine")
     assembler = MagicMock(name="assembler")
 
-    enrich_authors(WorkStore(), engine, assembler, concurrency=1)
+    GutenbergAuthorEnricher(engine, assembler, concurrency=1).enrich_authors(
+        WorkStore()
+    )
 
     engine.fetch_bytes.assert_not_called()
     assembler.add_item_for.assert_not_called()
@@ -530,9 +551,9 @@ def test_enrich_creator_skips_bio_when_with_bio_is_false():
     engine.fetch_bytes.side_effect = [SUMMARY_JSON, _jpeg_bytes()]
     assembler = MagicMock(name="assembler")
 
-    enriched = enrich_creator(
-        _arrow_creator(), engine, assembler, with_bio=False, with_portrait=True
-    )
+    enriched = GutenbergAuthorEnricher(
+        engine, assembler, with_bio=False, with_portrait=True
+    ).enrich_creator(_arrow_creator())
 
     assert "bio" not in enriched.extra
     assert enriched.extra["portrait_path"] == "authors/68.webp"
@@ -544,9 +565,9 @@ def test_enrich_creator_skips_portrait_when_with_portrait_is_false():
     engine.fetch_bytes.return_value = SUMMARY_JSON
     assembler = MagicMock(name="assembler")
 
-    enriched = enrich_creator(
-        _arrow_creator(), engine, assembler, with_bio=True, with_portrait=False
-    )
+    enriched = GutenbergAuthorEnricher(
+        engine, assembler, with_bio=True, with_portrait=False
+    ).enrich_creator(_arrow_creator())
 
     assert enriched.extra["bio"] == "A short biography."
     assert "portrait_path" not in enriched.extra
@@ -557,9 +578,9 @@ def test_enrich_creator_skips_everything_when_both_disabled():
     engine = MagicMock(name="engine")
     assembler = MagicMock(name="assembler")
 
-    enriched = enrich_creator(
-        _arrow_creator(), engine, assembler, with_bio=False, with_portrait=False
-    )
+    enriched = GutenbergAuthorEnricher(
+        engine, assembler, with_bio=False, with_portrait=False
+    ).enrich_creator(_arrow_creator())
 
     assert "bio" not in enriched.extra
     assert "portrait_path" not in enriched.extra
@@ -574,9 +595,13 @@ def test_enrich_authors_fetches_portrait_only_when_with_bio_is_false():
 
     store = _store_with_creator(_arrow_creator())
 
-    enrich_authors(
-        store, engine, assembler, with_bio=False, with_portrait=True, concurrency=1
-    )
+    GutenbergAuthorEnricher(
+        engine,
+        assembler,
+        with_bio=False,
+        with_portrait=True,
+        concurrency=1,
+    ).enrich_authors(store)
 
     creator = store.works[0].creators[0]
     assert "bio" not in creator.extra
@@ -590,9 +615,13 @@ def test_enrich_authors_fetches_bio_only_when_with_portrait_is_false():
 
     store = _store_with_creator(_arrow_creator())
 
-    enrich_authors(
-        store, engine, assembler, with_bio=True, with_portrait=False, concurrency=1
-    )
+    GutenbergAuthorEnricher(
+        engine,
+        assembler,
+        with_bio=True,
+        with_portrait=False,
+        concurrency=1,
+    ).enrich_authors(store)
 
     creator = store.works[0].creators[0]
     assert creator.extra["bio"] == "A short biography."
@@ -607,9 +636,13 @@ def test_enrich_authors_fetches_both_when_both_enabled():
 
     store = _store_with_creator(_arrow_creator())
 
-    enrich_authors(
-        store, engine, assembler, with_bio=True, with_portrait=True, concurrency=1
-    )
+    GutenbergAuthorEnricher(
+        engine,
+        assembler,
+        with_bio=True,
+        with_portrait=True,
+        concurrency=1,
+    ).enrich_authors(store)
 
     creator = store.works[0].creators[0]
     assert creator.extra["bio"] == "A short biography."
@@ -622,12 +655,41 @@ def test_enrich_authors_skips_all_when_both_disabled():
 
     store = _store_with_creator(_arrow_creator())
 
-    enrich_authors(
-        store, engine, assembler, with_bio=False, with_portrait=False, concurrency=1
-    )
+    GutenbergAuthorEnricher(
+        engine,
+        assembler,
+        with_bio=False,
+        with_portrait=False,
+        concurrency=1,
+    ).enrich_authors(store)
 
     creator = store.works[0].creators[0]
     assert "bio" not in creator.extra
     assert "portrait_path" not in creator.extra
     engine.fetch_bytes.assert_not_called()
     assembler.add_item_for.assert_not_called()
+
+
+def test_fetch_author_summary_rejects_disambiguation_pages():
+    engine = MagicMock(name="engine")
+    engine.fetch_bytes.return_value = (
+        b'{"type": "disambiguation", "extract": "Several people..."}'
+    )
+
+    assert fetch_author_summary(engine, "en", "Jane_Austen") is None
+
+
+def test_enrich_creator_tries_the_next_resolved_article():
+    engine = MagicMock(name="engine")
+    engine.fetch_bytes.side_effect = [b"{}", SUMMARY_JSON, _jpeg_bytes()]
+    assembler = MagicMock(name="assembler")
+
+    class TwoArticleEnricher(author_enrichment.WikipediaAuthorEnricher):
+        def resolve_articles(self, _creator):
+            yield ("en", "Missing")
+            yield ("en", "Jane_Austen")
+
+    enriched = TwoArticleEnricher(engine, assembler).enrich_creator(_arrow_creator())
+
+    assert enriched.extra["bio"] == "A short biography."
+    assert enriched.extra["portrait_path"] == "authors/68.webp"

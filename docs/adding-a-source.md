@@ -256,6 +256,9 @@ Before adding source-local helpers, check the facilities already exposed by
   source-neutral PDF/EPUB validation;
 - `covers.extract_cover()`: WebP cover extraction from an EPUB declaration or
   the first PDF page;
+- `author_enrichment`: Wikipedia biographies and portraits for creators;
+  subclass `WikipediaAuthorEnricher` and implement `resolve_articles` to map
+  each creator to the article(s) to try;
 - `epub_optimizer.optimize_epub_bytes()`: in-memory EPUB optimization that
   preserves ZIP/EPUB invariants and keeps embedded JPEG/PNG formats; pass a
   source-owned document callback only for source-specific XHTML/NCX cleanup;

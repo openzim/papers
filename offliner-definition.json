@@ -17,7 +17,9 @@
             "bnr_authors",
             "bnr_categories",
             "bnr_titles",
-            "bnr_ids"
+            "bnr_ids",
+            "with_author_bio",
+            "with_author_portrait"
           ]
         },
         {
@@ -247,13 +249,13 @@
       "type": "boolean",
       "required": false,
       "title": "With author biography",
-      "description": "Add author biography fetched from the English Wikipedia. Project Gutenberg source only for now."
+      "description": "Add author biographies fetched from Wikipedia. Supported by Project Gutenberg and Bibliothèque numérique romande."
     },
     "with_author_portrait": {
       "type": "boolean",
       "required": false,
       "title": "With author portrait",
-      "description": "Add author portrait fetched from the English Wikipedia. Project Gutenberg source only for now."
+      "description": "Add author portraits fetched from Wikipedia. Supported by Project Gutenberg and Bibliothèque numérique romande."
     },
     "publisher": {
       "type": "string",

@@ -43,6 +43,10 @@ Options:
                                   or pdf, one of --formats (default: html,
                                   then epub, then pdf)
   --title-search                  Enable title search
+  --with-author-bio               Add author biographies from Wikipedia to
+                                  the ZIM
+  --with-author-portrait          Add author portraits from Wikipedia to the
+                                  ZIM
 {source_options_help}
   --stats-filename=<filename>     Progress JSON path
   --publisher=<publisher>         ZIM publisher [default: openZIM]

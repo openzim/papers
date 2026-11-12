@@ -28,6 +28,8 @@ def test_recipe_defines_supported_sources_and_source_specific_filters():
                     "bnr_categories",
                     "bnr_titles",
                     "bnr_ids",
+                    "with_author_bio",
+                    "with_author_portrait",
                 ],
             },
             {
@@ -137,7 +139,7 @@ def test_recipe_exposes_custom_zim_tags():
     assert {"metadata": "Tags", "flag": "zim_tags"} in definition["zimMetadata"]
 
 
-def test_with_author_bio_and_portrait_are_pg_only_boolean_flags():
+def test_with_author_bio_and_portrait_are_shared_boolean_flags():
     definition = json.loads(DEFINITION_PATH.read_text(encoding="utf-8"))
     flags = definition["flags"]
 
@@ -146,8 +148,8 @@ def test_with_author_bio_and_portrait_are_pg_only_boolean_flags():
         "required": False,
         "title": "With author biography",
         "description": (
-            "Add author biography fetched from the English Wikipedia. "
-            "Project Gutenberg source only for now."
+            "Add author biographies fetched from Wikipedia. Supported by Project "
+            "Gutenberg and Bibliothèque numérique romande."
         ),
     }
     assert flags["with_author_portrait"] == {
@@ -155,20 +157,21 @@ def test_with_author_bio_and_portrait_are_pg_only_boolean_flags():
         "required": False,
         "title": "With author portrait",
         "description": (
-            "Add author portrait fetched from the English Wikipedia. "
-            "Project Gutenberg source only for now."
+            "Add author portraits fetched from Wikipedia. Supported by Project "
+            "Gutenberg and Bibliothèque numérique romande."
         ),
     }
 
-    gutenberg_choices = [
-        choice
+    supporting = {
+        choice["value"]: choice
         for choice in flags["source"]["choices"]
-        if choice["value"] == "gutenberg"
-    ]
-    assert "with_author_bio" in gutenberg_choices[0]["dependents"]
-    assert "with_author_portrait" in gutenberg_choices[0]["dependents"]
+        if choice["value"] in {"gutenberg", "bibliothequenumeriqueromande"}
+    }
+    for choice in supporting.values():
+        assert "with_author_bio" in choice["dependents"]
+        assert "with_author_portrait" in choice["dependents"]
     for choice in flags["source"]["choices"]:
-        if choice["value"] != "gutenberg":
+        if choice["value"] not in supporting:
             assert "with_author_bio" not in choice["dependents"]
             assert "with_author_portrait" not in choice["dependents"]
 

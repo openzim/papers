@@ -50,13 +50,29 @@ def test_with_author_bio_and_portrait_are_opt_in_for_gutenberg():
     assert config.source_options["with_author_portrait"] is True
 
 
-def test_with_author_bio_and_portrait_are_rejected_for_opentextbooks():
-    with pytest.raises(CriticalError, match="belongs to --source gutenberg"):
+def test_with_author_options_are_rejected_for_sources_without_enrichment():
+    with pytest.raises(
+        CriticalError, match="not supported by --source opentextbooks"
+    ):
         build_scrape_config({"--source": "opentextbooks", "--with-author-bio": True})
-    with pytest.raises(CriticalError, match="belongs to --source gutenberg"):
+    with pytest.raises(
+        CriticalError, match="not supported by --source opentextbooks"
+    ):
         build_scrape_config(
             {"--source": "opentextbooks", "--with-author-portrait": True}
         )
+
+
+def test_with_author_options_are_supported_for_bnr():
+    config = build_scrape_config(
+        {
+            "--source": "bibliothequenumeriqueromande",
+            "--with-author-bio": True,
+            "--with-author-portrait": True,
+        }
+    )
+    assert config.source_options["with_author_bio"] is True
+    assert config.source_options["with_author_portrait"] is True
 
 
 def test_otl_ids_are_stored_for_opentextbooks():

@@ -149,3 +149,52 @@ def test_process_ref_marks_unavailable_requested_formats():
         pipeline.process_ref(WorkRef(id=WORK_ID, source=BNR_SOURCE))
 
     assert work.extra["unsupported_formats"] == ["pdf"]
+
+
+def _author_pipeline():
+    return BibliothequeNumeriqueRomandePipeline(
+        metadata=MagicMock(),
+        store=WorkStore(),
+        assembler=MagicMock(),
+        progress=ScraperProgress(None),
+        concurrency=1,
+        formats=["epub"],
+        zim_name="test",
+        source_slug=BNR_SOURCE,
+        display_name="Bibliothèque numérique romande",
+        engine=MagicMock(),
+        with_author_bio=True,
+        with_author_portrait=True,
+        requested_languages=["fr"],
+    )
+
+
+def test_enrich_authors_is_skipped_without_author_details():
+    pipeline = _author_pipeline()
+    pipeline.with_author_bio = False
+    pipeline.with_author_portrait = False
+
+    with patch(
+        "papers2zim.sources.bibliothequenumeriqueromande.pipeline."
+        "BibliothequeNumeriqueRomandeAuthorEnricher"
+    ) as enricher_cls:
+        pipeline.enrich_authors()
+
+    enricher_cls.assert_not_called()
+
+
+def test_enrich_authors_builds_the_bnr_article_enricher():
+    pipeline = _author_pipeline()
+
+    with patch(
+        "papers2zim.sources.bibliothequenumeriqueromande.pipeline."
+        "BibliothequeNumeriqueRomandeAuthorEnricher"
+    ) as enricher_cls:
+        pipeline.enrich_authors()
+
+    kwargs = enricher_cls.call_args.kwargs
+    assert kwargs["with_bio"] is True
+    assert kwargs["with_portrait"] is True
+    assert kwargs["concurrency"] == 1
+    assert kwargs["language"] == "fr"
+    enricher_cls.return_value.enrich_authors.assert_called_once_with(pipeline.store)
