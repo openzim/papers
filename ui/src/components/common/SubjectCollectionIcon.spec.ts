@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { mdiBookshelf, mdiInformation, mdiNewspaperVariant } from '@mdi/js'
+import { mdiBookshelf, mdiIncognito, mdiInformation, mdiNewspaperVariant } from '@mdi/js'
 import SubjectCollectionIcon from './SubjectCollectionIcon.vue'
 
 function pathFor(subject: string | null, fallback?: string): string | undefined {
@@ -15,6 +15,10 @@ describe('SubjectCollectionIcon', () => {
 
   it('uses the icon of a One More Library category', () => {
     expect(pathFor('Obras generales e información')).toBe(mdiInformation)
+  })
+
+  it('uses the icon of a Bibliothèque numérique romande collection', () => {
+    expect(pathFor('Policier & Mystère')).toBe(mdiIncognito)
   })
 
   it('falls back to the provided icon for an unknown subject', () => {
