@@ -18,6 +18,7 @@ as of 2.0.0.
 ### Changed
 
 - Wikisource: use the real logo instead of the placeholder mark (#184)
+- OneMoreLibrary, Open Textbook Library, USAID DEC and Bibliothèque numérique romande: use the real logos instead of the placeholder marks (#187)
 
 ### Fixed
 

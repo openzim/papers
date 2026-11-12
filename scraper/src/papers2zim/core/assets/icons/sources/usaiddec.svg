@@ -1,8 +1,36 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="USAID DEC Archive">
-  <rect width="64" height="64" rx="8" fill="#1f4e79"/>
-  <rect x="14" y="12" width="36" height="40" rx="3" fill="#ffffff"/>
-  <rect x="20" y="20" width="24" height="3" rx="1.5" fill="#1f4e79"/>
-  <rect x="20" y="27" width="24" height="3" rx="1.5" fill="#7aa6d8"/>
-  <rect x="20" y="34" width="24" height="3" rx="1.5" fill="#7aa6d8"/>
-  <rect x="20" y="41" width="16" height="3" rx="1.5" fill="#7aa6d8"/>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #e8b73e;
+      }
+
+      .cls-2 {
+        fill: #789e95;
+      }
+
+      .cls-3 {
+        fill: #81c6c9;
+      }
+
+      .cls-4 {
+        fill: #d2c15e;
+      }
+
+      .cls-5 {
+        fill: #46ae90;
+      }
+
+      .cls-6 {
+        fill: #6f9542;
+      }
+    </style>
+  </defs>
+  <polygon class="cls-5" points="206.66 205.72 100.24 368.9 .9 368.83 84.51 240.73 157.23 129.85 206.66 205.72"/>
+  <path class="cls-3" d="M412.72,368.9l-107.45-163.45c.52.13.75-.73.46-1.1l48.91-74.4,79.23,120.87,77.03,118.03L412.72,368.9Z"/>
+  <path class="cls-6" d="M412.72,368.9h-99.31s-57.31-88.49-57.31-88.49c-.02-.3.15-.79.51-.82l48.66-74.14L412.72,368.9Z"/>
+  <path class="cls-4" d="M256.61,279.59c-.36.03-.53.52-.51.82l-57.68,88.49h-98.18s106.42-163.18,106.42-163.18c-.23-.15.36-.56.67-.2L256.61,279.59Z"/>
+  <path class="cls-1" d="M305.73,204.35c.29.37.06,1.23-.46,1.1l-48.66,74.14-49.28-74.07,49.24-75.6L305.73,204.35Z"/>
+  <polygon class="cls-2" points="313.41 368.91 198.42 368.9 256.1 280.41 313.41 368.91"/>
 </svg>
