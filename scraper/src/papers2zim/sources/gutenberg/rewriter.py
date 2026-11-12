@@ -63,20 +63,21 @@ def update_html_for_static(
     soup = BeautifulSoup(html_content, "lxml-xml" if is_xml else "lxml")
 
     # Extract cover image href from <link rel="icon"> for later detection
-    # and update its path to match image transformations
+    # and update the path of every such link to match image transformations;
+    # a book can repeat the tag with the same target under different ids
     if not epub:
-        icon_link = soup.find("link", rel="icon")
-        if icon_link:
+        for icon_link in soup.find_all("link", rel="icon"):
             href = icon_link.get("href")
-            if href and isinstance(href, str):
-                # Store original href for cover detection (only once)
-                if not work.extra.get("_cover_href"):
-                    work.extra["_cover_href"] = href
+            if not href or not isinstance(href, str):
+                continue
+            # Store original href for cover detection (only once)
+            if not work.extra.get("_cover_href"):
+                work.extra["_cover_href"] = href
 
-                # Transform the path
-                new_href = transform_asset_path(work.id, href)
-                if new_href is not None:
-                    icon_link["href"] = new_href
+            # Transform the path
+            new_href = transform_asset_path(work.id, href)
+            if new_href is not None:
+                icon_link["href"] = new_href
 
     # remove encoding as we're saving to UTF8 anyway
     encoding_specified = False
