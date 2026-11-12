@@ -8,6 +8,10 @@ as of 2.0.0.
 
 ## [Unreleased]
 
+### Changed
+
+- Wikisource: use the real logo instead of the placeholder mark (#184)
+
 ## [1.1.0] - 2026-11-10
 
 ### Added
