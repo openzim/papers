@@ -13,7 +13,8 @@ as of 2.0.0.
 - Add USAID DEC Archive source (`usaiddec`, alias `USAID`) for AidData's archive of USAID evaluation reports, with PDF downloads and catalog selection by Formatted Document ID (#165)
 - `papers2zim-validate-i18n` now validates every locale's `metadata_defaults.title`/`description` against zimscraperlib's own `TitleMetadata`/`DescriptionMetadata` length rules, so an over-length translation is caught in CI instead of failing a ZIM build (#185)
 
-- Add the `bibliothequenumeriqueromande` source (alias `BNR`) for scraping Bibliothèque numérique romande OPDS catalogue with EPUB downloads (#170)
+- Add the `bibliothequenumeriqueromande` source (alias `BNR`) for scraping Bibliothèque numérique romande OPDS catalogue with EPUB downloads and add icons for BNR collections 
+    (#170, #189)
 
 ### Changed
 
@@ -47,7 +48,6 @@ as of 2.0.0.
 - Wikisource: add book descriptions, sourced from each work's Wikidata item, since the ws-export OPDS feed carries none (#21)
 - Add a proper per-source ZIM illustration and HTML favicon set: each source ships one SVG mark, rasterized at export time into the ZIM illustration metadata and a minimal favicon.svg/.ico, apple-touch-icon.png and web app manifest icon set, wired into both the Vue UI and the no-JS fallback pages with paths relative to the page so they resolve under kiwix-serve (#110)
 - Add an info panel listing the explicit filters (collections, books, language, formats) used to build the ZIM (#4)
-
 
 ### Changed
 
