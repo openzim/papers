@@ -6,9 +6,10 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
+from zimscraperlib.i18n import get_language_or_none
+
 from papers2zim.constants import logger
 from papers2zim.core.download_engine import DownloadEngine
-from papers2zim.core.language import ISO_MATRIX_REV
 from papers2zim.core.ports import (
     CatalogFilters,
     CatalogPort,
@@ -42,8 +43,16 @@ def _numbered_column_suffixes(
 
 
 def normalize_language(code: str | None) -> str | None:
-    """OTL uses ISO 639-2 codes ("eng"); the pipeline uses 2-letter codes."""
-    return ISO_MATRIX_REV.get(code, code) if code else None
+    """OTL uses ISO 639-2 codes ("eng"); the pipeline uses 2-letter codes.
+
+    ISO 639-2/B ("ger"), ISO 639-2/T ("deu") and plain ISO 639-1 codes ("de")
+    are resolved by iso639, which covers the whole table. A code iso639 does
+    not know, or one without an ISO 639-1 counterpart, is returned unchanged.
+    """
+    if not code or not (key := code.strip().casefold()):
+        return None
+    lang = get_language_or_none(key)
+    return lang.iso_639_1 if lang and lang.iso_639_1 else key
 
 
 @dataclass(frozen=True, slots=True)
@@ -116,21 +125,34 @@ class OpenTextbookLibraryCatalog(CatalogPort):
         else:
             selected = downloadable
 
+        requested_languages = sorted(
+            {
+                language
+                for language in (
+                    normalize_language(code) for code in filters.languages or []
+                )
+                if language
+            }
+        )
         logger.info(
             "  Selected %s downloadable OTL books from %s catalog entries"
-            " (subjects: %s)",
+            " (subjects: %s, languages: %s)",
             len(selected),
             len(entries),
             filters.options.get("subjects") or "all",
+            ", ".join(requested_languages) or "all",
         )
-        # The CSV does not have a language column. OTL is predominantly English;
-        # full JSON metadata is fetched later for each selected work.
+        # The CSV has no language column, so a book's real language is only
+        # known once its JSON metadata is fetched. Refs advertise the requested
+        # languages so ZIM language metadata and the UI filter stay consistent;
+        # the pipeline drops books whose actual language does not match.
+        ref_languages = requested_languages or ["en"]
         return [
             WorkRef(
                 id=entry.book_id,
                 source=OTL_SOURCE,
                 extra={
-                    "languages": ["en"],
+                    "languages": ref_languages,
                     "title": entry.title,
                     "description": entry.description,
                     "license": entry.license,

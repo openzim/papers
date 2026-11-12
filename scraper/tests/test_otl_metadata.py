@@ -130,6 +130,16 @@ def test_fetch_maps_record_to_work():
     assert work.extra["review_count"] == 7
 
 
+def test_fetch_normalizes_bibliographic_language_codes():
+    metadata = _metadata_with(
+        {f"{BASE}/textbooks/10.json": _record_payload({**RECORD, "language": "fre"})}
+    )
+
+    (work,) = metadata.fetch([_ref("10")])
+
+    assert work.languages == ["fr"]
+
+
 def test_fetch_keeps_only_authors_as_creators():
     metadata = _metadata_with({f"{BASE}/textbooks/10.json": _record_payload()})
 

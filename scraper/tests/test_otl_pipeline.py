@@ -11,7 +11,14 @@ from papers2zim.core.work_store import WorkStore
 from papers2zim.sources.opentextbooks.pipeline import OpenTextbookLibraryPipeline
 
 
-def _pipeline(work: Work, engine: MagicMock, assembler: MagicMock):
+def _pipeline(
+    work: Work,
+    engine: MagicMock,
+    assembler: MagicMock,
+    *,
+    requested_languages: list[str] | None = None,
+    books: list[str] | None = None,
+):
     metadata = MagicMock()
     metadata.fetch.return_value = [work]
     pipeline = OpenTextbookLibraryPipeline(
@@ -25,6 +32,8 @@ def _pipeline(work: Work, engine: MagicMock, assembler: MagicMock):
         source_slug="opentextbooks",
         display_name="Open Textbook Library",
         title_search=False,
+        requested_languages=requested_languages,
+        books=books,
         engine=engine,
     )
     # keep the assembler calls to the book files; search items are tested apart
@@ -37,6 +46,105 @@ def _valid_epub() -> bytes:
     with ZipFile(output, "w", ZIP_STORED) as archive:
         archive.writestr("mimetype", "application/epub+zip")
     return output.getvalue()
+
+
+def test_process_ref_skips_work_in_another_language():
+    work = Work(
+        id="10",
+        source="opentextbooks",
+        title="Calculus",
+        languages=["en"],
+        formats=[
+            Format(
+                name="PDF",
+                media_type="application/pdf",
+                url="https://example.org/calculus.pdf",
+            )
+        ],
+    )
+    engine = MagicMock()
+    assembler = MagicMock()
+    pipeline = _pipeline(work, engine, assembler, requested_languages=["fr"])
+
+    pipeline.process_ref(WorkRef(id="10", source="opentextbooks"))
+
+    assert pipeline.store.get("opentextbooks", "10") is None
+    engine.fetch_bytes.assert_not_called()
+    assembler.add_item_for.assert_not_called()
+
+
+def test_process_ref_keeps_work_in_a_requested_language():
+    work = Work(
+        id="10",
+        source="opentextbooks",
+        title="Calcul",
+        languages=["fr"],
+        formats=[
+            Format(
+                name="PDF",
+                media_type="application/pdf",
+                url="https://example.org/calcul.pdf",
+            )
+        ],
+    )
+    engine = MagicMock()
+    engine.content_type.return_value = "application/pdf"
+    engine.fetch_bytes.return_value = b"%PDF-1.7 pdf bytes"
+    pipeline = _pipeline(work, engine, MagicMock(), requested_languages=["fre", "eng"])
+
+    pipeline.process_ref(WorkRef(id="10", source="opentextbooks"))
+
+    assert pipeline.store.get("opentextbooks", "10") is work
+
+
+def test_process_ref_treats_mul_as_no_language_filter():
+    work = Work(
+        id="10",
+        source="opentextbooks",
+        title="Calculo",
+        languages=["es"],
+        formats=[
+            Format(
+                name="PDF",
+                media_type="application/pdf",
+                url="https://example.org/calculo.pdf",
+            )
+        ],
+    )
+    engine = MagicMock()
+    engine.content_type.return_value = "application/pdf"
+    engine.fetch_bytes.return_value = b"%PDF-1.7 pdf bytes"
+    pipeline = _pipeline(work, engine, MagicMock(), requested_languages=["mul"])
+
+    pipeline.process_ref(WorkRef(id="10", source="opentextbooks"))
+
+    assert pipeline.store.get("opentextbooks", "10") is work
+
+
+def test_process_ref_ignores_language_filter_for_explicit_books():
+    work = Work(
+        id="10",
+        source="opentextbooks",
+        title="Calculus",
+        languages=["en"],
+        formats=[
+            Format(
+                name="PDF",
+                media_type="application/pdf",
+                url="https://example.org/calculus.pdf",
+            )
+        ],
+    )
+    engine = MagicMock()
+    engine.content_type.return_value = "application/pdf"
+    engine.fetch_bytes.return_value = b"%PDF-1.7 pdf bytes"
+    pipeline = _pipeline(
+        work, engine, MagicMock(), requested_languages=["fr"], books=["10"]
+    )
+
+    pipeline.process_ref(WorkRef(id="10", source="opentextbooks"))
+
+    assert pipeline.store.get("opentextbooks", "10") is work
 
 
 def test_process_ref_exports_direct_files_and_marks_unavailable_formats():
