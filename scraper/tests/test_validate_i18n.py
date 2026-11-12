@@ -5,6 +5,7 @@ from papers2zim.scripts.validate_i18n import (
     get_ignored_keys,
     get_leaf_keys,
     get_leaf_values,
+    validate_metadata_defaults_lengths,
     validate_plural_messages,
 )
 
@@ -126,3 +127,42 @@ def test_namespace_without_plural_categories_is_not_a_plural_message():
     data = {"common": {"title": "T", "nested": {"label": "L"}}}
     assert validate_plural_messages(data) == []
     assert get_leaf_keys(data) == {"common.title", "common.nested.label"}
+
+
+def test_metadata_defaults_within_length_have_no_issue():
+    data = {
+        "gutenberg": {
+            "metadata_defaults": {
+                "title": "Project Gutenberg Library",
+                "description": "All books from Project Gutenberg",
+            }
+        }
+    }
+    assert validate_metadata_defaults_lengths(data) == []
+
+
+def test_overlong_title_default_is_reported():
+    data = {
+        "gutenberg": {"metadata_defaults": {"title": "A" * 31}},
+    }
+    issues = validate_metadata_defaults_lengths(data)
+    assert len(issues) == 1
+    assert "gutenberg.metadata_defaults.title" in issues[0]
+
+
+def test_overlong_description_default_is_reported():
+    data = {
+        "opentextbooks": {"metadata_defaults": {"description": "A" * 81}},
+    }
+    issues = validate_metadata_defaults_lengths(data)
+    assert len(issues) == 1
+    assert "opentextbooks.metadata_defaults.description" in issues[0]
+
+
+def test_metadata_defaults_ignores_non_string_and_missing_values():
+    data = {
+        "common": {"not_metadata": "x"},
+        "gutenberg": {"metadata_defaults": {"title": 123}},
+        "wikisource": "not-a-dict",
+    }
+    assert validate_metadata_defaults_lengths(data) == []
