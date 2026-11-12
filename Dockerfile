@@ -1,11 +1,14 @@
 FROM node:24-alpine AS ui
 
 WORKDIR /src/ui
+
+COPY ui/package.json ui/package-lock.json /src/ui
+RUN npm ci
+
 COPY locales /src/locales
 COPY ui /src/ui
 RUN mkdir -p /src/scraper/src/papers2zim/zimui
-RUN yarn install --frozen-lockfile || npm install
-RUN yarn build || npm run build
+RUN npm run build
 
 FROM python:3.14-bookworm
 
