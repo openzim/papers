@@ -28,6 +28,7 @@ as of 2.0.0.
 - Add a proper per-source ZIM illustration and HTML favicon set: each source ships one SVG mark, rasterized at export time into the ZIM illustration metadata and a minimal favicon.svg/.ico, apple-touch-icon.png and web app manifest icon set, wired into both the Vue UI and the no-JS fallback pages with paths relative to the page so they resolve under kiwix-serve (#110)
 
 - Add the `bibliothequenumeriqueromande` source (alias `BNR`) for scraping Bibliothèque numérique romande OPDS catalogue as EPUB with `--bnr-series`, `--bnr-authors`, `--bnr-categories`, `--bnr-titles` and `--bnr-ids` filters
+- UI: give each Bibliothèque numérique romande collection (e.g. Bande dessinée, Policier & Mystère, Science-fiction & Fantastique) a dedicated icon in the collection sidebar and popular-collections bar
 
 ### Changed
 

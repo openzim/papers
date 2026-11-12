@@ -1,21 +1,37 @@
 <script setup lang="ts">
 import {
   mdiAccountGroup,
+  mdiAccountTie,
+  mdiBookOpenPageVariant,
+  mdiBookOpenVariant,
   mdiBookshelf,
   mdiBriefcase,
   mdiCalculatorVariant,
   mdiCodeBraces,
   mdiCog,
+  mdiCompass,
+  mdiDotsHorizontal,
   mdiEarth,
+  mdiEmoticonHappyOutline,
+  mdiFeather,
   mdiHeadLightbulb,
+  mdiHeart,
+  mdiHistory,
+  mdiImageFilterHdr,
+  mdiIncognito,
   mdiInformation,
   mdiLibrary,
+  mdiMagicStaff,
+  mdiMapMarker,
   mdiMicroscope,
   mdiNewspaperVariant,
   mdiPalette,
+  mdiPencil,
+  mdiRocketLaunch,
   mdiScaleBalance,
   mdiSchool,
   mdiStethoscope,
+  mdiTeddyBear,
   mdiTheater,
   mdiTranslate,
   mdiTrophyVariant
@@ -87,9 +103,34 @@ const ONE_MORE_LIBRARY_CATEGORY_ICONS: Record<string, string> = {
   'الفلسفة وعلم النفس': mdiHeadLightbulb
 }
 
+const BIBLIOTHEQUE_NUMERIQUE_ROMANDE_COLLECTION_ICONS: Record<string, string> = {
+  Amour: mdiHeart,
+  Art: mdiPalette,
+  Autres: mdiDotsHorizontal,
+  Aventure: mdiCompass,
+  'Bande dessinée': mdiBookOpenPageVariant,
+  'Biographie & Autobiographie': mdiAccountTie,
+  Conte: mdiMagicStaff,
+  'Essai & Chronique': mdiPencil,
+  Historique: mdiHistory,
+  Humour: mdiEmoticonHappyOutline,
+  Jeunesse: mdiTeddyBear,
+  Nouvelles: mdiNewspaperVariant,
+  Philosophie: mdiHeadLightbulb,
+  'Policier & Mystère': mdiIncognito,
+  Poésie: mdiFeather,
+  'Régions & terroir': mdiMapMarker,
+  Roman: mdiBookOpenVariant,
+  'Science-fiction & Fantastique': mdiRocketLaunch,
+  Société: mdiAccountGroup,
+  Théâtre: mdiTheater,
+  'Voyage & Montagne': mdiImageFilterHdr
+}
+
 const SUBJECT_ICONS: Record<string, string> = {
   ...OPEN_TEXTBOOK_SUBJECT_ICONS,
-  ...ONE_MORE_LIBRARY_CATEGORY_ICONS
+  ...ONE_MORE_LIBRARY_CATEGORY_ICONS,
+  ...BIBLIOTHEQUE_NUMERIQUE_ROMANDE_COLLECTION_ICONS
 }
 
 function getSubjectCollectionIcon(subject: string | null): string {
