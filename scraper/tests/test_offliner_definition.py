@@ -43,6 +43,11 @@ def test_recipe_defines_supported_sources_and_source_specific_filters():
                 "value": "wikisource",
                 "dependents": ["wikisource_pages"],
             },
+            {
+                "title": "USAID DEC Archive",
+                "value": "usaiddec",
+                "dependents": ["usaid_ids"],
+            },
         ],
     }
     assert {
@@ -52,6 +57,7 @@ def test_recipe_defines_supported_sources_and_source_specific_filters():
         "subjects",
         "otl_ids",
         "wikisource_pages",
+        "usaid_ids",
         "with_author_bio",
         "with_author_portrait",
     }.issubset(flags)

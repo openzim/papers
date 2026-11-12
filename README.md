@@ -1,6 +1,6 @@
 # Papers Offline
 
-This multi-source scraper downloads content from [Project Gutenberg](https://www.gutenberg.org), the [Open Textbook Library](https://open.umn.edu/opentextbooks/) and [Wikisource](https://wikisource.org) and packages it into a [ZIM](https://openzim.org) file, a clean and user-friendly format for storing content for offline usage.
+This multi-source scraper downloads content from [Project Gutenberg](https://www.gutenberg.org), the [Open Textbook Library](https://open.umn.edu/opentextbooks/), [Wikisource](https://wikisource.org), [One More Library](https://onemorelibrary.com), and the [USAID DEC Archive](https://usaid-archive.aiddata.org/) and packages it into a [ZIM](https://openzim.org) file, a clean and user-friendly format for storing content for offline usage.
 
 The ZIM file includes a modern, responsive Vue.js interface with features like:
 - Browse books by title, author, or source-specific categories such as Library of Congress Classification (LCC) shelves or Open Textbook Library subjects
@@ -66,8 +66,8 @@ Note: You'll need to install system dependencies (zim-tools) separately. See [CO
 The scraper supports several sources, select a source with `--source`:
 
 `--source=<source>`    Source slug or short name:
-                     gutenberg (PG), onemorelibrary (OML), opentextbooks (OTL)
-                     or wikisource (WS)
+                     gutenberg (PG), onemorelibrary (OML), opentextbooks (OTL),
+                     usaiddec (USAID) or wikisource (WS)
                      Default: gutenberg
 
 ### Project Gutenberg
@@ -128,6 +128,36 @@ The One More Library-specific options are:
 `--oml-ids` and `--books` cannot be used together. `--refresh-oml-catalog` requires `--cache-dir`.
 Selecting a whole library crawls the entire catalog; use `--cache-dir` to cache it across runs.
 
+### USAID DEC Archive
+
+Select the USAID DEC Archive with `--source=usaiddec` (or `--source=USAID`).
+
+The source packages [USAID's Development Experience Clearinghouse](https://usaid-archive.aiddata.org/)
+evaluation reports, preserved and published by [AidData](https://www.aiddata.org/) with
+permission, from the AidData dataset catalog.
+
+```bash
+docker run -v $(pwd)/output:/output ghcr.io/openzim/papers \
+  papers2zim --source=usaiddec -f pdf
+```
+
+To select specific reports by Formatted Document ID:
+
+```bash
+docker run -v $(pwd)/output:/output ghcr.io/openzim/papers \
+  papers2zim --source=usaiddec --usaid-ids=PA00JMRT,PA00ZH1K
+```
+
+The USAID DEC Archive-specific options are:
+
+```text
+--usaid-ids=<ids>          Exact USAID DEC report IDs (Formatted Document IDs)
+--refresh-usaid-catalog    Refresh the USAID DEC dataset catalog and exit
+```
+
+`--usaid-ids` and `--books` cannot be used together. `--refresh-usaid-catalog`
+requires `--cache-dir`.
+
 ### Open Textbook Library
 
 Select the Open Textbook Library with `--source=opentextbooks` (or `--source=OTL`).
@@ -187,7 +217,8 @@ Spaces and underscores are interchangeable, and percent-encoded names are accept
 ```text
 --source=<source>                  Source slug or short name:
                                    gutenberg (PG), onemorelibrary (OML),
-                                   opentextbooks (OTL) or wikisource (WS)
+                                   opentextbooks (OTL), usaiddec (USAID)
+                                   or wikisource (WS)
                                    Default: gutenberg
 ```
 
@@ -245,6 +276,13 @@ Spaces and underscores are interchangeable, and percent-encoded names are accept
 
 ```text
 --wikisource-pages=<pages>          Wikisource page names, as in the page URL
+```
+
+### USAID DEC Archive Options
+
+```text
+--usaid-ids=<ids>                   Exact USAID DEC report IDs (Formatted Document IDs)
+--refresh-usaid-catalog             Refresh the USAID DEC dataset catalog and exit
 ```
 
 ### Caching

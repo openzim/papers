@@ -8,6 +8,10 @@ as of 2.0.0.
 
 ## [Unreleased]
 
+### Added
+
+- Add USAID DEC Archive source (`usaiddec`, alias `USAID`) for AidData's archive of USAID evaluation reports, with PDF downloads and catalog selection by Formatted Document ID (#165)
+
 ### Changed
 
 - Wikisource: use the real logo instead of the placeholder mark (#184)

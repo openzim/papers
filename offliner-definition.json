@@ -40,6 +40,13 @@
           "dependents": [
             "wikisource_pages"
           ]
+        },
+        {
+          "title": "USAID DEC Archive",
+          "value": "usaiddec",
+          "dependents": [
+            "usaid_ids"
+          ]
         }
       ]
     },
@@ -201,6 +208,12 @@
       "required": false,
       "title": "Page names (Wikisource only)",
       "description": "Comma-separated Wikisource page names, as in the page URL (e.g. The_Time_Machine). Write a comma inside a name as %2C. Cannot be combined with Books."
+    },
+    "usaid_ids": {
+      "type": "string",
+      "required": false,
+      "title": "Report IDs (USAID DEC Archive only)",
+      "description": "Comma-separated exact USAID DEC report IDs (Formatted Document IDs). Cannot be combined with Books."
     },
     "with_author_bio": {
       "type": "boolean",
