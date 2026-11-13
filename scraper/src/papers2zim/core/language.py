@@ -15,8 +15,7 @@ def language_name(code: str) -> str:
 
 
 def normalize_language(code: str | None) -> str | None:
-    """Normalize an ISO 639-2/3 code to ISO 639-1 when a counterpart exists.
-    """
+    """Normalize an ISO 639-2/3 code to ISO 639-1 when a counterpart exists."""
     if not code or not (key := code.strip().casefold()):
         return None
     lang = get_language_or_none(key)
