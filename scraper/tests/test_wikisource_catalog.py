@@ -2,6 +2,7 @@
 
 import re
 from unittest.mock import patch
+from urllib.parse import unquote
 
 import pytest
 
@@ -303,3 +304,124 @@ def test_discover_warns_about_pages_missing_from_the_feed():
     assert [ref.extra["title"] for ref in refs] == ["First Book"]
     warning.assert_called_once()
     assert "No_Such_Book" in warning.call_args.args
+
+
+ONE_BOOK = _feed(_entry("First_Book", "First Book"))
+ANOTHER_BOOK = _feed(_entry("Second_Book", "Second Book"))
+
+
+def _feeds_catalog(feeds: dict[str, str]) -> tuple[WikisourceCatalog, StubEngine]:
+    """A language directory advertising `feeds`, mapping file name to body."""
+    responses = {f"/opds/en/{name}": body for name, body in feeds.items()}
+    responses["/opds/en/"] = (
+        "<html><body>"
+        + "".join(f'<a href="{name}">{name}</a>' for name in feeds)
+        + "</body></html>"
+    )
+    engine = StubEngine(responses)
+    return WikisourceCatalog(engine, base_url=BASE), engine
+
+
+TWO_FEEDS = {"Ready_for_export.xml": ONE_BOOK, "Not_ready.xml": ANOTHER_BOOK}
+
+
+def test_discover_stops_when_the_directory_advertises_several_feeds():
+    catalog, engine = _feeds_catalog(TWO_FEEDS)
+
+    with pytest.raises(CriticalError, match="--wikisource-feed"):
+        list(catalog.discover(CatalogFilters(languages=["en"])))
+
+    assert [url for url in engine.fetched if url.endswith(".xml")] == []
+
+
+def test_error_on_several_feeds_names_them_after_decoding():
+    encoded = "%E0%A6%AA%E0%A6%BE%E0%A6%A0.xml"
+    catalog, _ = _feeds_catalog(
+        {"Ready_for_export.xml": ONE_BOOK, encoded: ANOTHER_BOOK}
+    )
+
+    with pytest.raises(CriticalError) as raised:
+        list(catalog.discover(CatalogFilters(languages=["en"])))
+
+    message = str(raised.value)
+    assert unquote(encoded) in message
+    assert encoded not in message
+
+
+def test_discover_reads_only_the_feed_pinned_with_wikisource_feed():
+    catalog, engine = _feeds_catalog(TWO_FEEDS)
+
+    refs = list(
+        catalog.discover(
+            CatalogFilters(languages=["en"], options={"feed": "Not_ready.xml"})
+        )
+    )
+
+    assert [ref.extra["title"] for ref in refs] == ["Second Book"]
+    assert f"{BASE}/opds/en/Not_ready.xml" in engine.fetched
+    assert f"{BASE}/opds/en/Ready_for_export.xml" not in engine.fetched
+
+
+@pytest.mark.parametrize(
+    "pinned",
+    ["Not_ready.xml", "Not_ready", "/opds/en/Not_ready.xml", "not_ready.XML"],
+)
+def test_feed_pin_accepts_a_name_a_url_or_a_bare_stem(pinned: str):
+    catalog, _ = _feeds_catalog(TWO_FEEDS)
+
+    refs = list(
+        catalog.discover(CatalogFilters(languages=["en"], options={"feed": pinned}))
+    )
+
+    assert [ref.extra["title"] for ref in refs] == ["Second Book"]
+
+
+def test_feed_pin_that_matches_nothing_names_what_does():
+    catalog, _ = _feeds_catalog(TWO_FEEDS)
+
+    with pytest.raises(CriticalError, match=re.escape("Ready_for_export.xml")):
+        list(
+            catalog.discover(
+                CatalogFilters(languages=["en"], options={"feed": "No_such_feed.xml"})
+            )
+        )
+
+
+def test_feed_pin_on_a_language_without_feeds_fails_loudly():
+    engine = StubEngine({"/opds/en/": "<html><body>no feed here</body></html>"})
+    catalog = WikisourceCatalog(engine, base_url=BASE)
+
+    with pytest.raises(CriticalError, match="no feed is advertised"):
+        list(catalog.discover(CatalogFilters(languages=["en"], options={"feed": "X"})))
+
+
+def test_discover_stops_when_the_feed_is_not_an_opds_feed():
+    engine = StubEngine(
+        {
+            "/opds/en/Ready_for_export.xml": (
+                "<html><body>Error 404: No route found</body></html>"
+            ),
+            "/opds/en/": INDEX_HTML,
+        }
+    )
+    catalog = WikisourceCatalog(engine, base_url=BASE)
+
+    with pytest.raises(CriticalError, match="not an OPDS feed"):
+        list(catalog.discover(CatalogFilters(languages=["en"])))
+
+
+@pytest.mark.parametrize(
+    ("reference", "expected"),
+    [
+        ("Bon_pour_export.xml", "bon_pour_export"),
+        ("bon_pour_export.XML", "bon_pour_export"),
+        ("Bon_pour_export", "bon_pour_export"),
+        (
+            "https://ws-export.wmcloud.org/opds/fr/Bon_pour_export.xml",
+            "bon_pour_export",
+        ),
+        ("%E0%A6%AA%E0%A6%BE%E0%A6%A0.xml", "\u09aa\u09be\u09a0"),
+    ],
+)
+def test_feed_key_compares_bare_decoded_names(reference: str, expected: str):
+    assert catalog_module.feed_key(reference) == expected

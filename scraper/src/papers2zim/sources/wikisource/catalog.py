@@ -3,7 +3,15 @@
 ws-export (https://ws-export.wmcloud.org) publishes, per Wikisource language, an
 OPDS Atom feed of the books flagged "ready for export". Each feed lives under
 ``/opds/<lang>/`` with a language-specific filename, so discovery reads the
-directory index to find the feed(s), then parses their ``<entry>`` elements.
+directory index to find it, then parses its ``<entry>`` elements.
+
+The filename is the only thing naming the feed, and it is localized -
+``Ready_for_export.xml`` on en, ``Bon_pour_export.xml`` on fr - so it cannot be
+hardcoded nor recognized language-independently. Discovery therefore relies on
+ws-export advertising exactly one feed per language, which is what it does
+today, and refuses to guess between several: a second feed would be ingested
+alongside the first, adding unrelated works with no way to tell they are
+unrelated. Pass ``--wikisource-feed`` to name the feed to use in that case.
 
 Every entry is self-contained: it carries the title, author, language, license,
 year, source page and one ready-made ws-export download link per format. So a
@@ -51,6 +59,14 @@ def page_key(page: str) -> str:
     return unquote(page).strip().replace(" ", "_")
 
 
+def feed_key(name: str) -> str:
+    """Normalize a feed reference to its bare file name, for `--wikisource-feed`."""
+    name = unquote(name.rsplit("/", 1)[-1]).strip()
+    if name.casefold().endswith(".xml"):
+        name = name[: -len(".xml")]
+    return name.casefold()
+
+
 class WikisourceCatalog(CatalogPort):
     """Discover Wikisource books from ws-export's per-language OPDS feeds."""
 
@@ -72,11 +88,12 @@ class WikisourceCatalog(CatalogPort):
             )
 
         requested_formats = set(filters.formats) if filters.formats else None
+        feed_name = filters.options.get("feed")
         refs: list[WorkRef] = []
         advertised_formats: set[str] = set()
         for lang in languages:
             lang_refs, lang_advertised_formats = self._discover_language(
-                lang, requested_formats
+                lang, requested_formats, feed_name
             )
             refs.extend(lang_refs)
             advertised_formats |= lang_advertised_formats
@@ -104,12 +121,20 @@ class WikisourceCatalog(CatalogPort):
         return selected
 
     def _discover_language(
-        self, lang: str, requested_formats: set[str] | None
+        self,
+        lang: str,
+        requested_formats: set[str] | None,
+        feed_name: str | None,
     ) -> tuple[list[WorkRef], set[str]]:
         refs: list[WorkRef] = []
         advertised_formats: set[str] = set()
-        for feed_url in self._feed_urls(lang):
+        for feed_url in self._feed_urls(lang, feed_name):
             feed = BeautifulSoup(self._engine.fetch_bytes(feed_url), "xml")
+            if feed.find("feed") is None:
+                critical_error(
+                    f"{feed_url} is not an OPDS feed: it holds no Atom <feed> "
+                    "element. ws-export is serving something else under this name."
+                )
             for entry in feed.find_all("entry"):
                 if not isinstance(entry, Tag):
                     continue
@@ -133,7 +158,7 @@ class WikisourceCatalog(CatalogPort):
                 )
         return refs, advertised_formats
 
-    def _feed_urls(self, lang: str) -> list[str]:
+    def _feed_urls(self, lang: str, feed_name: str | None) -> list[str]:
         index_url = f"{self._base_url}/opds/{lang}/"
         try:
             index = self._engine.fetch_bytes(index_url).decode("utf-8", "replace")
@@ -143,15 +168,38 @@ class WikisourceCatalog(CatalogPort):
             )
             return []
         soup = BeautifulSoup(index, "html.parser")
-        feed_urls = [
+        discovered = [
             urljoin(index_url, href)
             for anchor in soup.find_all("a", href=True)
             if isinstance(anchor, Tag)
             and (href := str(anchor["href"])).lower().endswith(".xml")
         ]
-        if not feed_urls:
+        if feed_name:
+            wanted = feed_key(feed_name)
+            selected = [url for url in discovered if feed_key(url) == wanted]
+            if not selected:
+                critical_error(
+                    f"--wikisource-feed={feed_name} is not advertised under "
+                    f"{index_url}"
+                    + (
+                        f" (offered: {', '.join(_file_names(discovered))})"
+                        if discovered
+                        else " (no feed is advertised there at all)"
+                    )
+                )
+            return selected
+        if not discovered:
             logger.warning("No OPDS feed found under %s", index_url)
-        return feed_urls
+            return []
+        if len(discovered) > 1:
+            critical_error(
+                f"{index_url} advertises {len(discovered)} OPDS feeds "
+                f"({', '.join(_file_names(discovered))}). Their names are localized, "
+                "so which one holds the ready-for-export books cannot be told from "
+                "them, and reading them all would ingest entries we cannot "
+                "attribute. Pass the one to use with --wikisource-feed."
+            )
+        return discovered
 
     @staticmethod
     def _parse_entry(entry: Tag, lang: str) -> dict | None:
@@ -220,6 +268,11 @@ class WikisourceCatalog(CatalogPort):
         return [
             ref for position, ref in enumerate(refs, start=1) if position in positions
         ]
+
+
+def _file_names(urls: list[str]) -> list[str]:
+    """Feed file names, decoded: the index hrefs are percent-encoded."""
+    return [unquote(url.rsplit("/", 1)[-1]) for url in urls]
 
 
 def _text(parent: Tag | None, name: str) -> str | None:

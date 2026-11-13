@@ -213,6 +213,8 @@ docker run -v $(pwd)/output:/output ghcr.io/openzim/papers \
 
 Spaces and underscores are interchangeable, and percent-encoded names are accepted. A comma inside a page name must be written as `%2C`. Only books in the ws-export feed of the requested languages can be selected. `--books` also works but selects by position in the feed, which changes from day to day; `--wikisource-pages` and `--books` cannot be used together.
 
+ws-export publishes one feed per language and names it in that language (`Ready_for_export.xml` on en, `Bon_pour_export.xml` on fr), so the scraper reads the single feed it finds in the language directory. Should a directory ever advertise several, the scraper cannot tell which one holds the ready-for-export books from their localized names, and reading them all would silently mix in unrelated works, so it stops with an error listing them. `--wikisource-feed` then picks the feed to read, by file name or by URL.
+
 ### Bibliothèque numérique romande
 
 Select the Bibliothèque numérique romande with `--source=bibliothequenumeriqueromande` (or `--source=BNR`).
@@ -354,6 +356,7 @@ Only one of `--ljl-series`, `--ljl-authors`, `--ljl-categories` and `--ljl-title
 
 ```text
 --wikisource-pages=<pages>          Wikisource page names, as in the page URL
+--wikisource-feed=<feed>            OPDS feed file to read for each language
 ```
 
 ### USAID DEC Archive Options
