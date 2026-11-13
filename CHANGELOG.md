@@ -16,6 +16,7 @@ as of 2.0.0.
 - Add the `bibliothequenumeriqueromande` source (alias `BNR`) for scraping Bibliothèque numérique romande OPDS catalogue with EPUB downloads and add icons for BNR collections 
     (#170, #189)
 - Add the `litteraturejeunesselibre` source (alias `LJL`) for scraping Littérature jeunesse libre OPDS catalogue with EPUB and PDF downloads and add icons for LJL collections
+- Add a shared OPDS layer (`core/opds.py` and `core/opds_source.py`) for feed parsing, self-contained `OpdsBook` mapping, metadata, format resolution, and per-work processing, then reuse it in the Bibliothèque numérique romande and Littérature jeunesse libre sources (#197)
 
 ### Changed
 
