@@ -15,6 +15,12 @@ from papers2zim.sources.bibliothequenumeriqueromande.catalog import (
 from papers2zim.sources.bibliothequenumeriqueromande.metadata import (
     BibliothequeNumeriqueRomandeMetadata,
 )
+from papers2zim.sources.litteraturejeunesselibre.catalog import (
+    LitteratureJeunesseLibreCatalog,
+)
+from papers2zim.sources.litteraturejeunesselibre.metadata import (
+    LitteratureJeunesseLibreMetadata,
+)
 from papers2zim.sources.onemorelibrary.catalog import OnemorelibraryCatalog
 from papers2zim.sources.onemorelibrary.metadata import OnemorelibraryMetadata
 from papers2zim.sources.opentextbooks.catalog import OpenTextbookLibraryCatalog
@@ -56,6 +62,8 @@ def _profile(slug: str, aliases: tuple[str, ...]):
         ("ws", "wikisource"),
         ("BNR", "bibliothequenumeriqueromande"),
         ("bnr", "bibliothequenumeriqueromande"),
+        ("LJL", "litteraturejeunesselibre"),
+        ("ljl", "litteraturejeunesselibre"),
     ),
 )
 def test_source_short_names_resolve_case_insensitively(source_name, source_slug):
@@ -141,6 +149,21 @@ def test_bibliotheque_numerique_romande_profile_is_registered_with_its_opds_adap
     assert profile.has_popularity is False
 
 
+def test_litterature_jeunesse_libre_profile_is_registered_with_its_opds_adapters():
+    profile = get_source("litteraturejeunesselibre")
+
+    assert profile.display_name == "Littérature jeunesse libre"
+    assert (
+        profile.default_mirror_url == "https://litterature-jeunesse-libre.fr/bbs/opds"
+    )
+    assert profile.catalog is LitteratureJeunesseLibreCatalog
+    assert isinstance(profile.catalog, type)
+    assert issubclass(profile.catalog, CatalogPort)
+    assert profile.metadata_class is LitteratureJeunesseLibreMetadata
+    assert profile.pipeline_class is not None
+    assert profile.has_popularity is False
+
+
 def test_popularity_is_declared_per_source():
     assert get_source("gutenberg").has_popularity is True
     assert get_source("opentextbooks").has_popularity is True
@@ -148,6 +171,7 @@ def test_popularity_is_declared_per_source():
     assert get_source("usaiddec").has_popularity is False
     assert get_source("wikisource").has_popularity is False
     assert get_source("bibliothequenumeriqueromande").has_popularity is False
+    assert get_source("litteraturejeunesselibre").has_popularity is False
 
 
 @pytest.mark.parametrize(
@@ -158,6 +182,7 @@ def test_popularity_is_declared_per_source():
         "onemorelibrary",
         "wikisource",
         "bibliothequenumeriqueromande",
+        "litteraturejeunesselibre",
     ),
 )
 def test_every_profile_declares_an_existing_icon_svg(source_slug):

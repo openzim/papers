@@ -36,7 +36,12 @@ def index_format_candidates(
     return order
 
 
-def _html_text(html: str | bytes) -> str:
+def html_text(html: str | bytes) -> str:
+    """Compact plain text of an HTML fragment.
+
+    Block elements become word separators, while inline markup (links,
+    emphasis, drop caps, ...) does not split words.
+    """
     soup = BeautifulSoup(html, "lxml")
     for tag in soup(["script", "style", "noscript", "template", "head"]):
         tag.decompose()
@@ -56,7 +61,7 @@ def extract_index_text(
     try:
         if format_name == "html":
             pages = [content] if isinstance(content, str | bytes) else content
-            return "\n".join(_html_text(page) for page in pages)
+            return "\n".join(html_text(page) for page in pages)
         if not isinstance(content, bytes):
             raise TypeError(f"{format_name} content must be bytes")
         if format_name == "epub":

@@ -30,6 +30,17 @@
           ]
         },
         {
+          "title": "Littérature jeunesse libre",
+          "value": "litteraturejeunesselibre",
+          "dependents": [
+            "ljl_series",
+            "ljl_authors",
+            "ljl_categories",
+            "ljl_titles",
+            "ljl_ids"
+          ]
+        },
+        {
           "title": "One More Library",
           "value": "onemorelibrary",
           "dependents": [
@@ -256,6 +267,36 @@
       "title": "Book IDs (Bibliothèque numérique romande only)",
       "description": "Comma-separated exact Bibliothèque numérique romande book UUIDs. Cannot be combined with Books."
     },
+    "ljl_series": {
+      "type": "string",
+      "required": false,
+      "title": "Series (Littérature jeunesse libre only)",
+      "description": "Comma-separated Littérature jeunesse libre series names. Use only one of Series, Authors, Categories or Title prefixes."
+    },
+    "ljl_authors": {
+      "type": "string",
+      "required": false,
+      "title": "Authors (Littérature jeunesse libre only)",
+      "description": "Comma-separated Littérature jeunesse libre author names. Use only one of Series, Authors, Categories or Title prefixes."
+    },
+    "ljl_categories": {
+      "type": "string",
+      "required": false,
+      "title": "Categories (Littérature jeunesse libre only)",
+      "description": "Comma-separated Littérature jeunesse libre category names. Use only one of Series, Authors, Categories or Title prefixes."
+    },
+    "ljl_titles": {
+      "type": "string",
+      "required": false,
+      "title": "Title prefixes (Littérature jeunesse libre only)",
+      "description": "Comma-separated Littérature jeunesse libre title prefixes (letters or numbers). Use only one of Series, Authors, Categories or Title prefixes. Defaults to the whole catalogue."
+    },
+    "ljl_ids": {
+      "type": "string",
+      "required": false,
+      "title": "Book IDs (Littérature jeunesse libre only)",
+      "description": "Comma-separated exact Littérature jeunesse libre book UUIDs. Cannot be combined with Books."
+    },
     "with_author_bio": {
       "type": "boolean",
       "required": false,
@@ -310,7 +351,11 @@
         "bnr_series",
         "bnr_authors",
         "bnr_categories",
-        "bnr_titles"
+        "bnr_titles",
+        "ljl_series",
+        "ljl_authors",
+        "ljl_categories",
+        "ljl_titles"
       ]
     }
   ],

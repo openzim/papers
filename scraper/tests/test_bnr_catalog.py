@@ -17,7 +17,7 @@ from papers2zim.sources.bibliothequenumeriqueromande.catalog import (
     BibliothequeNumeriqueRomandeCatalog,
 )
 from papers2zim.sources.bibliothequenumeriqueromande.categories import (
-    COLLECTION_ORDER,
+    category_resolver,
 )
 
 NAV_TYPE = "application/atom+xml;profile=opds-catalog;kind=navigation"
@@ -168,7 +168,9 @@ def test_discover_returns_nothing_when_no_supported_format_requested():
 def test_list_categories_returns_the_collapsed_collections():
     catalog, engine = _catalog({})
 
-    assert catalog.list_categories() == sorted(COLLECTION_ORDER, key=str.casefold)
+    assert catalog.list_categories() == sorted(
+        category_resolver.order, key=str.casefold
+    )
     # The list comes from the scraper, not from a BNR tags feed.
     assert engine.fetched == []
 

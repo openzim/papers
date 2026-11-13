@@ -174,6 +174,7 @@ class DownloadEngine:
 
         Uses this engine's per-thread session, timeout and retry budget.
         """
+        logger.debug(f"Fetching {url}...")
         return fetch_bytes_with_retry(
             url,
             session=self._get_session(),
