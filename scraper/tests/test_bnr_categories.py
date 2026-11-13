@@ -2,8 +2,7 @@
 import pytest
 
 from papers2zim.sources.bibliothequenumeriqueromande.categories import (
-    FALLBACK_COLLECTION,
-    collection_names_for_categories,
+    category_resolver,
 )
 
 
@@ -25,7 +24,7 @@ from papers2zim.sources.bibliothequenumeriqueromande.categories import (
     ],
 )
 def test_collapses_synonyms_and_drops_facets(categories, expected):
-    assert collection_names_for_categories(categories) == expected
+    assert category_resolver.collections_for(categories) == expected
 
 
 @pytest.mark.parametrize(
@@ -46,34 +45,34 @@ def test_collapses_synonyms_and_drops_facets(categories, expected):
     ],
 )
 def test_splits_comma_joined_tags(categories, expected):
-    assert collection_names_for_categories([categories]) == expected
+    assert category_resolver.collections_for([categories]) == expected
 
 
 def test_specific_genre_takes_priority_over_roman():
-    assert collection_names_for_categories(["Roman", "Policier-Mystère"]) == [
+    assert category_resolver.collections_for(["Roman", "Policier-Mystère"]) == [
         "Policier & Mystère",
         "Roman",
     ]
 
 
 def test_deduplicates_variants_of_the_same_tag():
-    assert collection_names_for_categories(
+    assert category_resolver.collections_for(
         ["Littérature d'oc et de Rhône", "Littérature d’Oc et de Rhône"]
     ) == ["Régions & terroir"]
 
 
 def test_unknown_tags_fall_back_to_autres():
-    assert collection_names_for_categories(["Pas une catégorie BNR"]) == [
-        FALLBACK_COLLECTION
+    assert category_resolver.collections_for(["Pas une catégorie BNR"]) == [
+        category_resolver.fallback
     ]
 
 
 def test_known_and_unknown_tags_are_both_kept():
-    assert collection_names_for_categories(["Roman, Nouvelle catégorie"]) == [
+    assert category_resolver.collections_for(["Roman, Nouvelle catégorie"]) == [
         "Roman",
-        FALLBACK_COLLECTION,
+        category_resolver.fallback,
     ]
 
 
 def test_blank_parts_do_not_fall_back_to_autres():
-    assert collection_names_for_categories(["Roman, ", ""]) == ["Roman"]
+    assert category_resolver.collections_for(["Roman, ", ""]) == ["Roman"]

@@ -26,7 +26,8 @@ Options:
   --source=<source>               Source slug or short name: gutenberg (PG),
                                   onemorelibrary (OML), opentextbooks (OTL),
                                   wikisource (WS), bibliothequenumeriqueromande
-                                  (BNR) [default: gutenberg]
+                                  (BNR), litteraturejeunesselibre (LJL)
+                                  [default: gutenberg]
   -l --languages=<list>           Comma-separated language codes
   -f --formats=<list>             Formats: epub, html, pdf, or all
   -z --zim-file=<file>            ZIM output path

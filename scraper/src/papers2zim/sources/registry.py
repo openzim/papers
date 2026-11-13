@@ -35,6 +35,16 @@ from papers2zim.sources.gutenberg import catalog as gutenberg_catalog
 from papers2zim.sources.gutenberg import cli as gutenberg_cli
 from papers2zim.sources.gutenberg.metadata import GutenbergRdfMetadata
 from papers2zim.sources.gutenberg.pipeline import GutenbergPipeline
+from papers2zim.sources.litteraturejeunesselibre import cli as ljl_cli
+from papers2zim.sources.litteraturejeunesselibre.catalog import (
+    LitteratureJeunesseLibreCatalog,
+)
+from papers2zim.sources.litteraturejeunesselibre.metadata import (
+    LitteratureJeunesseLibreMetadata,
+)
+from papers2zim.sources.litteraturejeunesselibre.pipeline import (
+    LitteratureJeunesseLibrePipeline,
+)
 from papers2zim.sources.onemorelibrary import cli as onemorelibrary_cli
 from papers2zim.sources.onemorelibrary.catalog import OnemorelibraryCatalog
 from papers2zim.sources.onemorelibrary.metadata import OnemorelibraryMetadata
@@ -156,6 +166,35 @@ GUTENBERG_PROFILE = SourceProfile(
     },
     metadata_class=GutenbergRdfMetadata,
     pipeline_class=GutenbergPipeline,
+)
+
+LITTERATURE_JEUNESSE_LIBRE_PROFILE = SourceProfile(
+    slug="litteraturejeunesselibre",
+    aliases=("LJL",),
+    locale_namespace="litteraturejeunesselibre",
+    display_name="Littérature jeunesse libre",
+    source_creator="litterature-jeunesse-libre.fr",
+    icon_svg="litteraturejeunesselibre.svg",
+    zim_tags="_category:books;ljl",
+    zim_name_prefix="ljl",
+    tagline="the free French-language children's library",
+    source_description=(
+        "A library of free French-language children's books from "
+        "Littérature jeunesse libre."
+    ),
+    collection_label="Categories",
+    collection_icon_style="subject",
+    has_popularity=False,
+    default_mirror_url="https://litterature-jeunesse-libre.fr/bbs/opds",
+    catalog_feed_path="",
+    catalog=LitteratureJeunesseLibreCatalog,
+    cli_options=ljl_cli.CLI_OPTIONS,
+    parse_cli_options=ljl_cli.parse_options,
+    handle_cli_action=ljl_cli.handle_cli_action,
+    pipeline_options=lambda _mirror_url, _cache_dir, _source_options, _languages: {},
+    metadata_options=lambda _mirror_url, _cache_dir, _engine: {},
+    metadata_class=LitteratureJeunesseLibreMetadata,
+    pipeline_class=LitteratureJeunesseLibrePipeline,
 )
 
 OPEN_TEXTBOOK_LIBRARY_PROFILE = SourceProfile(
@@ -358,3 +397,4 @@ register_source(WIKISOURCE_PROFILE)
 register_source(ONEMORELIBRARY_PROFILE)
 register_source(USAIDDEC_PROFILE)
 register_source(BIBLIOTHEQUE_NUMERIQUE_ROMANDE_PROFILE)
+register_source(LITTERATURE_JEUNESSE_LIBRE_PROFILE)

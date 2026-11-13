@@ -39,6 +39,8 @@ import {
   mdiMotherHeart,
   mdiNewspaperVariant,
   mdiPalette,
+  mdiPartyPopper,
+  mdiPaw,
   mdiRibbon,
   mdiPencil,
   mdiRocketLaunch,
@@ -167,11 +169,35 @@ const BIBLIOTHEQUE_NUMERIQUE_ROMANDE_COLLECTION_ICONS: Record<string, string> = 
   'Voyage & Montagne': mdiImageFilterHdr
 }
 
+const LITTERATURE_JEUNESSE_LIBRE_COLLECTION_ICONS: Record<string, string> = {
+  Animaux: mdiPaw,
+  'Nature & environnement': mdiLeaf,
+  'Sciences & technologies': mdiMicroscope,
+  'Corps & santé': mdiStethoscope,
+  'Alimentation & cuisine': mdiFoodApple,
+  'Famille & vie quotidienne': mdiHomeHeart,
+  'École & apprentissage': mdiSchool,
+  'Émotions & amitié': mdiHeart,
+  'Valeurs & société': mdiAccountGroup,
+  'Métiers & travail': mdiBriefcase,
+  'Sports & loisirs': mdiTrophyVariant,
+  'Arts & spectacles': mdiTheater,
+  'Livres & écriture': mdiBookshelf,
+  'Contes & légendes': mdiMagicStaff,
+  'Fantastique & magie': mdiRocketLaunch,
+  'Histoire & civilisations': mdiHistory,
+  'Pays & régions': mdiEarth,
+  'Voyages & transports': mdiCompass,
+  'Fêtes & traditions': mdiPartyPopper,
+  Autres: mdiDotsHorizontal
+}
+
 const SUBJECT_ICONS: Record<string, string> = {
   ...OPEN_TEXTBOOK_SUBJECT_ICONS,
   ...ONE_MORE_LIBRARY_CATEGORY_ICONS,
   ...USAID_DEC_COLLECTION_ICONS,
-  ...BIBLIOTHEQUE_NUMERIQUE_ROMANDE_COLLECTION_ICONS
+  ...BIBLIOTHEQUE_NUMERIQUE_ROMANDE_COLLECTION_ICONS,
+  ...LITTERATURE_JEUNESSE_LIBRE_COLLECTION_ICONS
 }
 
 function getSubjectCollectionIcon(subject: string | null): string {

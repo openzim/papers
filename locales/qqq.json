@@ -197,6 +197,46 @@
 			"kiwix": "Footer link text pointing to the Kiwix website"
 		}
 	},
+	"litteraturejeunesselibre": {
+		"about": {
+			"attribution": "Attribution text for Littérature jeunesse libre",
+			"introHeading": "Heading of the Littérature jeunesse libre introduction",
+			"introParagraph1": "First paragraph introducing Littérature jeunesse libre",
+			"introParagraph2": "Second paragraph introducing Littérature jeunesse libre",
+			"introParagraph3": "Third paragraph introducing Littérature jeunesse libre",
+			"introParagraph4": "Fourth paragraph introducing Littérature jeunesse libre",
+			"missionAuthor": "Author line under the mission heading",
+			"missionHeading": "Heading of the mission section",
+			"missionParagraph1": "First paragraph of the mission statement",
+			"missionParagraph2": "Second paragraph of the mission statement",
+			"missionParagraph3": "Third paragraph of the mission statement",
+			"missionParagraph4": "Fourth paragraph of the mission statement"
+		},
+		"metadata_defaults": {
+			"title": "Default ZIM title used in metadata when no specific title is set",
+			"description": "Default ZIM description used in metadata when no specific description is set"
+		},
+		"nav": {
+			"collections": "Navigation and breadcrumb label for the Littérature jeunesse libre categories page"
+		},
+		"home": {
+			"allCollections": "Link label for browsing all Littérature jeunesse libre categories",
+			"mostPopular": "Featured-book label for the most popular Littérature jeunesse libre book",
+			"popularCollections": "Heading for the popular Littérature jeunesse libre categories section"
+		},
+		"collection": {
+			"allCollections": "All Littérature jeunesse libre categories link in the sidebar"
+		},
+		"book": {
+			"collection": "Label for the Littérature jeunesse libre category field",
+			"sameCollectionBooks": "Heading for the carousel of books in the same Littérature jeunesse libre category"
+		},
+		"footer": {
+			"createdBy": "Footer text preceding the source library link",
+			"packagedBy": "Footer text preceding the Kiwix link",
+			"kiwix": "Footer link text pointing to the Kiwix website"
+		}
+	},
 	"gutenberg": {
 		"about": {
 			"attribution": "Attribution text for Project Gutenberg",

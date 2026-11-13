@@ -60,6 +60,15 @@ ZIM_EXPECTATIONS = (
         format_name="epub",
         mimetype="application/epub+zip",
     ),
+    ZimExpectation(
+        filename="ljl-integration.zim",
+        title="LJL Test",
+        source_slug="litteraturejeunesselibre",
+        source_creator="litterature-jeunesse-libre.fr",
+        work_id="8c20106a-2a6b-46d5-9b0b-85aa86abca15",
+        format_name="epub",
+        mimetype="application/epub+zip",
+    ),
     pytest.param(
         ZimExpectation(
             filename="wikisource-integration.zim",

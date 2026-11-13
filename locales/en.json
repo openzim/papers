@@ -192,6 +192,46 @@
       "kiwix": "Kiwix"
     }
   },
+  "litteraturejeunesselibre": {
+    "about": {
+      "attribution": "Book metadata and cover images provided by Littérature jeunesse libre.",
+      "introHeading": "About Littérature jeunesse libre",
+      "introParagraph1": "Littérature jeunesse libre is a free online library of French-language children's books.",
+      "introParagraph2": "Its collection brings together picture books, novels, tales and other works for young readers.",
+      "introParagraph3": "Books are available in EPUB and PDF formats and can be read offline.",
+      "introParagraph4": "This library makes those books available for offline reading.",
+      "missionAuthor": "The Littérature jeunesse libre team",
+      "missionHeading": "Free children's books for everyone",
+      "missionParagraph1": "Littérature jeunesse libre exists to make French-language children's literature available to everyone for free.",
+      "missionParagraph2": "Its collection spans picture books, novels, tales, poetry and other works.",
+      "missionParagraph3": "Books are offered in open formats such as EPUB and PDF, which work on most devices and readers.",
+      "missionParagraph4": "Keeping these books available offline helps preserve them for young readers today and in the future."
+    },
+    "metadata_defaults": {
+      "title": "Littérature jeunesse libre",
+      "description": "Free French-language children's books from Littérature jeunesse libre"
+    },
+    "nav": {
+      "collections": "Categories"
+    },
+    "home": {
+      "allCollections": "All categories",
+      "mostPopular": "Most popular",
+      "popularCollections": "Popular categories"
+    },
+    "collection": {
+      "allCollections": "All categories"
+    },
+    "book": {
+      "collection": "Category",
+      "sameCollectionBooks": "Books in the same category"
+    },
+    "footer": {
+      "createdBy": "Created by",
+      "packagedBy": "Packaged by",
+      "kiwix": "Kiwix"
+    }
+  },
   "gutenberg": {
     "about": {
       "attribution": "Written by Michael S. Hart June 20, 2004. Updated October 23, 2004; December 25, 2007.",

@@ -63,6 +63,18 @@ jobs:
             --formats epub \
             --no-index \
             --overwrite
+          docker run --rm -v "$PWD/output:/output" papers papers2zim \
+            --source litteraturejeunesselibre \
+            --output /output \
+            --zim-file /output/ljl-integration.zim \
+            --zim-name ljl_integration_test \
+            --zim-title "LJL Test" \
+            --zim-desc "One public-domain book from LJL for integration testing" \
+            --ljl-titles "A" \
+            --ljl-ids 8C20106A-2A6B-46D5-9B0B-85AA86ABCA15 \
+            --formats epub \
+            --no-index \
+            --overwrite
           # wikisource is temporarily disabled: ws-export is unreachable from CI
           # docker run --rm -v "$PWD/output:/output" papers papers2zim \
           #   --source wikisource \
@@ -87,6 +99,8 @@ jobs:
             ghcr.io/openzim/zim-tools:3.8.0 zimcheck /output/onemorelibrary-integration.zim
           docker run --rm -v "$PWD/output:/output" \
             ghcr.io/openzim/zim-tools:3.8.0 zimcheck /output/bnr-integration.zim
+          docker run --rm -v "$PWD/output:/output" \
+            ghcr.io/openzim/zim-tools:3.8.0 zimcheck /output/ljl-integration.zim
           # wikisource is temporarily disabled: ws-export is unreachable from CI
           # docker run --rm -v "$PWD/output:/output" \
           #   ghcr.io/openzim/zim-tools:3.8.0 zimcheck /output/wikisource-integration.zim

@@ -8,8 +8,7 @@ module maps each tag to one of the broad collections used by the UI.
 
 """
 
-import unicodedata
-from collections.abc import Iterable
+from papers2zim.core.categories import CategoryResolver
 
 # Broad collection -> BNR tags that belong to it. The insertion order is the
 # priority order used to pick a work's primary collection, so keep the most
@@ -146,60 +145,4 @@ BNR_CATEGORIES = (
     "Érotisme",
 )
 
-_CHARACTER_TRANSLATION = str.maketrans(
-    {
-        "\u2018": "'",
-        "\u2019": "'",
-        "\u2013": "-",
-        "\u2014": "-",
-    }
-)
-
-
-def normalize_category(value: str) -> str:
-    """Normalize a BNR tag for lookup."""
-    text = unicodedata.normalize("NFKC", value).translate(_CHARACTER_TRANSLATION)
-    return " ".join(text.split()).rstrip(" .").casefold()
-
-
-def _build_category_collections() -> dict[str, str]:
-    """Map every normalized tag to the collection it belongs to."""
-    return {
-        normalize_category(category): collection
-        for collection, categories in _COLLECTIONS.items()
-        for category in categories
-    }
-
-
-CATEGORY_COLLECTIONS = _build_category_collections()
-
-IGNORED_CATEGORIES = frozenset(
-    normalize_category(category) for category in _IGNORED_CATEGORIES
-)
-
-# Collection used for tags that are neither mapped nor explicit facets.
-FALLBACK_COLLECTION = "Autres"
-
-# Broad collection names, in primary-collection priority order.
-COLLECTION_ORDER: tuple[str, ...] = (*_COLLECTIONS, FALLBACK_COLLECTION)
-
-
-def collection_names_for_categories(categories: Iterable[str]) -> list[str]:
-    """Return the distinct collections for a work's BNR tags.
-
-    Comma-joined tags are split so that, for example,
-    ``"Roman, Société, Littérature anglo-saxonne, 19e"`` yields ``Roman`` and
-    ``Société``. Unrecognized tags fall back to `FALLBACK_COLLECTION`. The
-    result is ordered by `COLLECTION_ORDER`, which makes the first item the
-    work's primary collection.
-    """
-    found: set[str] = set()
-    for category in categories:
-        if not isinstance(category, str):
-            continue
-        for part in category.split(","):
-            normalized = normalize_category(part)
-            if not normalized or normalized in IGNORED_CATEGORIES:
-                continue
-            found.add(CATEGORY_COLLECTIONS.get(normalized, FALLBACK_COLLECTION))
-    return [collection for collection in COLLECTION_ORDER if collection in found]
+category_resolver = CategoryResolver(_COLLECTIONS, ignored=_IGNORED_CATEGORIES)

@@ -40,6 +40,17 @@ def test_recipe_defines_supported_sources_and_source_specific_filters():
                 ],
             },
             {
+                "title": "Littérature jeunesse libre",
+                "value": "litteraturejeunesselibre",
+                "dependents": [
+                    "ljl_series",
+                    "ljl_authors",
+                    "ljl_categories",
+                    "ljl_titles",
+                    "ljl_ids",
+                ],
+            },
+            {
                 "title": "One More Library",
                 "value": "onemorelibrary",
                 "dependents": ["categories", "oml_ids"],
@@ -76,6 +87,11 @@ def test_recipe_defines_supported_sources_and_source_specific_filters():
         "bnr_categories",
         "bnr_titles",
         "bnr_ids",
+        "ljl_series",
+        "ljl_authors",
+        "ljl_categories",
+        "ljl_titles",
+        "ljl_ids",
     }.issubset(flags)
 
 
@@ -106,6 +122,34 @@ def test_bnr_filter_flags_are_bnr_only_dependents():
         if choice["value"] != "bibliothequenumeriqueromande":
             assert bnr_flags.isdisjoint(choice["dependents"])
 
+
+def test_ljl_filter_flags_are_ljl_only_dependents():
+    definition = json.loads(DEFINITION_PATH.read_text(encoding="utf-8"))
+    flags = definition["flags"]
+    ljl_flags = {
+        "ljl_series",
+        "ljl_authors",
+        "ljl_categories",
+        "ljl_titles",
+        "ljl_ids",
+    }
+
+    assert ljl_flags.issubset(flags)
+    for name in ljl_flags:
+        assert flags[name]["required"] is False
+
+    ljl_choices = [
+        choice
+        for choice in flags["source"]["choices"]
+        if choice["value"] == "litteraturejeunesselibre"
+    ]
+    assert len(ljl_choices) == 1
+    assert ljl_flags.issubset(ljl_choices[0]["dependents"])
+
+    for choice in flags["source"]["choices"]:
+        if choice["value"] != "litteraturejeunesselibre":
+            assert ljl_flags.isdisjoint(choice["dependents"])
+
     assert definition["modelValidators"] == [
         {
             "name": "check_exclusive_fields",
@@ -114,6 +158,10 @@ def test_bnr_filter_flags_are_bnr_only_dependents():
                 "bnr_authors",
                 "bnr_categories",
                 "bnr_titles",
+                "ljl_series",
+                "ljl_authors",
+                "ljl_categories",
+                "ljl_titles",
             ],
         }
     ]

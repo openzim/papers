@@ -18,13 +18,12 @@ from urllib.parse import urljoin
 from xml.etree import ElementTree as ET
 
 from papers2zim.constants import logger
+from papers2zim.core.categories import normalize_category
 from papers2zim.core.download_engine import DownloadEngine
 from papers2zim.core.ports import CatalogFilters, CatalogPort, WorkRef
 from papers2zim.core.utils import critical_error, normalize
 from papers2zim.sources.bibliothequenumeriqueromande.categories import (
-    COLLECTION_ORDER,
-    collection_names_for_categories,
-    normalize_category,
+    category_resolver,
 )
 
 BASE_URL = "https://ebooks-bnr.com/opds/index.php"
@@ -140,7 +139,7 @@ def _entry_categories(entry: ET.Element) -> list[str]:
         term = _normalize_whitespace(category.get("term"))
         if term and term not in terms:
             terms.append(term)
-    return collection_names_for_categories(terms)
+    return category_resolver.collections_for(terms)
 
 
 @dataclass(frozen=True, slots=True)
@@ -200,7 +199,7 @@ class BibliothequeNumeriqueRomandeCatalog(CatalogPort):
             for category in filters.options.get("categories") or []
         }
         if requested_categories:
-            available = {normalize_category(name) for name in COLLECTION_ORDER}
+            available = {normalize_category(name) for name in category_resolver.order}
             unknown = sorted(requested_categories - available)
             if unknown:
                 critical_error(
@@ -303,7 +302,7 @@ class BibliothequeNumeriqueRomandeCatalog(CatalogPort):
 
     def list_categories(self) -> list[str]:
         """Return the broad collection names used for BNR works, sorted."""
-        return sorted(COLLECTION_ORDER, key=str.casefold)
+        return sorted(category_resolver.order, key=str.casefold)
 
     def list_titles(self) -> list[str]:
         """Return every title prefix available on BNR, sorted alphabetically."""

@@ -1,7 +1,7 @@
 # Papers Offline
 
 This multi-source scraper downloads content from [Project Gutenberg](https://www.gutenberg.org), the [Open Textbook Library](https://open.umn.edu/opentextbooks/),
-[Wikisource](https://wikisource.org), [USAID DEC Archive](https://usaid-archive.aiddata.org/) and [Bibliothèque numérique romande](https://ebooks-bnr.com/) and packages it into a [ZIM](https://openzim.org) file, 
+[Wikisource](https://wikisource.org), [USAID DEC Archive](https://usaid-archive.aiddata.org/), [Bibliothèque numérique romande](https://ebooks-bnr.com/) and [Littérature jeunesse libre](https://litterature-jeunesse-libre.fr/) and packages it into a [ZIM](https://openzim.org) file,
 a clean and user-friendly format for storing content for offline usage.
 
 The ZIM file includes a modern, responsive Vue.js interface with features like:
@@ -69,7 +69,8 @@ The scraper supports several sources, select a source with `--source`:
 
 `--source=<source>`    Source slug or short name:
                      gutenberg (PG), onemorelibrary (OML), opentextbooks (OTL),
-                     wikisource (WS), usaiddec (USAID)  or bibliothequenumeriqueromande (BNR)
+                     wikisource (WS), usaiddec (USAID), bibliothequenumeriqueromande
+                     (BNR) or litteraturejeunesselibre (LJL)
                      Default: gutenberg
 
 ### Project Gutenberg
@@ -249,6 +250,43 @@ The Bibliothèque numérique romande-specific options are:
 
 Only one of `--bnr-series`, `--bnr-authors`, `--bnr-categories` and `--bnr-titles` can be used at a time. `--books` is not supported.
 
+### Littérature jeunesse libre
+
+Select Littérature jeunesse libre with `--source=litteraturejeunesselibre` (or `--source=LJL`).
+
+LJL publishes its French-language children's catalogue as OPDS feeds and offers EPUB and PDF. A scrape selects at most one filter family at a time: series, authors, categories, or title prefixes (letters or numbers). Categories are the broad collections derived from LJL tags, and the available filter values can be listed with the `--list-ljl-*` options.
+
+For example:
+
+```bash
+docker run -v $(pwd)/output:/output ghcr.io/openzim/papers \
+  papers2zim --source=litteraturejeunesselibre --ljl-categories=Animaux
+```
+
+To select specific books by UUID:
+
+```bash
+docker run -v $(pwd)/output:/output ghcr.io/openzim/papers \
+  papers2zim --source=litteraturejeunesselibre --ljl-ids=<uuid1>,<uuid2>
+```
+
+The Littérature jeunesse libre-specific options are:
+
+```text
+--ljl-series=<series>          Comma-separated LJL series names
+--ljl-authors=<authors>        Comma-separated LJL author names
+--ljl-categories=<categories>  Comma-separated LJL category names
+--ljl-titles=<titles>          Comma-separated LJL title prefixes
+                               (letters or numbers)
+--ljl-ids=<ids>                Comma-separated LJL book UUIDs
+--list-ljl-series              List LJL series and exit
+--list-ljl-authors             List LJL authors and exit
+--list-ljl-categories          List LJL categories and exit
+--list-ljl-titles              List LJL title prefixes and exit
+```
+
+Only one of `--ljl-series`, `--ljl-authors`, `--ljl-categories` and `--ljl-titles` can be used at a time. `--books` is not supported.
+
 ## Command-Line Options
 
 ### Source Selection
@@ -257,7 +295,8 @@ Only one of `--bnr-series`, `--bnr-authors`, `--bnr-categories` and `--bnr-title
 --source=<source>                  Source slug or short name:
                                    gutenberg (PG), onemorelibrary (OML),
                                    opentextbooks (OTL), wikisource (WS),
-                                   usaiddec (USAID) or bibliothequenumeriqueromande (BNR)
+                                   usaiddec (USAID), bibliothequenumeriqueromande
+                                   (BNR) or litteraturejeunesselibre (LJL)
                                    Default: gutenberg
 ```
 
@@ -339,6 +378,21 @@ Only one of `--bnr-series`, `--bnr-authors`, `--bnr-categories` and `--bnr-title
 --list-bnr-titles                   List BNR title prefixes and exit
 ```
 
+### Littérature jeunesse libre Options
+
+```text
+--ljl-series=<series>               Comma-separated LJL series names
+--ljl-authors=<authors>             Comma-separated LJL author names
+--ljl-categories=<categories>       Comma-separated LJL category names
+--ljl-titles=<titles>               Comma-separated LJL title prefixes
+                                    (letters or numbers)
+--ljl-ids=<ids>                     Comma-separated LJL book UUIDs
+--list-ljl-series                   List LJL series and exit
+--list-ljl-authors                  List LJL authors and exit
+--list-ljl-categories               List LJL categories and exit
+--list-ljl-titles                   List LJL title prefixes and exit
+```
+
 ### Caching
 
 Caching is opt-in. Pass `--cache-dir` to persist source metadata and catalog
@@ -415,6 +469,7 @@ Currently supported sources are:
 - **One More Library** (`onemorelibrary` / `OML`)
 - **Open Textbook Library** (`opentextbooks` / `OTL`)
 - **Bibliothèque numérique romande** (`bibliothequenumeriqueromande` / `BNR`)
+- **Littérature jeunesse libre** (`litteraturejeunesselibre` / `LJL`)
 
 The source registry connects each source implementation to the common pipeline.
 

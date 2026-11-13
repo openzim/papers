@@ -15,6 +15,7 @@ as of 2.0.0.
 
 - Add the `bibliothequenumeriqueromande` source (alias `BNR`) for scraping Bibliothèque numérique romande OPDS catalogue with EPUB downloads and add icons for BNR collections 
     (#170, #189)
+- Add the `litteraturejeunesselibre` source (alias `LJL`) for scraping Littérature jeunesse libre OPDS catalogue with EPUB and PDF downloads and add icons for LJL collections
 
 ### Changed
 

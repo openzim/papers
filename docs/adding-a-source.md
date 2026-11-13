@@ -73,6 +73,12 @@ collapses its LCC shelves, One More Library uses the broad category above a
 book's own category, and Open Textbook Library keeps only the root of each
 subject path.
 
+Sources whose taxonomy is a flat tag list can reuse the shared
+`CategoryResolver` in `core/categories.py`: declare a mapping from
+raw tags to broad collections plus an optional list of ignored facets, then
+resolve a work's tags with `collections_for()`. The class handles
+normalization, comma-joined tags, ordering, and the catch-all fallback.
+
 `Work.popularity` is the raw numeric ranking signal supplied by the source
 (downloads, page views, review score, etc.). Core derives the zero-to-three
 `Work.flames` value after processing, so sources must not calculate flames.
