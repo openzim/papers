@@ -5,14 +5,13 @@
 import pytest
 
 from papers2zim.core.download_engine import DownloadEngine
+from papers2zim.core.opds import ACQUISITION_REL, COVER_RELS
 from papers2zim.core.ports import CatalogFilters
 from papers2zim.core.utils import CriticalError
 from papers2zim.sources.bibliothequenumeriqueromande.catalog import (
-    ACQUISITION_REL,
     BASE_URL,
     BNR_LANGUAGE,
     BNR_SOURCE,
-    COVER_RELS,
     EPUB_MEDIA_TYPE,
     BibliothequeNumeriqueRomandeCatalog,
 )
@@ -142,17 +141,24 @@ def test_discover_without_filter_reads_every_title_page():
     first = refs[0]
     assert first.source == BNR_SOURCE
     assert first.extra["title"] == "CONTES"
-    assert first.extra["author"] == "Charles Perrault"
+    assert first.extra["authors"] == ["Charles Perrault"]
     assert first.extra["categories"] == ["Conte"]
     assert first.extra["description"] == CONTES_DESCRIPTION
     assert first.extra["languages"] == [BNR_LANGUAGE]
-    assert first.extra["source_url"] == (
-        "https://ebooks-bnr.com/opds/fetch.php?data=907&type=epub&id=449"
-    )
+    assert [
+        (book_format.name, book_format.media_type, book_format.url)
+        for book_format in first.extra["formats"]
+    ] == [
+        (
+            "epub",
+            EPUB_MEDIA_TYPE,
+            "https://ebooks-bnr.com/opds/fetch.php?data=907&type=epub&id=449",
+        )
+    ]
     assert first.extra["cover_url"] == (
         "https://ebooks-bnr.com/opds/fetch.php?height=164&id=449"
     )
-    assert refs[1].extra["author"] == "Ben Jonson"
+    assert refs[1].extra["authors"] == ["Ben Jonson"]
     assert refs[1].extra["categories"] == ["Théâtre"]
     assert refs[1].extra["description"] == VOLPONE_DESCRIPTION
     assert engine.fetched[0] == BASE_URL
@@ -303,7 +309,7 @@ def test_discover_matches_authors_regardless_of_name_order_and_accents():
     ):
         refs = list(catalog.discover(CatalogFilters(options={"authors": [requested]})))
         assert [ref.id for ref in refs] == [CONTES_UUID]
-        assert refs[0].extra["author"] == "Joë Bousquet"
+        assert refs[0].extra["authors"] == ["Joë Bousquet"]
 
 
 def test_discover_selects_books_by_uuid():

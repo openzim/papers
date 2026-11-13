@@ -9,6 +9,7 @@ source that needs it.
 import io
 import zipfile
 from pathlib import PurePosixPath
+from typing import Protocol
 from urllib.parse import unquote, urldefrag
 
 import pymupdf
@@ -108,3 +109,20 @@ def _epub_cover(content: bytes, *, declared_only: bool = False) -> bytes | None:
         href = unquote(urldefrag(cover_item.attrib["href"])[0])
         cover_path = PurePosixPath(opf_path).parent / href
         return archive.read(str(cover_path))
+
+
+class CoverFetchEngine(Protocol):
+    """Minimal download interface required to fetch a page cover."""
+
+    def fetch_bytes(self, url: str) -> bytes: ...
+
+
+def fetch_page_cover(engine: CoverFetchEngine, cover_url: str | None) -> bytes | None:
+    """Download and WebP-encode a cover image advertised by a source page."""
+    if not cover_url:
+        return None
+    try:
+        return ImageProcessor.optimize_image_content(engine.fetch_bytes(cover_url))
+    except Exception as exc:
+        logger.debug("Could not fetch page cover %s: %s", cover_url, exc)
+        return None

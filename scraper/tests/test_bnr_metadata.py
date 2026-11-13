@@ -2,6 +2,7 @@
 
 # ruff: noqa: RUF001
 
+from papers2zim.core.models import Format
 from papers2zim.core.ports import WorkRef
 from papers2zim.core.utils import slug_id
 from papers2zim.sources.bibliothequenumeriqueromande.catalog import (
@@ -25,9 +26,10 @@ DESCRIPTION = (
 def _ref(**overrides) -> WorkRef:
     extra = {
         "title": "CONTES",
-        "source_url": EPUB_URL,
+        "formats": [Format(name="epub", media_type=EPUB_MEDIA_TYPE, url=EPUB_URL)],
         "categories": ["Conte"],
-        "author": "Charles Perrault",
+        "authors": ["Charles Perrault"],
+        "languages": [BNR_LANGUAGE],
         "cover_url": COVER_URL,
         "description": DESCRIPTION,
     }
@@ -71,14 +73,23 @@ def test_fetch_keeps_the_collapsed_categories_from_the_catalog():
     assert [collection.name for collection in work.collections] == ["Roman", "Société"]
 
 
-def test_fetch_tolerates_missing_cover_categories_and_download_link():
+def test_fetch_tolerates_missing_cover_categories_author_and_download_link():
     (work,) = BibliothequeNumeriqueRomandeMetadata().fetch(
-        [_ref(cover_url=None, categories=[], source_url=None)]
+        [
+            _ref(
+                cover_url=None,
+                categories=[],
+                authors=[],
+                languages=[],
+                formats=[],
+            )
+        ]
     )
 
     assert work.cover is None
     assert work.collections == []
+    assert work.creators == []
     assert work.formats == []
+    assert work.languages == [BNR_LANGUAGE]
     assert work.source_url is None
-    assert work.creators
     assert work.description == DESCRIPTION
