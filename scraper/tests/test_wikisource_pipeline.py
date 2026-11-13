@@ -26,7 +26,13 @@ def _work() -> Work:
     )
 
 
-def _pipeline(work: Work, engine: MagicMock, assembler: MagicMock):
+def _pipeline(
+    work: Work,
+    engine: MagicMock,
+    assembler: MagicMock,
+    *,
+    formats: list[str] | None = None,
+):
     metadata = MagicMock()
     metadata.fetch.return_value = [work]
     return WikisourcePipeline(
@@ -35,7 +41,7 @@ def _pipeline(work: Work, engine: MagicMock, assembler: MagicMock):
         assembler=assembler,
         progress=ScraperProgress(None),
         concurrency=1,
-        formats=["epub", "pdf", "html"],
+        formats=formats or ["epub", "pdf", "html"],
         zim_name="test",
         source_slug="wikisource",
         display_name="Wikisource",
@@ -48,6 +54,31 @@ def _valid_epub() -> bytes:
     output = BytesIO()
     with ZipFile(output, "w", ZIP_STORED) as archive:
         archive.writestr("mimetype", "application/epub+zip")
+    return output.getvalue()
+
+
+def _work_with_html() -> Work:
+    work = _work()
+    work.formats.append(
+        Format(
+            name="html",
+            media_type="text/html",
+            url="https://ws-export.wmcloud.org/?lang=en&format=htmlz&page=First_Book",
+        )
+    )
+    return work
+
+
+def _valid_html_archive() -> bytes:
+    output = BytesIO()
+    with ZipFile(output, "w", ZIP_STORED) as archive:
+        archive.writestr(
+            "index.html",
+            '<html><head><link href="style.css"/></head><body>'
+            '<img src="images/pic.png"/></body></html>',
+        )
+        archive.writestr("style.css", "body {}")
+        archive.writestr("images/pic.png", b"\x89PNG\r\n\x1a\npng bytes")
     return output.getvalue()
 
 
@@ -135,3 +166,69 @@ def test_process_ref_attaches_a_cover_when_extractable():
         mimetype="image/webp",
         is_front=False,
     )
+
+
+def test_process_ref_adds_the_html_edition_pages():
+    work = _work_with_html()
+    engine = MagicMock()
+    engine.fetch_bytes.side_effect = lambda url: (
+        _valid_epub() if "format=epub" in url else _valid_html_archive()
+    )
+    assembler = MagicMock()
+    pipeline = _pipeline(work, engine, assembler)
+
+    with (
+        patch(
+            "papers2zim.sources.wikisource.pipeline.extract_cover", return_value=None
+        ),
+        patch.object(pipeline, "add_book_search_item"),
+    ):
+        pipeline.process_ref(WorkRef(id=work.id, source="wikisource"))
+
+    assert pipeline.store.get("wikisource", work.id) is work
+    assert work.extra["unsupported_formats"] == ["pdf"]
+    items = {
+        call.kwargs["path"]: call.kwargs["mimetype"]
+        for call in assembler.add_item_for.call_args_list
+    }
+    assert items == {
+        f"First Book.{work.id}.epub": "application/epub+zip",
+        f"First Book.{work.id}": "text/html",
+        f"html/{work.id}/style.css": "text/css",
+        f"html/{work.id}/images/pic.png": "image/png",
+    }
+
+
+def test_process_ref_marks_html_unsupported_when_the_archive_is_invalid():
+    work = _work_with_html()
+    engine = MagicMock()
+    engine.fetch_bytes.side_effect = lambda url: (
+        _valid_epub() if "format=epub" in url else b"<html>not a zip</html>"
+    )
+    assembler = MagicMock()
+    pipeline = _pipeline(work, engine, assembler)
+
+    with patch(
+        "papers2zim.sources.wikisource.pipeline.extract_cover", return_value=None
+    ):
+        pipeline.process_ref(WorkRef(id=work.id, source="wikisource"))
+
+    assert pipeline.store.get("wikisource", work.id) is work
+    assert work.extra["unsupported_formats"] == ["pdf", "html"]
+
+
+def test_process_ref_stores_html_only_when_no_binary_format_is_requested():
+    work = _work_with_html()
+    engine = MagicMock()
+    engine.fetch_bytes.return_value = _valid_html_archive()
+    assembler = MagicMock()
+    pipeline = _pipeline(work, engine, assembler, formats=["html"])
+
+    with patch.object(pipeline, "add_book_search_item") as add_search_item:
+        pipeline.process_ref(WorkRef(id=work.id, source="wikisource"))
+
+    assert pipeline.store.get("wikisource", work.id) is work
+    assert work.extra["unsupported_formats"] == []
+    add_search_item.assert_called_once()
+    contents = add_search_item.call_args.args[1]
+    assert set(contents) == {"html"}

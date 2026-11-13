@@ -19,11 +19,17 @@ Every entry is self-contained: it carries the title, author, language, license,
 year, source page and one ready-made ws-export download link per format. So a
 `WorkRef` here already holds everything the metadata port needs - no per-book
 fetch, unlike Open Textbook Library.
+
+The feed also advertises an ``xhtml`` download link, but ws-export has withdrawn
+that format: requesting it is a 400. The HTML export it still serves is
+``htmlz`` (a ZIP holding ``index.html`` and its assets), so each entry gets an
+``html`` format built from its epub link by asking ws-export for ``htmlz``
+instead.
 """
 
 import hashlib
 from collections.abc import Iterable
-from urllib.parse import unquote, urljoin
+from urllib.parse import unquote, urljoin, urlsplit, urlunsplit
 
 import requests
 from bs4 import BeautifulSoup, Tag
@@ -42,6 +48,31 @@ FORMAT_BY_MEDIA_TYPE = {
 }
 
 ACQUISITION_REL = "http://opds-spec.org/acquisition"
+HTML_MEDIA_TYPE = "text/html"
+HTMLZ_FORMAT = "htmlz"
+
+
+def htmlz_url(epub_url: str) -> str:
+    """Turn an epub acquisition URL into the equivalent ``htmlz`` URL.
+
+    ws-export selects the output format from the ``format`` query parameter, so
+    the same book is exported as HTML by swapping that one value. The rest of
+    the URL is kept byte-for-byte, preserving ws-export page encoding and any
+    mirror prefix.
+    """
+    parts = urlsplit(epub_url)
+    params: list[str] = []
+    replaced = False
+    for param in parts.query.split("&"):
+        key, separator, _value = param.partition("=")
+        if separator and key == "format":
+            params.append(f"{key}={HTMLZ_FORMAT}")
+            replaced = True
+        else:
+            params.append(param)
+    if not replaced:
+        params.append(f"format={HTMLZ_FORMAT}")
+    return urlunsplit(parts._replace(query="&".join(params)))
 
 
 def work_id(lang: str, page: str) -> str:
@@ -230,6 +261,11 @@ class WikisourceCatalog(CatalogPort):
             formats.append((name, media_type, str(href)))
         if not formats:
             return None
+        epub_url = next((url for name, _mt, url in formats if name == "epub"), None)
+        if epub_url is not None:
+            # The feed's xhtml link is dead, but ws-export still exports HTML
+            # as htmlz: derive it from the epub link so `--formats html` works.
+            formats.append(("html", HTML_MEDIA_TYPE, htmlz_url(epub_url)))
 
         author = entry.find("author")
         return {

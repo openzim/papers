@@ -114,9 +114,10 @@ def test_discover_parses_feed_entries_into_work_refs():
     formats = {name: url for name, _mt, url in first.extra["formats"]}
     assert "epub" in formats
     assert formats["epub"].endswith("format=epub&page=First_Book")
+    assert formats["html"].endswith("format=htmlz&page=First_Book")
     assert "xhtml" not in formats
-    # second book advertises epub only
-    assert [name for name, _mt, _url in refs[1].extra["formats"]] == ["epub"]
+    # the second book only advertises epub, so its html link is derived from it
+    assert [name for name, _mt, _url in refs[1].extra["formats"]] == ["epub", "html"]
 
 
 def test_discover_mints_path_safe_unique_ids():
@@ -154,8 +155,8 @@ def test_discover_requires_at_least_one_language():
 def test_discover_fails_when_a_requested_format_is_not_advertised():
     catalog, _ = _catalog(_feed(_entry("First_Book", "First Book")))
 
-    with pytest.raises(CriticalError, match="html"):
-        list(catalog.discover(CatalogFilters(languages=["en"], formats=["html"])))
+    with pytest.raises(CriticalError, match="pdf"):
+        list(catalog.discover(CatalogFilters(languages=["en"], formats=["pdf"])))
 
 
 def test_discover_fails_when_any_requested_format_is_not_advertised():
@@ -176,11 +177,25 @@ def test_discover_does_not_fail_when_all_requested_formats_are_advertised():
     assert refs[0].id.startswith("en_first-book")
 
 
+def test_discover_offers_html_from_the_htmlz_export():
+    catalog, _ = _catalog(_feed(_entry("%27Tis_Sixty_Years_Since", "First Book")))
+
+    (ref,) = list(catalog.discover(CatalogFilters(languages=["en"], formats=["html"])))
+
+    formats = {
+        name: (media_type, url) for name, media_type, url in ref.extra["formats"]
+    }
+    assert formats["html"] == (
+        "text/html",
+        f"{BASE}/?lang=en&format=htmlz&page=%27Tis_Sixty_Years_Since",
+    )
+
+
 def test_discover_error_names_the_available_formats():
     catalog, _ = _catalog(_feed(_entry("First_Book", "First Book")))
 
-    with pytest.raises(CriticalError, match="ws-export offers: epub"):
-        list(catalog.discover(CatalogFilters(languages=["en"], formats=["html"])))
+    with pytest.raises(CriticalError, match="ws-export offers: epub, html"):
+        list(catalog.discover(CatalogFilters(languages=["en"], formats=["pdf"])))
 
 
 def test_discover_skips_entries_missing_the_requested_format():
@@ -209,7 +224,7 @@ def test_discover_ignores_unknown_acquisition_media_types():
 
     (ref,) = list(catalog.discover(CatalogFilters(languages=["en"])))
 
-    assert [name for name, _mt, _url in ref.extra["formats"]] == ["epub"]
+    assert [name for name, _mt, _url in ref.extra["formats"]] == ["epub", "html"]
 
 
 def test_discover_ignores_mobi_links():
@@ -224,14 +239,14 @@ def test_discover_ignores_mobi_links():
 
     # mobi can never be requested, so a mobi-only entry has nothing to download
     assert len(refs) == 1
-    assert [name for name, _mt, _url in refs[0].extra["formats"]] == ["epub"]
+    assert [name for name, _mt, _url in refs[0].extra["formats"]] == ["epub", "html"]
 
 
 def test_discover_error_does_not_offer_mobi():
     catalog, _ = _catalog(_feed(_entry("First_Book", "First Book", mobi=True)))
 
-    with pytest.raises(CriticalError, match=r"ws-export offers: epub\.$"):
-        list(catalog.discover(CatalogFilters(languages=["en"], formats=["html"])))
+    with pytest.raises(CriticalError, match=r"ws-export offers: epub, html\.$"):
+        list(catalog.discover(CatalogFilters(languages=["en"], formats=["pdf"])))
 
 
 def test_discover_selects_by_catalog_position():

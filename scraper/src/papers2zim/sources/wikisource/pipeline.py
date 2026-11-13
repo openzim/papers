@@ -12,11 +12,15 @@ from papers2zim.constants import logger
 from papers2zim.core.content_validation import is_html_document, is_valid_book_file
 from papers2zim.core.covers import extract_cover
 from papers2zim.core.download_engine import DownloadEngine, is_fatal_http_error
+from papers2zim.core.exporters.html_reader_controls import (
+    export_html_reader_control_assets,
+)
 from papers2zim.core.models import Cover, Work
 from papers2zim.core.pipeline import Pipeline
 from papers2zim.core.ports import WorkRef
 from papers2zim.core.utils import archive_name_for
 from papers2zim.sources.wikisource.description import enrich_work_descriptions
+from papers2zim.sources.wikisource.html_export import HtmlEdition, extract_html_edition
 from papers2zim.sources.wikisource.resolver import WikisourceFormatResolver
 
 
@@ -27,6 +31,11 @@ class WikisourcePipeline(Pipeline):
         super().__init__(**kwargs)
         self.engine = engine
         self.resolver = WikisourceFormatResolver()
+
+    def run(self, refs: list[WorkRef]) -> None:
+        if "html" in self.formats:
+            export_html_reader_control_assets(self.assembler)
+        super().run(refs)
 
     def enrich_descriptions(self) -> None:
         """Fill in missing book descriptions from Wikidata."""
@@ -42,6 +51,8 @@ class WikisourcePipeline(Pipeline):
         contents: dict[str, bytes] = {}
         cover_image: bytes | None = None
         for format_name in self.formats:
+            if format_name == "html":
+                continue
             content = self._download_format(work, format_name, unsupported)
             if content is None:
                 continue
@@ -50,6 +61,18 @@ class WikisourcePipeline(Pipeline):
                 # Only extract declared covers so books without a cover fall back
                 # to the placeholder rather than picking up the site logo.
                 cover_image = extract_cover(content, format_name, declared_only=True)
+
+        if "html" in self.formats:
+            edition = self._download_html(work, unsupported, list(contents))
+            if edition is not None:
+                for path, (content, mimetype) in edition.pages.items():
+                    self.assembler.add_item_for(
+                        path=path,
+                        content=content,
+                        mimetype=mimetype,
+                        is_front=False,
+                    )
+                contents["html"] = edition.pages[edition.index_path][0]
 
         if not contents:
             logger.warning(
@@ -68,6 +91,31 @@ class WikisourcePipeline(Pipeline):
             work.extra["has_cover"] = True
         self.store.add(work)
         self.add_book_search_item(work, contents)
+
+    def _download_html(
+        self, work: Work, unsupported: list[str], formats: list[str]
+    ) -> HtmlEdition | None:
+        request = self.resolver.resolve(work, "html")
+        if request is None:
+            unsupported.append("html")
+            return None
+        try:
+            content = self.engine.fetch_bytes(request.url)
+        except requests.RequestException as exc:
+            log = logger.debug if is_fatal_http_error(exc) else logger.warning
+            log("Could not download HTML for %s: %s", work.id, exc)
+            unsupported.append("html")
+            return None
+
+        edition = extract_html_edition(content, work, formats)
+        if edition is None:
+            logger.warning(
+                "Wikisource book %s returned an invalid HTML archive: %s",
+                work.id,
+                request.url,
+            )
+            unsupported.append("html")
+        return edition
 
     def _download_format(
         self, work: Work, format_name: str, unsupported: list[str]
