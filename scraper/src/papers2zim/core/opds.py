@@ -125,7 +125,7 @@ def acquisition_urls(
     formats: list[Format] = []
     for link in entry.findall("atom:link", NAMESPACES):
         rel = link.get("rel") or ""
-        if rel != ACQUISITION_REL and not rel.startswith(f"{ACQUISITION_REL}/"):
+        if rel != ACQUISITION_REL:
             continue
         media_type = (link.get("type") or "").split(";", 1)[0].strip().lower()
         href = (link.get("href") or "").strip()
