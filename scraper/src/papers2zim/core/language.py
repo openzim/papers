@@ -2,7 +2,7 @@ from collections.abc import Sequence
 from typing import Protocol
 
 import babel
-from zimscraperlib.i18n import is_valid_iso_639_3
+from zimscraperlib.i18n import get_language_or_none, is_valid_iso_639_3
 
 from papers2zim.constants import logger
 
@@ -12,6 +12,15 @@ def language_name(code: str) -> str:
         return babel.Locale(code).get_language_name(code).title()  # type: ignore
     except Exception:
         return other_language_names.get(code, code)
+
+
+def normalize_language(code: str | None) -> str | None:
+    """Normalize an ISO 639-2/3 code to ISO 639-1 when a counterpart exists.
+    """
+    if not code or not (key := code.strip().casefold()):
+        return None
+    lang = get_language_or_none(key)
+    return lang.iso_639_1 if lang and lang.iso_639_1 else key
 
 
 # Autonyms unknown by babel
