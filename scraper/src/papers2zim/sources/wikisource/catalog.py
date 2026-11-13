@@ -11,7 +11,9 @@ hardcoded nor recognized language-independently. Discovery therefore relies on
 ws-export advertising exactly one feed per language, which is what it does
 today, and refuses to guess between several: a second feed would be ingested
 alongside the first, adding unrelated works with no way to tell they are
-unrelated. Pass ``--wikisource-feed`` to name the feed to use in that case.
+unrelated. Pass ``--wikisource-feed`` to name the feed to use in that case; since
+the name belongs to one language, it only disambiguates - where a language
+advertises a single feed, that feed is read whatever was passed.
 
 Every entry is self-contained: it carries the title, author, language, license,
 year, source page and one ready-made ws-export download link per format. So a
@@ -174,24 +176,10 @@ class WikisourceCatalog(CatalogPort):
             if isinstance(anchor, Tag)
             and (href := str(anchor["href"])).lower().endswith(".xml")
         ]
-        if feed_name:
-            wanted = feed_key(feed_name)
-            selected = [url for url in discovered if feed_key(url) == wanted]
-            if not selected:
-                critical_error(
-                    f"--wikisource-feed={feed_name} is not advertised under "
-                    f"{index_url}"
-                    + (
-                        f" (offered: {', '.join(_file_names(discovered))})"
-                        if discovered
-                        else " (no feed is advertised there at all)"
-                    )
-                )
-            return selected
         if not discovered:
             logger.warning("No OPDS feed found under %s", index_url)
             return []
-        if len(discovered) > 1:
+        if len(discovered) > 1 and not feed_name:
             critical_error(
                 f"{index_url} advertises {len(discovered)} OPDS feeds "
                 f"({', '.join(_file_names(discovered))}). Their names are localized, "
@@ -199,7 +187,26 @@ class WikisourceCatalog(CatalogPort):
                 "them, and reading them all would ingest entries we cannot "
                 "attribute. Pass the one to use with --wikisource-feed."
             )
-        return discovered
+        if not feed_name:
+            return discovered
+        wanted = feed_key(feed_name)
+        matching = [url for url in discovered if feed_key(url) == wanted]
+        if matching:
+            return matching
+        if len(discovered) == 1:
+            logger.warning(
+                "--wikisource-feed=%s is not advertised under %s; reading its only "
+                "feed (%s). Feed names are per language, so a name meant for one "
+                "language does not select another's.",
+                feed_name,
+                index_url,
+                _file_names(discovered)[0],
+            )
+            return discovered
+        critical_error(
+            f"--wikisource-feed={feed_name} is not advertised under {index_url} "
+            f"(offered: {', '.join(_file_names(discovered))})"
+        )
 
     @staticmethod
     def _parse_entry(entry: Tag, lang: str) -> dict | None:

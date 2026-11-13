@@ -310,16 +310,24 @@ ONE_BOOK = _feed(_entry("First_Book", "First Book"))
 ANOTHER_BOOK = _feed(_entry("Second_Book", "Second Book"))
 
 
-def _feeds_catalog(feeds: dict[str, str]) -> tuple[WikisourceCatalog, StubEngine]:
-    """A language directory advertising `feeds`, mapping file name to body."""
-    responses = {f"/opds/en/{name}": body for name, body in feeds.items()}
-    responses["/opds/en/"] = (
-        "<html><body>"
-        + "".join(f'<a href="{name}">{name}</a>' for name in feeds)
-        + "</body></html>"
-    )
+def _languages_catalog(
+    directories: dict[str, dict[str, str]],
+) -> tuple[WikisourceCatalog, StubEngine]:
+    """ws-export advertising, under each language, the feeds it is given."""
+    responses: dict[str, str] = {}
+    for lang, feeds in directories.items():
+        responses.update({f"/opds/{lang}/{name}": body for name, body in feeds.items()})
+        responses[f"/opds/{lang}/"] = (
+            "<html><body>"
+            + "".join(f'<a href="{name}">{name}</a>' for name in feeds)
+            + "</body></html>"
+        )
     engine = StubEngine(responses)
     return WikisourceCatalog(engine, base_url=BASE), engine
+
+
+def _feeds_catalog(feeds: dict[str, str]) -> tuple[WikisourceCatalog, StubEngine]:
+    return _languages_catalog({"en": feeds})
 
 
 TWO_FEEDS = {"Ready_for_export.xml": ONE_BOOK, "Not_ready.xml": ANOTHER_BOOK}
@@ -387,12 +395,37 @@ def test_feed_pin_that_matches_nothing_names_what_does():
         )
 
 
-def test_feed_pin_on_a_language_without_feeds_fails_loudly():
+def test_feed_pin_on_a_language_without_feeds_skips_it_as_usual():
     engine = StubEngine({"/opds/en/": "<html><body>no feed here</body></html>"})
     catalog = WikisourceCatalog(engine, base_url=BASE)
 
-    with pytest.raises(CriticalError, match="no feed is advertised"):
-        list(catalog.discover(CatalogFilters(languages=["en"], options={"feed": "X"})))
+    with patch.object(catalog_module.logger, "warning") as warning:
+        refs = list(
+            catalog.discover(CatalogFilters(languages=["en"], options={"feed": "X"}))
+        )
+
+    assert refs == []
+    assert "No OPDS feed found" in warning.call_args.args[0]
+
+
+def test_feed_pin_disambiguates_only_the_languages_that_need_it():
+    bn_feed = "%E0%A6%AA%E0%A6%BE%E0%A6%A0.xml"
+    catalog, _ = _languages_catalog(
+        {"en": {"Ready_for_export.xml": ONE_BOOK}, "bn": {bn_feed: ANOTHER_BOOK}}
+    )
+
+    with patch.object(catalog_module.logger, "warning") as warning:
+        refs = list(
+            catalog.discover(
+                CatalogFilters(
+                    languages=["en", "bn"], options={"feed": "Ready_for_export.xml"}
+                )
+            )
+        )
+
+    assert sorted(ref.extra["title"] for ref in refs) == ["First Book", "Second Book"]
+    warning.assert_called_once()
+    assert f"{BASE}/opds/bn/" in warning.call_args.args
 
 
 def test_discover_stops_when_the_feed_is_not_an_opds_feed():

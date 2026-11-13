@@ -3,9 +3,10 @@
 Language selection uses the shared ``--languages`` option (Wikisource is
 organised per language). ``--wikisource-pages`` selects books by page name,
 which, unlike ``--books`` positions, stays stable as the feed changes.
-``--wikisource-feed`` names the ws-export OPDS feed to read; it is only needed
-if a language directory ever advertises more than one, since the feed names are
-localized and the scraper refuses to guess between them.
+``--wikisource-feed`` names the ws-export OPDS feed to read when a language
+directory advertises more than one, since the feed names are localized and the
+scraper refuses to guess between them. Where a language advertises one feed it
+is read regardless: feed names are per language.
 """
 
 from typing import Any
@@ -18,7 +19,8 @@ CLI_OPTIONS = {
         "  --wikisource-pages=<pages>     Wikisource page names, as in the page URL"
     ),
     "--wikisource-feed": (
-        "  --wikisource-feed=<feed>       OPDS feed file to read for each language"
+        "  --wikisource-feed=<feed>       OPDS feed to use when a language "
+        "has several"
     ),
 }
 
