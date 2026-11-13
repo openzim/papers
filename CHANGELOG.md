@@ -19,7 +19,7 @@ as of 2.0.0.
 
 ### Changed
 
-- Wikisource: stop with an error listing the feeds when a language directory advertises more than one OPDS feed, instead of reading them all; add `--wikisource-feed` to choose which feed to read, and reject a response that is not an Atom feed (#13)
+- Wikisource: stop with an error listing the feeds when a language directory advertises more than one OPDS feed, instead of reading them all; add `--wikisource-feed` (Zimfarm recipe flag `wikisource_feed`) to choose which feed to read, and reject a response that is not an Atom feed (#13)
 - Wikisource: use the real logo instead of the placeholder mark (#184)
 - OneMoreLibrary, Open Textbook Library, USAID DEC and Bibliothèque numérique romande: use the real logos instead of the placeholder marks (#187)
 
