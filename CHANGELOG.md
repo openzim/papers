@@ -6,16 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 as of 2.0.0.
 
-## [Unreleased]
+## [1.2.0] - 2026-11-13
 
 ### Added
 
 - Add USAID DEC Archive source (`usaiddec`, alias `USAID`) for AidData's archive of USAID evaluation reports, with PDF downloads and catalog selection by Formatted Document ID (#165)
 - `papers2zim-validate-i18n` now validates every locale's `metadata_defaults.title`/`description` against zimscraperlib's own `TitleMetadata`/`DescriptionMetadata` length rules, so an over-length translation is caught in CI instead of failing a ZIM build (#185)
-
-- Add the `bibliothequenumeriqueromande` source (alias `BNR`) for scraping Bibliothèque numérique romande OPDS catalogue with EPUB downloads and add icons for BNR collections 
-    (#170, #189)
-- Add the `litteraturejeunesselibre` source (alias `LJL`) for scraping Littérature jeunesse libre OPDS catalogue with EPUB and PDF downloads and add icons for LJL collections
+- Add the `bibliothequenumeriqueromande` source (alias `BNR`) for scraping Bibliothèque numérique romande OPDS catalogue with EPUB downloads (#29)
+- Add dedicated icons for BNR collections (#178)
+- Add the `litteraturejeunesselibre` source (alias `LJL`) for scraping Littérature jeunesse libre OPDS catalogue with EPUB and PDF downloads and add icons for LJL collections (#39)
 
 ### Changed
 
@@ -28,6 +27,8 @@ as of 2.0.0.
 - Gutenberg: rewrite every `<link rel="icon">` in a book's HTML head instead of only the first one, so books that repeat the cover tag (e.g. `77225`, which carries two identical ones) no longer ship a reference pointing outside the book's own folder — the case that made zimcheck fail on those ZIMs (#176)
 - UI: hide the empty `#app` div when JavaScript is disabled, so the No-JavaScript fallback message appears at the top of the page instead of below the fold (#182)
 - Gutenberg: shorten the Portuguese and Macedonian default ZIM titles, and the Open Textbook Library Dutch default description, which all exceeded openZIM's recommended metadata length and made the build fail (#185)
+- Open Textbook Library: honor the `--languages` filter instead of ignoring it and always producing a full-catalog ZIM (#180)
+- UI: escape special characters (e.g. `?`) in generated book file URLs instead of leaving them unescaped (#2)
 
 ## [1.1.0] - 2026-11-10
 
