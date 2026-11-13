@@ -6,7 +6,7 @@ import re
 from collections import deque
 from dataclasses import dataclass
 from typing import Protocol
-from urllib.parse import ParseResult, quote, urldefrag, urljoin, urlparse
+from urllib.parse import ParseResult, urldefrag, urljoin, urlparse
 
 import requests
 from bs4 import BeautifulSoup
@@ -14,9 +14,13 @@ from bs4 import BeautifulSoup
 from papers2zim.constants import logger
 from papers2zim.core.content_validation import is_html_document
 from papers2zim.core.download_engine import is_fatal_http_error
+from papers2zim.core.exporters.html_reader_controls import (
+    encode_url_path,
+    inject_reader_controls,
+)
 from papers2zim.core.models import Work
 from papers2zim.core.rewriters.image_rewriter import ImageProcessor
-from papers2zim.core.utils import archive_name_for, article_name_for
+from papers2zim.core.utils import article_name_for
 
 MAX_HTML_PAGES = 300
 MAX_HTML_ASSETS = 500
@@ -233,7 +237,7 @@ def _render_edition(
         page_path = context.path_by_url[page_url]
         soup = BeautifulSoup(content, "html.parser")
         _rewrite_html_references(soup, page_url, page_path, context.path_by_url)
-        _inject_reader_controls(soup, page_path, context.work, formats)
+        inject_reader_controls(soup, page_path, context.work, formats)
         pages[page_path] = str(soup).encode("utf-8")
     for asset_url, output_content in assets.items():
         asset_path = context.path_by_url[asset_url]
@@ -257,7 +261,7 @@ def set_download_controls(
         soup = BeautifulSoup(content, "html.parser")
         if controls := soup.find(id="html-reader-controls"):
             controls.decompose()
-        _inject_reader_controls(soup, page_path, work, available_formats)
+        inject_reader_controls(soup, page_path, work, available_formats)
         edition.pages[page_path] = str(soup).encode("utf-8")
 
 
@@ -361,109 +365,6 @@ def _rewrite_html_references(
         _rewrite_reference(element, attribute, page_url, page_path, path_by_url)
 
 
-def _inject_reader_controls(
-    soup: BeautifulSoup, page_path: str, work: Work, formats: list[str]
-) -> None:
-    """Add shared reader controls and available binary downloads to an OTL page."""
-    html = soup.html or soup.new_tag("html")
-    if soup.html is None:
-        soup.append(html)
-    head = soup.head
-    if head is None:
-        head = soup.new_tag("head")
-        html.insert(0, head)
-    body = soup.body
-    if body is None:
-        body = soup.new_tag("body")
-        html.append(body)
-
-    assets_base = posixpath.relpath(".", posixpath.dirname(page_path)) or "."
-    index_path = posixpath.relpath("index.html", posixpath.dirname(page_path))
-    css_path = f"{assets_base}/css/html-reader-controls.css"
-    js_path = f"{assets_base}/js/html-reader-controls.js"
-    if not head.find("link", href=css_path):
-        stylesheet = soup.new_tag("link", rel="stylesheet", href=css_path)
-        stylesheet["type"] = "text/css"
-        head.append(stylesheet)
-
-    if not body.find(id="html-reader-controls"):
-        controls = soup.new_tag("div", id="html-reader-controls")
-        info = soup.new_tag(
-            "a",
-            attrs={
-                "href": f"{index_path}#/book/{quote(work.id, safe='')}",
-                "class": "html-reader-btn html-reader-btn-info",
-                "aria-label": "View book cover and information",
-                "title": "View book cover and information",
-            },
-        )
-        info.append(
-            soup.new_tag(
-                "img",
-                src=f"{assets_base}/icons/info.svg",
-                alt="Info",
-                width="24",
-                height="24",
-            )
-        )
-        controls.append(info)
-        for format_name in formats:
-            if format_name not in {"epub", "pdf"}:
-                continue
-            archive_path = archive_name_for(work, format_name)
-            download = soup.new_tag(
-                "a",
-                attrs={
-                    "href": _encode_url_path(
-                        posixpath.relpath(archive_path, posixpath.dirname(page_path))
-                    ),
-                    "class": f"html-reader-btn html-reader-btn-{format_name}",
-                    "aria-label": f"Download {format_name.upper()} format",
-                    "title": f"Download {format_name.upper()} format",
-                },
-            )
-            download.append(
-                soup.new_tag(
-                    "img",
-                    src=f"{assets_base}/icons/{format_name}.svg",
-                    alt=format_name.upper(),
-                    width="24",
-                    height="24",
-                )
-            )
-            controls.append(download)
-        scroll = soup.new_tag(
-            "a",
-            attrs={
-                "href": "#",
-                "id": "scroll-to-top",
-                "class": "html-reader-btn html-reader-btn-up hidden",
-                "aria-label": "Scroll to top",
-                "title": "Scroll to top",
-            },
-        )
-        scroll.append(
-            soup.new_tag(
-                "img",
-                src=f"{assets_base}/icons/scroll-up.svg",
-                alt="Scroll to top",
-                width="24",
-                height="24",
-            )
-        )
-        controls.append(scroll)
-        body.insert(0, controls)
-    if not body.find("script", src=js_path):
-        script = soup.new_tag("script", src=js_path)
-        script["type"] = "text/javascript"
-        body.append(script)
-
-
-def _encode_url_path(path: str) -> str:
-    """Percent-encode each segment of a relative URL path."""
-    return "/".join(quote(segment, safe="") for segment in path.split("/"))
-
-
 def _rewrite_css_references(
     content: bytes, css_url: str, css_path: str, path_by_url: dict[str, str]
 ) -> bytes:
@@ -474,7 +375,7 @@ def _rewrite_css_references(
         target_path = path_by_url.get(_canonical_url(target_url))
         if target_path is None:
             return match.group(0)
-        relative = _encode_url_path(
+        relative = encode_url_path(
             posixpath.relpath(target_path, posixpath.dirname(css_path))
         )
         if fragment:
@@ -491,7 +392,7 @@ def _rewrite_reference(
     target_path = path_by_url.get(_canonical_url(target_url))
     if target_path is None:
         return
-    relative = _encode_url_path(
+    relative = encode_url_path(
         posixpath.relpath(target_path, posixpath.dirname(page_path))
     )
     element[attribute] = f"{relative}#{fragment}" if fragment else relative

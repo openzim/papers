@@ -199,6 +199,8 @@ Select Wikisource with `--source=wikisource` (or `--source=WS`).
 
 Wikisource is organised per language, so `--languages` is required: the scraper reads the ["ready for export" OPDS feeds](https://ws-export.wmcloud.org/opds/) published by [ws-export](https://ws-export.wmcloud.org) for each requested language and downloads each book as an EPUB. The supported language codes are the ones listed on the [ws-export OPDS index](https://ws-export.wmcloud.org/opds/); pass them to `--languages`.
 
+Books are also available as an HTML edition for the integrated reader (`--formats html`), extracted from ws-export's `htmlz` export. ws-export no longer serves the `xhtml` format its OPDS feed still advertises, so the HTML links are derived from each book's `htmlz` export instead. Like any other format, HTML is skipped for a book when ws-export cannot produce it.
+
 ```bash
 docker run -v $(pwd)/output:/output ghcr.io/openzim/papers \
   papers2zim --source=wikisource -l en,fr

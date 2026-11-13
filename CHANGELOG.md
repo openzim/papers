@@ -8,6 +8,10 @@ as of 2.0.0.
 
 ## [Unreleased]
 
+### Added
+
+- Wikisource: add an HTML edition for the integrated reader, extracted from ws-export's `htmlz` export; the `xhtml` format the OPDS feeds still advertise is withdrawn upstream, so `--formats html` is served from `htmlz` instead (#11)
+
 ### Fixed
 
 - Zimfarm recipe schema: relax the BNR/LJL filter fields (`bnr_series`/`bnr_authors`/`bnr_categories`/`bnr_titles`, `ljl_series`/`ljl_authors`/`ljl_categories`/`ljl_titles`) from "exactly one must be set" to "at most one", which was wrongly rejecting every recipe that doesn't use the BNR/LJL sources, Gutenberg included ([openzim/zimfarm#2106](https://github.com/openzim/zimfarm/issues/2106))
