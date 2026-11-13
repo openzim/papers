@@ -24,9 +24,9 @@ def _ref() -> WorkRef:
                     "https://ws-export.wmcloud.org/?lang=en&format=epub&page=First_Book",
                 ),
                 (
-                    "xhtml",
-                    "application/xhtml+xml",
-                    "https://ws-export.wmcloud.org/?lang=en&format=xhtml&page=First_Book",
+                    "html",
+                    "text/html",
+                    "https://ws-export.wmcloud.org/?lang=en&format=htmlz&page=First_Book",
                 ),
             ],
         },
@@ -48,7 +48,7 @@ def test_fetch_maps_the_feed_entry_into_a_work():
     assert work.source_url == "https://en.wikisource.org/wiki/First_Book"
     assert work.published == "1913"
     assert [creator.display_name for creator in work.creators] == ["A. Writer"]
-    assert {fmt.name for fmt in work.formats} == {"epub", "xhtml"}
+    assert {fmt.name for fmt in work.formats} == {"epub", "html"}
     epub = next(fmt for fmt in work.formats if fmt.name == "epub")
     assert epub.media_type == "application/epub+zip"
     assert epub.url is not None
