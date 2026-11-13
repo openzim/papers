@@ -171,6 +171,26 @@ def test_wikisource_pages_are_rejected_for_gutenberg():
         )
 
 
+def test_wikisource_feed_is_stripped_and_stored():
+    config = build_scrape_config(
+        {"--source": "wikisource", "--wikisource-feed": " Ready_for_export.xml "}
+    )
+
+    assert config.source_options["feed"] == "Ready_for_export.xml"
+    assert config.is_selection is False
+
+
+def test_wikisource_feed_is_absent_when_not_given():
+    config = build_scrape_config({"--source": "wikisource"})
+
+    assert config.source_options["feed"] is None
+
+
+def test_wikisource_feed_is_rejected_for_gutenberg():
+    with pytest.raises(CriticalError, match="--wikisource-feed belongs"):
+        build_scrape_config({"--source": "gutenberg", "--wikisource-feed": "x.xml"})
+
+
 def test_otl_only_arguments_are_rejected_for_gutenberg():
     with pytest.raises(CriticalError, match="--list-subjects belongs"):
         build_scrape_config({"--source": "gutenberg", "--list-subjects": True})

@@ -3,6 +3,8 @@
 import json
 from pathlib import Path
 
+from papers2zim.sources.registry import SOURCES
+
 DEFINITION_PATH = Path(__file__).parents[2] / "offliner-definition.json"
 
 
@@ -63,7 +65,7 @@ def test_recipe_defines_supported_sources_and_source_specific_filters():
             {
                 "title": "Wikisource",
                 "value": "wikisource",
-                "dependents": ["wikisource_pages"],
+                "dependents": ["wikisource_pages", "wikisource_feed"],
             },
             {
                 "title": "USAID DEC Archive",
@@ -79,6 +81,7 @@ def test_recipe_defines_supported_sources_and_source_specific_filters():
         "subjects",
         "otl_ids",
         "wikisource_pages",
+        "wikisource_feed",
         "usaid_ids",
         "with_author_bio",
         "with_author_portrait",
@@ -250,3 +253,22 @@ def test_recipe_exposes_index_format_as_an_optional_enum():
         "html",
         "pdf",
     ]
+
+
+def test_recipe_exposes_every_source_option_a_scrape_can_use():
+    definition = json.loads(DEFINITION_PATH.read_text(encoding="utf-8"))
+    flags = definition["flags"]
+    declared = {
+        name for choice in flags["source"]["choices"] for name in choice["dependents"]
+    }
+    one_shot_actions = ("list_", "refresh_")
+    options = {
+        option.lstrip("-").replace("-", "_")
+        for profile in SOURCES.values()
+        for option in profile.cli_options
+    }
+
+    assert declared <= set(flags)
+    assert {
+        name for name in options if not name.startswith(one_shot_actions)
+    } <= declared

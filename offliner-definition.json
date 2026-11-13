@@ -60,7 +60,8 @@
           "title": "Wikisource",
           "value": "wikisource",
           "dependents": [
-            "wikisource_pages"
+            "wikisource_pages",
+            "wikisource_feed"
           ]
         },
         {
@@ -230,6 +231,12 @@
       "required": false,
       "title": "Page names (Wikisource only)",
       "description": "Comma-separated Wikisource page names, as in the page URL (e.g. The_Time_Machine). Write a comma inside a name as %2C. Cannot be combined with Books."
+    },
+    "wikisource_feed": {
+      "type": "string",
+      "required": false,
+      "title": "OPDS feed (Wikisource only)",
+      "description": "Wikisource OPDS feed to read, by file name or URL, for languages advertising more than one. A language with a single feed always uses it."
     },
     "usaid_ids": {
       "type": "string",
