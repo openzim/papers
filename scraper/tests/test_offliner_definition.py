@@ -155,18 +155,23 @@ def test_ljl_filter_flags_are_ljl_only_dependents():
 
     assert definition["modelValidators"] == [
         {
-            "name": "check_exclusive_fields",
+            "name": "check_mutually_exclusive_fields",
             "fields": [
                 "bnr_series",
                 "bnr_authors",
                 "bnr_categories",
                 "bnr_titles",
+            ],
+        },
+        {
+            "name": "check_mutually_exclusive_fields",
+            "fields": [
                 "ljl_series",
                 "ljl_authors",
                 "ljl_categories",
                 "ljl_titles",
             ],
-        }
+        },
     ]
 
 

@@ -8,6 +8,10 @@ as of 2.0.0.
 
 ## [Unreleased]
 
+### Fixed
+
+- Zimfarm recipe schema: relax the BNR/LJL filter fields (`bnr_series`/`bnr_authors`/`bnr_categories`/`bnr_titles`, `ljl_series`/`ljl_authors`/`ljl_categories`/`ljl_titles`) from "exactly one must be set" to "at most one", which was wrongly rejecting every recipe that doesn't use the BNR/LJL sources, Gutenberg included ([openzim/zimfarm#2106](https://github.com/openzim/zimfarm/issues/2106))
+
 ## [1.2.0] - 2026-11-13
 
 ### Added

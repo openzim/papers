@@ -353,12 +353,17 @@
   },
   "modelValidators": [
     {
-      "name": "check_exclusive_fields",
+      "name": "check_mutually_exclusive_fields",
       "fields": [
         "bnr_series",
         "bnr_authors",
         "bnr_categories",
-        "bnr_titles",
+        "bnr_titles"
+      ]
+    },
+    {
+      "name": "check_mutually_exclusive_fields",
+      "fields": [
         "ljl_series",
         "ljl_authors",
         "ljl_categories",
