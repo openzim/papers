@@ -482,5 +482,55 @@
       "packagedBy": "Packaged by",
       "kiwix": "Kiwix"
     }
+  },
+  "usaiddec": {
+    "about": {
+      "attribution": "Report metadata and PDFs provided by AidData's USAID DEC Archive.",
+      "introHeading": "About the USAID DEC Archive",
+      "introParagraph1": "The USAID Development Experience Clearinghouse (DEC) archive preserves evaluation reports from USAID-funded development programmes.",
+      "introParagraph2": "AidData maintains the archive and provides the report metadata and PDF documents used by this library.",
+      "introParagraph3": "The reports cover sectors such as health, education, agriculture, governance, and economic growth across many countries.",
+      "introParagraph4": "This library makes those reports available for offline reading.",
+      "missionAuthor": "AidData",
+      "missionHeading": "Preserving development knowledge",
+      "missionParagraph1": "The archive exists to keep USAID evaluation reports accessible to researchers, practitioners, and the public.",
+      "missionParagraph2": "Evaluation reports document what worked, what did not, and what future programmes can learn.",
+      "missionParagraph3": "Keeping the reports available offline helps preserve this knowledge for readers around the world.",
+      "missionParagraph4": "Open access to these reports supports learning and accountability in international development."
+    },
+    "metadata_defaults": {
+      "title": "USAID DEC Archive",
+      "description": "USAID evaluation reports preserved by AidData"
+    },
+    "nav": {
+      "collections": "Subjects"
+    },
+    "home": {
+      "allCollections": "All subjects",
+      "mostPopular": "Most popular",
+      "popularCollections": "Popular subjects"
+    },
+    "collection": {
+      "booksIn": "Reports in {collection}",
+      "allCollections": "All subjects"
+    },
+    "messages": {
+      "noBooks": "No reports found.",
+      "noBooksInCollection": "No reports available in this subject.",
+      "noCollections": "No subjects found.",
+      "notFoundCollection": "Subject not found. The subject you're looking for doesn't exist or has been removed."
+    },
+    "itemTypes": {
+      "collections": "subject | subjects"
+    },
+    "book": {
+      "collection": "Subject",
+      "sameCollectionBooks": "Reports in the same subject"
+    },
+    "footer": {
+      "createdBy": "Created by",
+      "packagedBy": "Packaged by",
+      "kiwix": "Kiwix"
+    }
   }
 }

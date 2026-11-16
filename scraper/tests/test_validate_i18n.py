@@ -7,6 +7,7 @@ from papers2zim.scripts.validate_i18n import (
     get_leaf_values,
     validate_metadata_defaults_lengths,
     validate_plural_messages,
+    validate_registered_source_defaults,
 )
 
 
@@ -166,3 +167,49 @@ def test_metadata_defaults_ignores_non_string_and_missing_values():
         "wikisource": "not-a-dict",
     }
     assert validate_metadata_defaults_lengths(data) == []
+
+
+def test_complete_registered_source_defaults_have_no_issue():
+    data = {
+        "usaiddec": {
+            "metadata_defaults": {
+                "title": "USAID DEC Archive",
+                "description": "USAID evaluation reports preserved by AidData",
+            }
+        }
+    }
+    assert validate_registered_source_defaults(data, {"usaiddec"}) == []
+
+
+def test_missing_registered_source_namespace_is_reported():
+    issues = validate_registered_source_defaults({}, {"usaiddec"})
+    assert len(issues) == 1
+    assert "usaiddec.metadata_defaults" in issues[0]
+    assert "missing namespace" in issues[0]
+
+
+def test_registered_source_without_metadata_defaults_is_reported():
+    issues = validate_registered_source_defaults({"usaiddec": {}}, {"usaiddec"})
+    assert len(issues) == 1
+    assert "usaiddec.metadata_defaults" in issues[0]
+
+
+def test_registered_source_missing_metadata_field_is_reported():
+    data = {"usaiddec": {"metadata_defaults": {"title": "USAID DEC Archive"}}}
+    issues = validate_registered_source_defaults(data, {"usaiddec"})
+    assert len(issues) == 1
+    assert "usaiddec.metadata_defaults.description" in issues[0]
+
+
+def test_registered_source_blank_metadata_field_is_reported():
+    data = {
+        "usaiddec": {
+            "metadata_defaults": {
+                "title": "   ",
+                "description": "USAID evaluation reports preserved by AidData",
+            }
+        }
+    }
+    issues = validate_registered_source_defaults(data, {"usaiddec"})
+    assert len(issues) == 1
+    assert "usaiddec.metadata_defaults.title" in issues[0]
