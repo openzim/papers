@@ -11,8 +11,8 @@ specific books can be selected by UUID with ``--bnr-ids``.
 import sys
 from typing import Any
 
+from papers2zim.core.opds import parse_uuid
 from papers2zim.core.utils import critical_error
-from papers2zim.sources.bibliothequenumeriqueromande.catalog import parse_uuid
 
 CLI_OPTIONS = {
     "--bnr-series": (

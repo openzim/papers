@@ -75,11 +75,11 @@ def test_process_ref_downloads_the_epub_and_stores_the_work():
 
     with (
         patch(
-            "papers2zim.sources.litteraturejeunesselibre.pipeline.extract_cover",
+            "papers2zim.core.opds_source.extract_cover",
             return_value=b"cover bytes",
         ),
         patch(
-            "papers2zim.sources.litteraturejeunesselibre.pipeline.optimize_epub_bytes",
+            "papers2zim.core.opds_source.optimize_epub_bytes",
             return_value=b"optimized epub",
         ),
     ):
@@ -109,11 +109,11 @@ def test_process_ref_downloads_every_requested_format():
 
     with (
         patch(
-            "papers2zim.sources.litteraturejeunesselibre.pipeline.extract_cover",
+            "papers2zim.core.opds_source.extract_cover",
             return_value=b"cover",
         ),
         patch(
-            "papers2zim.sources.litteraturejeunesselibre.pipeline.optimize_epub_bytes",
+            "papers2zim.core.opds_source.optimize_epub_bytes",
             return_value=b"optimized epub",
         ),
     ):
@@ -141,11 +141,11 @@ def test_process_ref_falls_back_to_the_feed_cover():
 
     with (
         patch(
-            "papers2zim.sources.litteraturejeunesselibre.pipeline.extract_cover",
+            "papers2zim.core.opds_source.extract_cover",
             return_value=None,
         ),
         patch(
-            "papers2zim.sources.litteraturejeunesselibre.pipeline.fetch_page_cover",
+            "papers2zim.core.opds_source.fetch_page_cover",
             return_value=b"page cover webp",
         ) as page_cover,
     ):
@@ -167,9 +167,7 @@ def test_process_ref_drops_the_book_when_nothing_downloads():
     assembler = MagicMock()
     pipeline = _pipeline(work, engine, assembler)
 
-    with patch(
-        "papers2zim.sources.litteraturejeunesselibre.pipeline.fetch_page_cover"
-    ) as cover:
+    with patch("papers2zim.core.opds_source.fetch_page_cover") as cover:
         pipeline.process_ref(WorkRef(id=WORK_ID, source=LJL_SOURCE))
 
     assert pipeline.store.get(LJL_SOURCE, WORK_ID) is None
@@ -186,7 +184,7 @@ def test_process_ref_marks_unavailable_requested_formats():
     pipeline = _pipeline(work, engine, assembler, formats=["epub", "html"])
 
     with patch(
-        "papers2zim.sources.litteraturejeunesselibre.pipeline.extract_cover",
+        "papers2zim.core.opds_source.extract_cover",
         return_value=b"cover",
     ):
         pipeline.process_ref(WorkRef(id=WORK_ID, source=LJL_SOURCE))

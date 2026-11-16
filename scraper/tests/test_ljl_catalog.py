@@ -5,18 +5,17 @@ import html
 import pytest
 
 from papers2zim.core.download_engine import DownloadEngine
+from papers2zim.core.language import normalize_language
+from papers2zim.core.opds import ACQUISITION_REL, COVER_RELS
 from papers2zim.core.ports import CatalogFilters
 from papers2zim.core.utils import CriticalError
 from papers2zim.sources.litteraturejeunesselibre.catalog import (
-    ACQUISITION_REL,
     BASE_URL,
-    COVER_RELS,
     EPUB_MEDIA_TYPE,
     FORMAT_BY_MEDIA_TYPE,
     LJL_SOURCE,
     PDF_MEDIA_TYPE,
     LitteratureJeunesseLibreCatalog,
-    normalize_language,
 )
 from papers2zim.sources.litteraturejeunesselibre.categories import category_resolver
 

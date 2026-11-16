@@ -8,6 +8,10 @@ as of 2.0.0.
 
 ## [Unreleased]
 
+### Changed
+
+- Add a shared OPDS layer (`core/opds.py` and `core/opds_source.py`) for feed parsing, self-contained `OpdsBook` mapping, metadata, format resolution, and per-work processing, then reuse it in the Bibliothèque numérique romande and Littérature jeunesse libre sources (#197)
+
 ### Fixed
 
 - `papers2zim-validate-i18n`: require every registered source to provide a locale namespace with `metadata_defaults.title` and `metadata_defaults.description`, catching a missing source namespace before it turns into a failed ZIM build
