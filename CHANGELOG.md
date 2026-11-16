@@ -8,6 +8,10 @@ as of 2.0.0.
 
 ## [Unreleased]
 
+### Added
+
+- Wikisource: add an HTML edition for the integrated reader, extracted from ws-export's `htmlz` export; the `xhtml` format the OPDS feeds still advertise is withdrawn upstream, so `--formats html` is served from `htmlz` instead (#11)
+
 ### Changed
 
 - Add a shared OPDS layer (`core/opds.py` and `core/opds_source.py`) for feed parsing, self-contained `OpdsBook` mapping, metadata, format resolution, and per-work processing, then reuse it in the Bibliothèque numérique romande and Littérature jeunesse libre sources (#197)
