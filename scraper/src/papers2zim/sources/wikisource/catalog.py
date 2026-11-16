@@ -47,6 +47,8 @@ FORMAT_BY_MEDIA_TYPE = {
     "application/epub+zip": "epub",
 }
 
+SUPPORTED_FORMATS = frozenset({"epub", "html"})
+
 ACQUISITION_REL = "http://opds-spec.org/acquisition"
 HTML_MEDIA_TYPE = "text/html"
 HTMLZ_FORMAT = "htmlz"
@@ -120,25 +122,19 @@ class WikisourceCatalog(CatalogPort):
                 "via --languages (e.g. --languages=en,fr)."
             )
 
-        requested_formats = set(filters.formats) if filters.formats else None
+        requested_formats = set(filters.formats or SUPPORTED_FORMATS)
+        if not requested_formats.intersection(SUPPORTED_FORMATS):
+            logger.info(
+                "Wikisource only offers EPUB and HTML; no requested format can be "
+                "downloaded"
+            )
+            return []
+        requested_formats &= SUPPORTED_FORMATS
+
         feed_name = filters.options.get("feed")
         refs: list[WorkRef] = []
-        advertised_formats: set[str] = set()
         for lang in languages:
-            lang_refs, lang_advertised_formats = self._discover_language(
-                lang, requested_formats, feed_name
-            )
-            refs.extend(lang_refs)
-            advertised_formats |= lang_advertised_formats
-
-        if requested_formats is not None:
-            missing_formats = requested_formats - advertised_formats
-            if missing_formats:
-                critical_error(
-                    f"Requested formats not available from ws-export: "
-                    f"{', '.join(sorted(missing_formats))}. "
-                    f"ws-export offers: {', '.join(sorted(advertised_formats))}."
-                )
+            refs.extend(self._discover_language(lang, requested_formats, feed_name))
 
         pages = filters.options.get("pages")
         if pages:
@@ -156,11 +152,10 @@ class WikisourceCatalog(CatalogPort):
     def _discover_language(
         self,
         lang: str,
-        requested_formats: set[str] | None,
+        requested_formats: set[str],
         feed_name: str | None,
-    ) -> tuple[list[WorkRef], set[str]]:
+    ) -> list[WorkRef]:
         refs: list[WorkRef] = []
-        advertised_formats: set[str] = set()
         for feed_url in self._feed_urls(lang, feed_name):
             feed = BeautifulSoup(self._engine.fetch_bytes(feed_url), "xml")
             if feed.find("feed") is None:
@@ -174,13 +169,8 @@ class WikisourceCatalog(CatalogPort):
                 extra = self._parse_entry(entry, lang)
                 if extra is None:
                     continue
-                entry_advertised_formats = {
-                    name for name, _mt, _url in extra["formats"]
-                }
-                advertised_formats |= entry_advertised_formats
-                if requested_formats is not None and not (
-                    requested_formats & entry_advertised_formats
-                ):
+                entry_formats = {name for name, _mt, _url in extra["formats"]}
+                if not requested_formats & entry_formats:
                     continue
                 refs.append(
                     WorkRef(
@@ -189,7 +179,7 @@ class WikisourceCatalog(CatalogPort):
                         extra=extra,
                     )
                 )
-        return refs, advertised_formats
+        return refs
 
     def _feed_urls(self, lang: str, feed_name: str | None) -> list[str]:
         index_url = f"{self._base_url}/opds/{lang}/"
