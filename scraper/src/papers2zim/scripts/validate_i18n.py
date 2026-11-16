@@ -9,6 +9,8 @@ from typing import Any
 
 from zimscraperlib.zim.metadata import DescriptionMetadata, TitleMetadata
 
+from papers2zim.sources.registry import SOURCES
+
 # ruff: noqa: T201
 
 # Plural messages are objects keyed by CLDR plural category (see
@@ -136,6 +138,33 @@ def validate_metadata_defaults_lengths(data: dict[str, Any]) -> list[str]:
                 DescriptionMetadata(description)
             except ValueError as exc:
                 issues.append(f"   - {namespace}.metadata_defaults.description: {exc}")
+
+    return issues
+
+
+def validate_registered_source_defaults(
+    data: dict[str, Any], source_namespaces: set[str]
+) -> list[str]:
+    """Check that every registered source defines the metadata defaults that
+    ZIM building resolves through dynamic i18n keys.
+    """
+    issues: list[str] = []
+
+    for namespace in sorted(source_namespaces):
+        namespace_data = data.get(namespace)
+        if not isinstance(namespace_data, dict):
+            issues.append(f"   - {namespace}.metadata_defaults: missing namespace")
+            continue
+
+        defaults = namespace_data.get("metadata_defaults")
+        if not isinstance(defaults, dict):
+            issues.append(f"   - {namespace}.metadata_defaults: missing")
+            continue
+
+        for field in ("title", "description"):
+            value = defaults.get(field)
+            if not isinstance(value, str) or not value.strip():
+                issues.append(f"   - {namespace}.metadata_defaults.{field}: missing")
 
     return issues
 
@@ -405,6 +434,15 @@ def main() -> int:
     }
     if "common" not in source_en_data:
         errors.append("❌ en.json must define a common locale namespace")
+
+    required_defaults_issues = validate_registered_source_defaults(
+        en_data, {profile.locale_namespace for profile in SOURCES.values()}
+    )
+    if required_defaults_issues:
+        errors.append(
+            "❌ en.json is missing metadata defaults for registered sources:"
+        )
+        errors.extend(required_defaults_issues)
 
     for namespace, source_en in source_en_data.items():
         source_qqq = qqq_data.get(namespace)

@@ -487,5 +487,55 @@
 			"packagedBy": "Footer text preceding the Kiwix link",
 			"kiwix": "Footer link text pointing to the Kiwix website"
 		}
+	},
+	"usaiddec": {
+		"about": {
+			"attribution": "Attribution text shown at the end of the USAID DEC Archive about page",
+			"introHeading": "Introduction section heading for the USAID DEC Archive",
+			"introParagraph1": "Introduction paragraph 1 for the USAID DEC Archive",
+			"introParagraph2": "Introduction paragraph 2 for the USAID DEC Archive",
+			"introParagraph3": "Introduction paragraph 3 for the USAID DEC Archive",
+			"introParagraph4": "Introduction paragraph 4 for the USAID DEC Archive",
+			"missionAuthor": "Mission author or organisation name",
+			"missionHeading": "Mission section heading for the USAID DEC Archive",
+			"missionParagraph1": "Mission paragraph 1 for the USAID DEC Archive",
+			"missionParagraph2": "Mission paragraph 2 for the USAID DEC Archive",
+			"missionParagraph3": "Mission paragraph 3 for the USAID DEC Archive",
+			"missionParagraph4": "Mission paragraph 4 for the USAID DEC Archive"
+		},
+		"metadata_defaults": {
+			"title": "Default ZIM title used in metadata when no specific title is set",
+			"description": "Default ZIM description used in metadata when no specific description is set"
+		},
+		"nav": {
+			"collections": "Navigation and breadcrumb label for the USAID DEC Archive subjects page"
+		},
+		"home": {
+			"allCollections": "Link label for browsing all USAID DEC Archive subjects",
+			"mostPopular": "Featured-report label for the most popular USAID DEC Archive report",
+			"popularCollections": "Heading for the popular USAID DEC Archive subjects section"
+		},
+		"collection": {
+			"booksIn": "Heading for reports in a USAID DEC Archive subject. Parameters: {collection} - subject name",
+			"allCollections": "All USAID DEC Archive subjects link in the sidebar"
+		},
+		"messages": {
+			"noBooks": "Empty-state message when no USAID DEC Archive reports are available",
+			"noBooksInCollection": "Empty-state message when a USAID DEC Archive subject has no reports",
+			"noCollections": "Empty-state message when no USAID DEC Archive subjects are available",
+			"notFoundCollection": "Not-found message for a USAID DEC Archive subject"
+		},
+		"itemTypes": {
+			"collections": "Singular and plural label for USAID DEC Archive subjects"
+		},
+		"book": {
+			"collection": "Label for the USAID DEC Archive subject field",
+			"sameCollectionBooks": "Heading for the carousel of reports in the same USAID DEC Archive subject"
+		},
+		"footer": {
+			"createdBy": "Footer text preceding the source library link",
+			"packagedBy": "Footer text preceding the Kiwix link",
+			"kiwix": "Footer link text pointing to the Kiwix website"
+		}
 	}
 }
