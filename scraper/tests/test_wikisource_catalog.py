@@ -152,26 +152,14 @@ def test_discover_requires_at_least_one_language():
         list(catalog.discover(CatalogFilters()))
 
 
-def test_discover_fails_when_a_requested_format_is_not_advertised():
+def test_discover_keeps_the_books_when_unsupported_formats_are_requested():
     catalog, _ = _catalog(_feed(_entry("First_Book", "First Book")))
 
-    with pytest.raises(CriticalError, match="pdf"):
-        list(catalog.discover(CatalogFilters(languages=["en"], formats=["pdf"])))
-
-
-def test_discover_fails_when_any_requested_format_is_not_advertised():
-    catalog, _ = _catalog(_feed(_entry("First_Book", "First Book")))
-
-    with pytest.raises(CriticalError, match="pdf"):
-        list(
-            catalog.discover(CatalogFilters(languages=["en"], formats=["epub", "pdf"]))
+    refs = list(
+        catalog.discover(
+            CatalogFilters(languages=["en"], formats=["epub", "pdf", "html"])
         )
-
-
-def test_discover_does_not_fail_when_all_requested_formats_are_advertised():
-    catalog, _ = _catalog(_feed(_entry("First_Book", "First Book")))
-
-    refs = list(catalog.discover(CatalogFilters(languages=["en"], formats=["epub"])))
+    )
 
     assert len(refs) == 1
     assert refs[0].id.startswith("en_first-book")
@@ -191,11 +179,13 @@ def test_discover_offers_html_from_the_htmlz_export():
     )
 
 
-def test_discover_error_names_the_available_formats():
-    catalog, _ = _catalog(_feed(_entry("First_Book", "First Book")))
+def test_discover_returns_nothing_when_no_supported_format_requested():
+    catalog, engine = _catalog(_feed(_entry("First_Book", "First Book")))
 
-    with pytest.raises(CriticalError, match="ws-export offers: epub, html"):
-        list(catalog.discover(CatalogFilters(languages=["en"], formats=["pdf"])))
+    assert (
+        list(catalog.discover(CatalogFilters(languages=["en"], formats=["pdf"]))) == []
+    )
+    assert engine.fetched == []
 
 
 def test_discover_skips_entries_missing_the_requested_format():
@@ -240,13 +230,6 @@ def test_discover_ignores_mobi_links():
     # mobi can never be requested, so a mobi-only entry has nothing to download
     assert len(refs) == 1
     assert [name for name, _mt, _url in refs[0].extra["formats"]] == ["epub", "html"]
-
-
-def test_discover_error_does_not_offer_mobi():
-    catalog, _ = _catalog(_feed(_entry("First_Book", "First Book", mobi=True)))
-
-    with pytest.raises(CriticalError, match=r"ws-export offers: epub, html\.$"):
-        list(catalog.discover(CatalogFilters(languages=["en"], formats=["pdf"])))
 
 
 def test_discover_selects_by_catalog_position():

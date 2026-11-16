@@ -19,6 +19,7 @@ as of 2.0.0.
 ### Fixed
 
 - `papers2zim-validate-i18n`: require every registered source to provide a locale namespace with `metadata_defaults.title` and `metadata_defaults.description`, catching a missing source namespace before it turns into a failed ZIM build
+- Wikisource: download the editions ws-export serves instead of stopping with an error when a requested format is one it does not serve (`pdf`, so every run with the default `--formats all`), aligning with the other sources offering a restricted list of formats (#201)
 - Zimfarm recipe schema: relax the BNR/LJL filter fields (`bnr_series`/`bnr_authors`/`bnr_categories`/`bnr_titles`, `ljl_series`/`ljl_authors`/`ljl_categories`/`ljl_titles`) from "exactly one must be set" to "at most one", which was wrongly rejecting every recipe that doesn't use the BNR/LJL sources, Gutenberg included ([openzim/zimfarm#2106](https://github.com/openzim/zimfarm/issues/2106))
 
 ## [1.2.0] - 2026-11-13
