@@ -2,9 +2,12 @@
 	"@metadata": {
 		"authors": [
 			"Benoit74",
+			"Braaark",
 			"Chpol",
 			"Dash777",
-			"Léo Delebarre"
+			"Léo Delebarre",
+			"Uriel",
+			"Wladek92"
 		]
 	},
 	"language": "Français",
@@ -157,6 +160,80 @@
 			"books": "livre | livres",
 			"authors": "auteur | auteurs",
 			"collections": "collection | collections"
+		}
+	},
+	"bibliothequenumeriqueromande": {
+		"about": {
+			"attribution": "Métadonnées du livre et images de couverture fournies par la Bibliothèque numérique romande.",
+			"introHeading": "À propos de la Bibliothèque numérique romande",
+			"introParagraph1": "La Bibliothèque numérique romande est une une bibliothèque gratuite en ligne de livres en français.",
+			"missionAuthor": "L'équipe de la Bibliothèque numérique romande",
+			"missionHeading": "Des livres gratuits en français accessibles à tous.tes",
+			"missionParagraph1": "La Bibliothèque numérique romande a pour vocation de rendre la littérature en langue française accessible à tous.tes gratuitement.",
+			"missionParagraph4": "Le fait de rendre ces livres accessibles hors ligne contribue à les préserver pour les lecteurs présents et à venir."
+		},
+		"metadata_defaults": {
+			"title": "Bibliothèque numérique romande"
+		},
+		"nav": {
+			"collections": "Catégories"
+		},
+		"home": {
+			"allCollections": "Toutes les catégories",
+			"mostPopular": "Les plus populaires",
+			"popularCollections": "Catégories populaires"
+		},
+		"collection": {
+			"allCollections": "Toutes les catégories"
+		},
+		"book": {
+			"collection": "Catégorie",
+			"sameCollectionBooks": "Livres de la même catégorie"
+		},
+		"footer": {
+			"createdBy": "Créé par",
+			"packagedBy": "Préparé par",
+			"kiwix": "Kiwix"
+		}
+	},
+	"litteraturejeunesselibre": {
+		"about": {
+			"attribution": "Les métadonnées du livre et des images de couverture sont fournies par Littérature jeunesse libre.",
+			"introHeading": "À propos de Littérature jeunesse libre",
+			"introParagraph1": "Littérature jeunesse libre est une bibliothèque gratuite en ligne de livres pour enfants en français.",
+			"introParagraph2": "Sa collection rassemble des albums illustrés, des nouvelles, des romans et d'autres ouvrages destinés aux jeunes lecteurs.",
+			"introParagraph3": "Les livres sont disponibles aux formats EPUB et PDF et peuvent être lus hors ligne.",
+			"introParagraph4": "Les livres de cette bibliothèque sont accessibles hors ligne.",
+			"missionAuthor": "L'équipe de Littérature jeunesse libre",
+			"missionHeading": "Des livres pour enfants gratuits pour tous",
+			"missionParagraph1": "Littérature jeunesse libre a pour vocation de rendre la littérature pour enfants en langue française accessible à tous.tes gratuitement.",
+			"missionParagraph2": "Sa collection comprend des albums illustrés, des nouvelles, des contes, de la poésie et d'autres œuvres.",
+			"missionParagraph3": "Les livres sont disponibles dans des formats ouverts tels que EPUB et RDF compatibles avec la plupart des appareils et des liseuses.",
+			"missionParagraph4": "Le fait de rendre ces livres accessibles hors ligne contribue à les préserver pour les jeunes lecteurs d'aujourd'hui et de demain."
+		},
+		"metadata_defaults": {
+			"title": "Littérature jeunesse libre",
+			"description": "Livres gratuits pour enfants en français de Littérature jeunesse libre."
+		},
+		"nav": {
+			"collections": "Catégories"
+		},
+		"home": {
+			"allCollections": "Toutes les catégories",
+			"mostPopular": "Les plus populaires",
+			"popularCollections": "Catégories populaires"
+		},
+		"collection": {
+			"allCollections": "Toutes les catégories"
+		},
+		"book": {
+			"collection": "Catégorie",
+			"sameCollectionBooks": "Livres de la même catégorie"
+		},
+		"footer": {
+			"createdBy": "Créé par",
+			"packagedBy": "Emballé par",
+			"kiwix": "Kiwix"
 		}
 	},
 	"gutenberg": {

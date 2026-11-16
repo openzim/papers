@@ -77,6 +77,10 @@
 			},
 			"dateScraped": "Oluşturulma tarihi"
 		},
+		"languageFilter": {
+			"allLanguages": "Tüm diller",
+			"select": "Dil seçin"
+		},
 		"reader": {
 			"close": "Okuyucuyu kapat",
 			"closeTableOfContents": "İçerik tablosunu kapat",
@@ -101,6 +105,8 @@
 			"sortTitle": "Başlık",
 			"backToTop": "Başa dön",
 			"selectInterfaceLanguage": "Arayüz dilini seç",
+			"changeInterfaceLanguage": "Arayüz dilini değiştir",
+			"filterBy": "Şuna göre filtrele:",
 			"filterByTitle": "{title} göre filtrele",
 			"gridView": "Izgara görünümü",
 			"listView": "Liste görünümü",
@@ -108,6 +114,8 @@
 			"browseAllAuthors": "Tüm Yazarları Görüntüle",
 			"returnHome": "Ana sayfaya dön",
 			"toggleNavigationMenu": "Gezinme menüsünü aç/kapat",
+			"mainNavigation": "Ana gezinti bölümü",
+			"mobileNavigationMenu": "Mobil gezinti menüsü",
 			"mobileNavigation": "Mobil gezinti",
 			"navigateToItem": "{item} ögesine git",
 			"close": "Kapat",
@@ -136,7 +144,88 @@
 		},
 		"itemTypes": {
 			"books": "kitap | kitap",
-			"authors": "yazar | yazar"
+			"authors": "yazar | yazar",
+			"collections": "koleksiyon | koleksiyon"
+		}
+	},
+	"bibliothequenumeriqueromande": {
+		"about": {
+			"attribution": "Kitap üst verileri ve kapak resimleri Bibliothèque numérique romande tarafından sağlanmıştır.",
+			"introHeading": "Bibliothèque numérique romande hakkında",
+			"introParagraph1": "Bibliothèque numérique romande, Fransız dilinde e-kitaplardan oluşan ücretsiz bir çevrimiçi kütüphanedir.",
+			"introParagraph2": "Koleksiyonu Fransızca konuşulan İsviçre, Fransa ve ötesindeki edebi eserleri bir araya getirir.",
+			"introParagraph3": "Kitapları EPUB biçiminde mevcuttur ve çevrimdışı olarak okunabilirler.",
+			"introParagraph4": "Bu kütüphane, kitapları çevrimdışı okuma için kullanılabilir halde tutar.",
+			"missionAuthor": "Bibliothèque numérique romande ekibi",
+			"missionHeading": "Herkes için ücretsiz Fransızca kitaplar",
+			"missionParagraph1": "Bibliothèque numérique romande, Fransızca edebiyat eserlerini herkesin ücretsiz olarak erişebileceği hale getirmek amacıyla kurulmuştur.",
+			"missionParagraph2": "Koleksiyonu romanları, şiirsel eserleri, tiyatro oyunlarını, denemeleri ve diğer eserleri kapsar.",
+			"missionParagraph3": "Kitaplar çoğu cihaz ve okuyucuda kullanılabilir EPUB gibi açık biçimlerde sunulur.",
+			"missionParagraph4": "Bu kitapların çevrimdışı olarak kullanılabilir tutulması, bugün ve gelecekte genç okuyucular için onları korumaya yardımcı olur."
+		},
+		"metadata_defaults": {
+			"title": "Bibliothèque numérique romande",
+			"description": "Bibliothèque numérique romande'den ücretsiz Fransızca e-kitaplar"
+		},
+		"nav": {
+			"collections": "Kategoriler"
+		},
+		"home": {
+			"allCollections": "Tüm kategoriler",
+			"mostPopular": "En popüler",
+			"popularCollections": "Popüler kategoriler"
+		},
+		"collection": {
+			"allCollections": "Tüm kategoriler"
+		},
+		"book": {
+			"collection": "Kategori",
+			"sameCollectionBooks": "Aynı kategoride kitaplar"
+		},
+		"footer": {
+			"createdBy": "Oluşturan",
+			"packagedBy": "Paketleyen",
+			"kiwix": "Kiwix"
+		}
+	},
+	"litteraturejeunesselibre": {
+		"about": {
+			"attribution": "Kitap üstveri ve kapak resimleri Littérature jeunesse libre tarafından sağlanmıştır.",
+			"introHeading": "Littérature jeunesse libre hakkında",
+			"introParagraph1": "Littérature jeunesse libre, Fransız dilindeki çocuk kitaplarının ücretsiz bir çevrimiçi kütüphanesidir.",
+			"introParagraph2": "Koleksiyonu genç okuyucular için resimli kitapları, romanları, hikâyeleri ve diğer eserleri bir araya getirir.",
+			"introParagraph3": "Kitapları EPUB ve PDF formatlarında mevcuttur ve çevrimdışı olarak okuyabilirsiniz.",
+			"introParagraph4": "Bu kütüphane, kitapları çevrimdışı okuma için kullanılabilir halde tutar.",
+			"missionAuthor": "Litérature jeunesse libre ekibi",
+			"missionHeading": "Herkes için ücretsiz çocuk kitapları",
+			"missionParagraph1": "Littérature jeunesse libre, Fransız dilindeki çocuk literatürünü herkesin ücretsiz olarak kullanmasına yardımcı olmak için var.",
+			"missionParagraph2": "Koleksiyonunda resim kitapları, romanlar, hikâyeler, şiir ve diğer eserler bulunmaktadır.",
+			"missionParagraph3": "Kitaplar çoğu cihaz ve okuyucuda kullanılabilir EPUB ve PDF gibi açık biçimlerde sunulur.",
+			"missionParagraph4": "Bu kitapların çevrimdışı olarak kullanılabilir olması, bugün ve gelecekte genç okuyucular için onları korumaya yardımcı olur."
+		},
+		"metadata_defaults": {
+			"title": "Littérature jeunesse libre",
+			"description": "Littérature jeunesse libre'den Fransız dilinde ücretsiz çocuk kitapları"
+		},
+		"nav": {
+			"collections": "Kategoriler"
+		},
+		"home": {
+			"allCollections": "Tüm kategoriler",
+			"mostPopular": "En popüler",
+			"popularCollections": "Popüler kategoriler"
+		},
+		"collection": {
+			"allCollections": "Tüm kategoriler"
+		},
+		"book": {
+			"collection": "Kategori",
+			"sameCollectionBooks": "Aynı kategoride kitaplar"
+		},
+		"footer": {
+			"createdBy": "Oluşturan",
+			"packagedBy": "Paketleyen",
+			"kiwix": "Kiwix"
 		}
 	},
 	"gutenberg": {
@@ -179,23 +268,75 @@
 		"collection": {
 			"allCollections": "Tüm raflar"
 		},
+		"book": {
+			"collection": "ABD Kongre Kütüphanesi rafı",
+			"sameCollectionBooks": "Aynı raftaki kitaplar"
+		},
+		"footer": {
+			"createdBy": "Oluşturan",
+			"packagedBy": "Paketleyen",
+			"kiwix": "Kiwix"
+		},
 		"collections": {
+			"A": "Genel Kitaplar",
+			"B": "Felsefe, psikoloji, din",
+			"CDEF": "Tarih",
+			"C": "Tarihsel yardımcı bilimler",
+			"D": "Dünya tarihi ve Avrupa, Asya, Afrika, Avustralya, Yeni Zelanda vb. tarihi",
+			"E": "Genel Amerika Tarihi",
+			"F": "Genel Amerika tarihi",
+			"G": "Coğrafya, antropoloji, eğlence",
+			"H": "Sosyal bilimler",
+			"J": "Siyaset bilimi",
+			"K": "Hukuk",
+			"L": "Eğitim",
+			"M": "Müzik ve müzik üzerine kitaplar",
+			"N": "Güzel sanatlar",
+			"P": "Dil ve edebiyat",
+			"Q": "Bilim",
+			"R": "Tıp",
+			"S": "Tarım",
+			"T": "Teknoloji",
+			"U": "Askeri bilim",
+			"V": "Bahri bilim",
+			"Z": "Bibliyografi, kütüphane bilimi, bilgi kaynakları (genel)",
+			"PA": "Yunan ve Latin dili ve edebiyatı",
+			"PB": "Modern ve Kelt dilleri",
+			"PC": "Romans dilleri",
+			"PD": "Cermen ve İskandinav dilleri",
+			"PE": "İngiliz dili",
+			"PF": "Batı Cermen dilleri",
+			"PG": "Slavik, Baltık ve Arnavut diller",
+			"PH": "Ural ve Bask dilleri",
+			"PJ": "Doğu dilleri ve edebiyatları",
+			"PK": "Hint-İran dilleri ve edebiyatları",
+			"PL": "Doğu Asya, Afrika, Okyanusya dilleri ve edebiyatları",
+			"PM": "Uzak Kuzey, Hint ve yapay diller",
+			"PN": "Edebiyat (Genel)",
+			"PQ": "Fransız, İtalyan, İspanyol, Portekiz edebiyatı",
 			"PR": "İngiliz edebiyatı",
 			"PS": "Amerikan edebiyatı",
-			"PT": "Almanca, Hollanda dili, Felemenkçe, Afrikaansça, İskandinavca, Norsça, Eski İzlandaca, Eski Norveççe, Modern İzlandaca, Faroe dili, Danca, Norveççe ve İsveççe Edebiyatı"
+			"PT": "Almanca, Hollanda dili, Felemenkçe, Afrikaansça, İskandinavca, Norsça, Eski İzlandaca, Eski Norveççe, Modern İzlandaca, Faroe dili, Danca, Norveççe ve İsveççe Edebiyatı",
+			"PZ": "Efsaneler ve çocuklar için güzel yazılı edebi eserler"
 		}
 	},
 	"opentextbooks": {
 		"about": {
 			"attribution": "Açık Derslik Kütüphanesi tarafından sağlanan bilgi ve bilgiler.",
 			"introHeading": "Açık Derslik Kütüphanesi hakkında",
+			"introParagraph1": "Açık Derslik Kütüphanesi, yükseköğretimde kullanılmak üzere açık lisanslı ders kitaplarından oluşan bir derlemdir.",
+			"introParagraph2": "Ders kitaplarına erişim, indirme ve lisanslarına uygun olarak uyarlama ücretsizdir.",
+			"introParagraph4": "Bu kütüphane, söz konusu ders kitaplarını çevrimdışı okuma için erişilebilir hale getirir.",
 			"missionHeading": "Açık eğitim",
 			"missionAuthor": "Açık Derslik Kütüphanesi",
+			"missionParagraph1": "Açık kaynaklı ders kitapları, yüksek kaliteli öğrenme materyallerine erişimi kolaylaştırır.",
 			"missionParagraph4": "Açık lisanslar, eğitim materyallerinin geniş çapta paylaşılmasına olanak tanırlar.",
 			"missionParagraph5": "Ayrıca, eğitmenlerin kitapları kendi derslerine uyarlamalarını da mümkün kılarlar.",
 			"missionParagraph6": "Uyarlama, ders kitaplarını yerel öğretim ve öğrenme ihtiyaçlarına daha uygun hale getirebilir.",
 			"missionParagraph7": "Açık Ders Kitabı Kütüphanesi bu materyalleri tek bir yerde bir araya getirir.",
-			"missionParagraph8": "Koleksiyonu, çeşitli konularda öğretim ve öğrenmeyi desteklemektedir."
+			"missionParagraph8": "Koleksiyonu, çeşitli konularda öğretim ve öğrenmeyi desteklemektedir.",
+			"missionParagraph10": "Öğretim üyelerinden gelen değerlendirmeler, eğitimcilerin ders kitaplarını kabul edip etmeyeceklerini belirlemelerine yardımcı olur.",
+			"missionParagraph11": "Açık erişimli ders kitapları basılı, çevrimiçi veya çevrimdışı biçimlerde kullanılabilirler."
 		},
 		"nav": {
 			"collections": "Konular"

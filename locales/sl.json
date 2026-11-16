@@ -70,6 +70,86 @@
 			"authors": "avtor | avtorji"
 		}
 	},
+	"bibliothequenumeriqueromande": {
+		"about": {
+			"attribution": "Metapodatki knjig in slike naslovnic, ki jih je zagotovila Bibliothèque numérique romande.",
+			"introHeading": "O Bibliothèque numérique romande",
+			"introParagraph1": "Bibliothèque numérique romande je prosta spletna knjižnica e-knjig v francoskem jeziku.",
+			"introParagraph2": "Njena zbirka združuje književna dela iz francosko govoreče Švice, Francije in drugih držav.",
+			"introParagraph3": "Knjige so na voljo v formatu EPUB in jih je mogoče brati brez povezave.",
+			"introParagraph4": "Ta knjižnica omogoča branje teh knjig brez povezave.",
+			"missionAuthor": "Ekipa Bibliothèque numérique romande",
+			"missionHeading": "Proste knjige v francoskem jeziku za vsakogar",
+			"missionParagraph1": "Bibliothèque numérique romande obstaja, da bi vsi imeli brezplačno na voljo dostop do literature v francoskem jeziku",
+			"missionParagraph2": "Njena zbirka zajema romane, poezijo, dramatiko, eseje in druga dela.",
+			"missionParagraph3": "Knjige so na voljo v odprtih formatih, kot sta EPUB in PDF, ki delujejo na večini naprav in bralnikov.",
+			"missionParagraph4": "Z ohranjanjem teh knjig na voljo brez povezave jih lahko ohranimo za bralce danes in v prihodnosti."
+		},
+		"metadata_defaults": {
+			"title": "Bibliothèque numérique romande",
+			"description": "Proste francoske knjige iz Bibliothèque numérique romande"
+		},
+		"nav": {
+			"collections": "Kategorije"
+		},
+		"home": {
+			"allCollections": "Vse kategorije",
+			"mostPopular": "Najbolj priljubljeno",
+			"popularCollections": "Priljubljene kategorije"
+		},
+		"collection": {
+			"allCollections": "Vse kategorije"
+		},
+		"book": {
+			"collection": "Kategorija",
+			"sameCollectionBooks": "Knjige v isti kategoriji"
+		},
+		"footer": {
+			"createdBy": "Ustvarjeno od",
+			"packagedBy": "Pakirano od",
+			"kiwix": "Kiwix"
+		}
+	},
+	"litteraturejeunesselibre": {
+		"about": {
+			"attribution": "Metapodatke o knjigi in naslovne slike zagotavlja Littérature jeunesse libre.",
+			"introHeading": "O Littérature jeunesse libre",
+			"introParagraph1": "Littérature jeunesse libre je prosta spletna knjižnica otroških knjig v francoskem jeziku.",
+			"introParagraph2": "Njena zbirka združuje slikanice, romane, zgodbe in druga dela za mlade bralce.",
+			"introParagraph3": "Knjige so na voljo v formatih EPUB in PDF ter jih je mogoče brati brez povezave.",
+			"introParagraph4": "Ta knjižnica omogoča branje teh knjig brez povezave.",
+			"missionAuthor": "Ekipa Littérature jeunesse libre",
+			"missionHeading": "Proste otroške knjige za vsakogar",
+			"missionParagraph1": "Littérature jeunesse libre obstaja zato, da bi bila otroška literatura v francoskem jeziku na voljo vsem brezplačno.",
+			"missionParagraph2": "Njena zbirka obsega slikanice, romane, zgodbe, poezijo in druga dela.",
+			"missionParagraph3": "Knjige so na voljo v odprtih formatih, kot sta EPUB in PDF, ki delujejo na večini naprav in bralnikov.",
+			"missionParagraph4": "Z ohranjanjem teh knjig na voljo brez povezave jih lahko ohranimo za mlade bralce danes in v prihodnosti."
+		},
+		"metadata_defaults": {
+			"title": "Littérature jeunesse libre",
+			"description": "Proste otroške knjige v francoskem jeziku Littérature jeunesse libre"
+		},
+		"nav": {
+			"collections": "Kategorije"
+		},
+		"home": {
+			"allCollections": "Vse kategorije",
+			"mostPopular": "Najbolj priljubljeno",
+			"popularCollections": "Priljubljene kategorije"
+		},
+		"collection": {
+			"allCollections": "Vse kategorije"
+		},
+		"book": {
+			"collection": "Kategorija",
+			"sameCollectionBooks": "Knjige v isti kategoriji"
+		},
+		"footer": {
+			"createdBy": "Ustvaril",
+			"packagedBy": "Pakirano od",
+			"kiwix": "Kiwix"
+		}
+	},
 	"gutenberg": {
 		"about": {
 			"introHeading": "O projektu Gutenberg"

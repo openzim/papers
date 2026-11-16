@@ -85,6 +85,43 @@
 			"authors": "Auteur | Auteuren"
 		}
 	},
+	"bibliothequenumeriqueromande": {
+		"nav": {
+			"collections": "Kategorien"
+		},
+		"home": {
+			"allCollections": "All Kategorien",
+			"popularCollections": "Populär Kategorien"
+		},
+		"collection": {
+			"allCollections": "All Kategorien"
+		},
+		"book": {
+			"collection": "Kategorie",
+			"sameCollectionBooks": "Bicher an der selwechter Kategorie"
+		},
+		"footer": {
+			"kiwix": "Kiwix"
+		}
+	},
+	"litteraturejeunesselibre": {
+		"nav": {
+			"collections": "Kategorien"
+		},
+		"home": {
+			"allCollections": "All Kategorien",
+			"popularCollections": "Populär Kategorien"
+		},
+		"collection": {
+			"allCollections": "All Kategorien"
+		},
+		"book": {
+			"collection": "Kategorie"
+		},
+		"footer": {
+			"kiwix": "Kiwix"
+		}
+	},
 	"gutenberg": {
 		"about": {
 			"missionAuthor": "vum Michael Hart",
@@ -160,7 +197,8 @@
 			"collections": "Kategorien"
 		},
 		"home": {
-			"allCollections": "All Kategorien"
+			"allCollections": "All Kategorien",
+			"popularCollections": "Populär Kategorien"
 		},
 		"collection": {
 			"allCollections": "All Kategorien"
