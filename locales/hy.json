@@ -39,6 +39,28 @@
 			"sortAuthor": "Հեղինակ"
 		}
 	},
+	"bibliothequenumeriqueromande": {
+		"nav": {
+			"collections": "Կատեգորիաներ"
+		},
+		"collection": {
+			"allCollections": "Բոլոր կատեգորիաներ"
+		},
+		"book": {
+			"collection": "Կատեգորիա"
+		}
+	},
+	"litteraturejeunesselibre": {
+		"nav": {
+			"collections": "Կատեգորիաներ"
+		},
+		"home": {
+			"allCollections": "Բոլոր կատեգորիաներ"
+		},
+		"collection": {
+			"allCollections": "Բոլոր կատեգորիաներ"
+		}
+	},
 	"gutenberg": {
 		"collection": {
 			"allCollections": "Բոլոր դարակները"

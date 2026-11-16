@@ -1,7 +1,8 @@
 {
 	"@metadata": {
 		"authors": [
-			"Kly"
+			"Kly",
+			"PacmanD"
 		]
 	},
 	"language": "繁體中文",
@@ -58,6 +59,15 @@
 		"itemTypes": {
 			"books": "書籍 | 書籍",
 			"authors": "作者 | 作者"
+		}
+	},
+	"litteraturejeunesselibre": {
+		"nav": {
+			"collections": "分類"
+		},
+		"home": {
+			"mostPopular": "最受歡迎的",
+			"popularCollections": "熱點分類"
 		}
 	},
 	"gutenberg": {

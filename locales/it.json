@@ -102,6 +102,27 @@
 			"authors": "autore | autori"
 		}
 	},
+	"litteraturejeunesselibre": {
+		"nav": {
+			"collections": "Categorie"
+		},
+		"home": {
+			"allCollections": "Tutte le categorie",
+			"mostPopular": "Più popolare",
+			"popularCollections": "Categorie popolari"
+		},
+		"collection": {
+			"allCollections": "Tutte le categorie"
+		},
+		"book": {
+			"collection": "Categoria",
+			"sameCollectionBooks": "Libri della stessa categoria"
+		},
+		"footer": {
+			"createdBy": "Creato da",
+			"packagedBy": "Confezionato da"
+		}
+	},
 	"gutenberg": {
 		"about": {
 			"introHeading": "Informazioni sul Progetto Gutenberg",

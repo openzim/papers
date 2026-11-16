@@ -48,6 +48,25 @@
 			"all": "یکے"
 		}
 	},
+	"bibliothequenumeriqueromande": {
+		"nav": {
+			"collections": "ونکیاں"
+		},
+		"collection": {
+			"allCollections": "ساریاں ونکیاں"
+		},
+		"footer": {
+			"kiwix": "کیویکس"
+		}
+	},
+	"litteraturejeunesselibre": {
+		"home": {
+			"allCollections": "ساریاں ونکیاں"
+		},
+		"book": {
+			"collection": "ونکی"
+		}
+	},
 	"gutenberg": {
 		"collections": {
 			"CDEF": "تاریخ",

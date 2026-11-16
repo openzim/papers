@@ -53,6 +53,12 @@
 		"collection": {
 			"allCollections": "모든 모음집"
 		},
+		"licenses": {
+			"termSeparator": "-",
+			"ccName": "크리에이티브 커먼즈 {terms} {version}",
+			"ccNameUnversioned": "크리에이티브 커먼즈 {terms}",
+			"cc0Name": "CC0 1.0 공통"
+		},
 		"zimInfo": {
 			"trigger": "이 ZIM에 대한 정보",
 			"title": "이 ZIM에 대한 정보",
@@ -73,6 +79,10 @@
 				"one": "형식",
 				"other": "형식"
 			}
+		},
+		"languageFilter": {
+			"allLanguages": "모든 언어",
+			"select": "언어 선택"
 		},
 		"reader": {
 			"nextSection": "다음 섹션",
@@ -127,6 +137,36 @@
 		"itemTypes": {
 			"books": "책",
 			"authors": "저자"
+		}
+	},
+	"bibliothequenumeriqueromande": {
+		"nav": {
+			"collections": "분류"
+		},
+		"home": {
+			"allCollections": "모든 분류",
+			"popularCollections": "인기 분류"
+		},
+		"collection": {
+			"allCollections": "모든 분류"
+		},
+		"book": {
+			"collection": "분류"
+		}
+	},
+	"litteraturejeunesselibre": {
+		"nav": {
+			"collections": "분류"
+		},
+		"home": {
+			"allCollections": "모든 분류",
+			"popularCollections": "인기 분류"
+		},
+		"collection": {
+			"allCollections": "모든 분류"
+		},
+		"book": {
+			"collection": "분류"
 		}
 	},
 	"gutenberg": {

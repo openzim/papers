@@ -158,6 +158,11 @@
 			"collections": "مجموعه | مجموعه‌ها"
 		}
 	},
+	"bibliothequenumeriqueromande": {
+		"footer": {
+			"kiwix": "کیویکس"
+		}
+	},
 	"gutenberg": {
 		"about": {
 			"attribution": "نوشتهٔ مایکل اس. هارت در ۲۰ ژوئن ۲۰۰۴؛ به‌روزرسانی در ۲۳ اکتبر ۲۰۰۴ و ۲۵ دسامبر ۲۰۰۷.",
