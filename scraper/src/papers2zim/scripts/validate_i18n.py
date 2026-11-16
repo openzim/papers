@@ -439,9 +439,7 @@ def main() -> int:
         en_data, {profile.locale_namespace for profile in SOURCES.values()}
     )
     if required_defaults_issues:
-        errors.append(
-            "❌ en.json is missing metadata defaults for registered sources:"
-        )
+        errors.append("❌ en.json is missing metadata defaults for registered sources:")
         errors.extend(required_defaults_issues)
 
     for namespace, source_en in source_en_data.items():
