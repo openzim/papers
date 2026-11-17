@@ -26,7 +26,7 @@ Notes:
 """
 
 from abc import ABC, abstractmethod
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterable, Mapping
 
 import apsw
 import backoff
@@ -156,7 +156,7 @@ class Pipeline(ABC):
     def add_book_search_item(
         self,
         work: Work,
-        contents: Mapping[str, str | bytes | Sequence[str | bytes]],
+        contents: Mapping[str, str | bytes | Iterable[str | bytes]],
     ) -> None:
         """Write a processed book's search entry, with the text of one format.
 

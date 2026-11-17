@@ -5,6 +5,7 @@ import posixpath
 import re
 from collections import deque
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Protocol
 from urllib.parse import ParseResult, urldefrag, urljoin, urlparse
 
@@ -22,9 +23,6 @@ from papers2zim.core.models import Work
 from papers2zim.core.rewriters.image_rewriter import ImageProcessor
 from papers2zim.core.utils import article_name_for
 
-MAX_HTML_PAGES = 300
-MAX_HTML_ASSETS = 500
-MAX_HTML_EDITION_BYTES = 64 * 1024 * 1024
 MIN_HTML_TEXT_LENGTH = 600
 CSS_URL_PATTERN = re.compile(r"url\((?P<quote>['\"]?)(?P<url>[^)'\"]+)(?P=quote)\)")
 
@@ -33,37 +31,13 @@ CSS_URL_PATTERN = re.compile(r"url\((?P<quote>['\"]?)(?P<url>[^)'\"]+)(?P=quote)
 class HtmlEdition:
     """A root page and its offline companion pages, keyed by ZIM path."""
 
-    pages: dict[str, bytes]
+    pages: dict[str, Path]
 
 
 class FetchEngine(Protocol):
     """Minimal download interface required for mirroring an HTML edition."""
 
     def fetch_bytes(self, url: str) -> bytes: ...
-
-
-@dataclass(slots=True)
-class _DownloadBudget:
-    """Track the cumulative size of one mirrored online edition."""
-
-    engine: FetchEngine
-    work: Work
-    downloaded_bytes: int = 0
-    reached: bool = False
-
-    def fetch(self, url: str) -> bytes | None:
-        content = self.engine.fetch_bytes(url)
-        if len(content) > MAX_HTML_EDITION_BYTES - self.downloaded_bytes:
-            self.reached = True
-            logger.warning(
-                "Stopping OTL online-edition mirror for textbook #%s after %s MiB",
-                self.work.id,
-                MAX_HTML_EDITION_BYTES // (1024 * 1024),
-            )
-            return None
-        self.downloaded_bytes += len(content)
-        self.reached = self.downloaded_bytes == MAX_HTML_EDITION_BYTES
-        return content
 
 
 @dataclass(slots=True)
@@ -74,19 +48,19 @@ class _MirrorContext:
     root: ParseResult
     root_directory: str
     path_by_url: dict[str, str]
-    budget: _DownloadBudget
+    engine: FetchEngine
+    directory: Path
 
 
 def download_html_edition(
-    engine: FetchEngine, work: Work, url: str, formats: list[str]
+    engine: FetchEngine,
+    work: Work,
+    url: str,
+    formats: list[str],
+    *,
+    directory: Path,
 ) -> HtmlEdition | None:
-    """Mirror a self-contained online edition or its same-site chapter pages.
-
-    A response to a PDF/EPUB URL is never considered an HTML edition.  This
-    function only processes the source's explicitly declared ``Online`` URL.
-    It follows HTML pages, stylesheets and images within that edition's URL
-    directory and rewrites their references to offline ZIM counterparts.
-    """
+    """Keep edition files in caller-owned storage until export and indexing finish."""
     root_url = _canonical_url(url)
     root = urlparse(root_url)
     root_directory = root.path.rsplit("/", 1)[0] + "/"
@@ -96,32 +70,40 @@ def download_html_edition(
         root=root,
         root_directory=root_directory,
         path_by_url={root_url: root_path},
-        budget=_DownloadBudget(engine=engine, work=work),
+        engine=engine,
+        directory=directory,
     )
     content_by_url, asset_urls = _download_pages(context, root_url)
 
-    root_content = content_by_url.get(root_url)
-    if root_content is None or not _is_complete_edition(root_content, content_by_url):
+    root_file = content_by_url.get(root_url)
+    if root_file is None or not _is_complete_edition(
+        root_file.read_bytes(), content_by_url
+    ):
         return None
 
     asset_content_by_url = _download_assets(context, asset_urls)
-    output_assets = _prepare_assets(context, asset_content_by_url)
+    context.path_by_url = {
+        url: path
+        for url, path in context.path_by_url.items()
+        if url in content_by_url or url in asset_content_by_url
+    }
+    _prepare_assets(context, asset_content_by_url)
     return HtmlEdition(
-        pages=_render_edition(context, content_by_url, output_assets, formats)
+        pages=_render_edition(context, content_by_url, asset_content_by_url, formats)
     )
 
 
 def _download_pages(
     context: _MirrorContext, root_url: str
-) -> tuple[dict[str, bytes], deque[str]]:
+) -> tuple[dict[str, Path], deque[str]]:
     """Download same-directory HTML pages and discover their assets."""
     urls = deque([root_url])
-    content_by_url: dict[str, bytes] = {}
+    content_by_url: dict[str, Path] = {}
     asset_urls: deque[str] = deque()
-    while urls and len(content_by_url) < MAX_HTML_PAGES and not context.budget.reached:
+    while urls:
         page_url = urls.popleft()
         try:
-            content = context.budget.fetch(page_url)
+            content = context.engine.fetch_bytes(page_url)
         except requests.RequestException as exc:
             log = logger.debug if is_fatal_http_error(exc) else logger.warning
             log(
@@ -130,12 +112,12 @@ def _download_pages(
                 exc,
             )
             continue
-        if content is None:
-            break
         if not is_html_document(content):
             continue
 
-        content_by_url[page_url] = content
+        fpath = context.directory / hashlib.sha256(page_url.encode()).hexdigest()
+        fpath.write_bytes(content)
+        content_by_url[page_url] = fpath
         soup = BeautifulSoup(content, "html.parser")
         _queue_linked_pages(context, page_url, soup, urls)
         _discover_html_assets(
@@ -169,25 +151,21 @@ def _queue_linked_pages(
 
 def _download_assets(
     context: _MirrorContext, asset_urls: deque[str]
-) -> dict[str, bytes]:
+) -> dict[str, Path]:
     """Download discovered assets, including assets referenced by CSS files."""
-    content_by_url: dict[str, bytes] = {}
-    while (
-        asset_urls
-        and len(content_by_url) < MAX_HTML_ASSETS
-        and not context.budget.reached
-    ):
+    content_by_url: dict[str, Path] = {}
+    while asset_urls:
         asset_url = asset_urls.popleft()
         try:
-            content = context.budget.fetch(asset_url)
+            content = context.engine.fetch_bytes(asset_url)
         except requests.RequestException as exc:
             logger.debug(
                 "Could not download OTL online-edition asset %s: %s", asset_url, exc
             )
             continue
-        if content is None:
-            break
-        content_by_url[asset_url] = content
+        fpath = context.directory / hashlib.sha256(asset_url.encode()).hexdigest()
+        fpath.write_bytes(content)
+        content_by_url[asset_url] = fpath
         if _is_css_url(asset_url):
             _discover_css_assets(
                 content,
@@ -201,53 +179,51 @@ def _download_assets(
     return content_by_url
 
 
-def _prepare_assets(
-    context: _MirrorContext, assets: dict[str, bytes]
-) -> dict[str, bytes]:
+def _prepare_assets(context: _MirrorContext, assets: dict[str, Path]) -> None:
     """Optimize image assets and retain paths for assets that cannot convert."""
-    output_assets: dict[str, bytes] = {}
-    for asset_url, asset_content in assets.items():
+    for asset_url, fpath in assets.items():
         asset_path = context.path_by_url[asset_url]
-        output_content = asset_content
         if not _is_css_url(asset_url) and ImageProcessor.should_convert_to_webp(
             asset_path
         ):
+            asset_content = fpath.read_bytes()
             try:
                 output_content = ImageProcessor.optimize_image_content(asset_content)
-                context.path_by_url[asset_url] = ImageProcessor.get_output_filename(
-                    asset_path
-                )
             except Exception as exc:
                 logger.debug(
                     "Could not convert OTL asset %s to WebP: %s", asset_url, exc
                 )
-        output_assets[asset_url] = output_content
-    return output_assets
+                continue
+            fpath.write_bytes(output_content)
+            context.path_by_url[asset_url] = ImageProcessor.get_output_filename(
+                asset_path
+            )
 
 
 def _render_edition(
     context: _MirrorContext,
-    page_content_by_url: dict[str, bytes],
-    assets: dict[str, bytes],
+    page_content_by_url: dict[str, Path],
+    assets: dict[str, Path],
     formats: list[str],
-) -> dict[str, bytes]:
+) -> dict[str, Path]:
     """Rewrite mirrored HTML and CSS references into their ZIM paths."""
-    pages: dict[str, bytes] = {}
-    for page_url, content in page_content_by_url.items():
+    pages: dict[str, Path] = {}
+    for page_url, fpath in page_content_by_url.items():
         page_path = context.path_by_url[page_url]
-        soup = BeautifulSoup(content, "html.parser")
+        soup = BeautifulSoup(fpath.read_bytes(), "html.parser")
         _rewrite_html_references(soup, page_url, page_path, context.path_by_url)
         inject_reader_controls(soup, page_path, context.work, formats)
-        pages[page_path] = str(soup).encode("utf-8")
-    for asset_url, output_content in assets.items():
+        fpath.write_bytes(str(soup).encode("utf-8"))
+        pages[page_path] = fpath
+    for asset_url, fpath in assets.items():
         asset_path = context.path_by_url[asset_url]
-        pages[asset_path] = (
-            _rewrite_css_references(
-                output_content, asset_url, asset_path, context.path_by_url
+        if _is_css_url(asset_url):
+            fpath.write_bytes(
+                _rewrite_css_references(
+                    fpath.read_bytes(), asset_url, asset_path, context.path_by_url
+                )
             )
-            if _is_css_url(asset_url)
-            else output_content
-        )
+        pages[asset_path] = fpath
     return pages
 
 
@@ -255,17 +231,18 @@ def set_download_controls(
     edition: HtmlEdition, work: Work, available_formats: list[str]
 ) -> None:
     """Update mirrored HTML controls with formats actually stored in the ZIM."""
-    for page_path, content in edition.pages.items():
+    for page_path, fpath in edition.pages.items():
+        content = fpath.read_bytes()
         if not is_html_document(content):
             continue
         soup = BeautifulSoup(content, "html.parser")
         if controls := soup.find(id="html-reader-controls"):
             controls.decompose()
         inject_reader_controls(soup, page_path, work, available_formats)
-        edition.pages[page_path] = str(soup).encode("utf-8")
+        fpath.write_bytes(str(soup).encode("utf-8"))
 
 
-def _is_complete_edition(root_content: bytes, pages: dict[str, bytes]) -> bool:
+def _is_complete_edition(root_content: bytes, pages: dict[str, Path]) -> bool:
     """Reject generic landing pages while allowing a book page or a real TOC."""
     soup = BeautifulSoup(root_content, "html.parser")
     for element in soup(["script", "style", "noscript", "nav", "header", "footer"]):
@@ -304,7 +281,7 @@ def _discover_html_assets(
 ) -> None:
     for element, attribute in (
         *[(link, "href") for link in soup.select("link[href]")],
-        *[(image, "src") for image in soup.select("img[src], source[src]")],
+        *[(script, "src") for script in soup.select("script[src]")],
     ):
         reference = element.get(attribute)
         if not isinstance(reference, str):
@@ -312,6 +289,13 @@ def _discover_html_assets(
         asset_url = _internal_asset_url(page_url, reference, root, root_directory)
         if asset_url is not None:
             _queue_asset(asset_url, path_by_url, asset_urls, work)
+    for image in soup.select("img[src], source[src]"):
+        reference = image.get("src")
+        if not isinstance(reference, str):
+            continue
+        image_url = _web_url(page_url, reference)
+        if image_url is not None:
+            _queue_asset(image_url, path_by_url, asset_urls, work)
 
 
 def _discover_css_assets(
@@ -344,13 +328,18 @@ def _queue_asset(
 def _internal_asset_url(
     page_url: str, reference: str, root, root_directory: str
 ) -> str | None:
+    asset_url = _web_url(page_url, reference)
+    if asset_url is None:
+        return None
+    target = urlparse(asset_url)
+    if target.netloc != root.netloc or not target.path.startswith(root_directory):
+        return None
+    return asset_url
+
+
+def _web_url(page_url: str, reference: str) -> str | None:
     target_url, _ = urldefrag(urljoin(page_url, reference))
-    target = urlparse(target_url)
-    if (
-        target.scheme not in {"http", "https"}
-        or target.netloc != root.netloc
-        or not target.path.startswith(root_directory)
-    ):
+    if urlparse(target_url).scheme not in {"http", "https"}:
         return None
     return _canonical_url(target_url)
 
@@ -358,11 +347,34 @@ def _internal_asset_url(
 def _rewrite_html_references(
     soup: BeautifulSoup, page_url: str, page_path: str, path_by_url: dict[str, str]
 ) -> None:
-    for element, attribute in (
-        *[(link, "href") for link in soup.select("a[href], link[href]")],
-        *[(image, "src") for image in soup.select("img[src], source[src]")],
-    ):
-        _rewrite_reference(element, attribute, page_url, page_path, path_by_url)
+    for element in soup.select("[data-iframe-code]"):
+        del element["data-iframe-code"]
+        if element.get("onclick"):
+            del element["onclick"]
+    for element in soup.select("a[href], link[href]"):
+        if not _rewrite_reference(element, "href", page_url, page_path, path_by_url):
+            _point_to_source(element, page_url)
+    for element in soup.find_all(src=True):
+        if not _rewrite_reference(element, "src", page_url, page_path, path_by_url):
+            _drop_unavailable_resource(soup, element, page_url)
+
+
+def _point_to_source(element, page_url: str) -> None:
+    reference = element["href"]
+    if reference and not reference.startswith("#") and not urlparse(reference).scheme:
+        element["href"] = urljoin(page_url, reference)
+
+
+def _drop_unavailable_resource(soup: BeautifulSoup, element, page_url: str) -> None:
+    if urlparse(element["src"]).scheme == "data":
+        return
+    if element.name in {"img", "source", "script", "track"}:
+        element.decompose()
+        return
+    source_url = urljoin(page_url, element["src"])
+    link = soup.new_tag("a", href=source_url)
+    link.string = source_url
+    element.replace_with(link)
 
 
 def _rewrite_css_references(
@@ -387,15 +399,18 @@ def _rewrite_css_references(
 
 def _rewrite_reference(
     element, attribute: str, page_url: str, page_path: str, path_by_url: dict[str, str]
-) -> None:
+) -> bool:
+    if element[attribute].startswith("#"):
+        return True
     target_url, fragment = urldefrag(urljoin(page_url, element[attribute]))
     target_path = path_by_url.get(_canonical_url(target_url))
     if target_path is None:
-        return
+        return False
     relative = encode_url_path(
         posixpath.relpath(target_path, posixpath.dirname(page_path))
     )
     element[attribute] = f"{relative}#{fragment}" if fragment else relative
+    return True
 
 
 def _is_html_path(path: str) -> bool:

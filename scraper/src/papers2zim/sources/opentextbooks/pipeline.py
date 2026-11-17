@@ -1,8 +1,11 @@
 """Per-work processing for Open Textbook Library."""
 
+import mimetypes
+from collections.abc import Iterable
 from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import dataclass, field
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 import requests
 
@@ -78,42 +81,48 @@ class OpenTextbookLibraryPipeline(Pipeline):
             )
             return
         unsupported = work.extra.setdefault("unsupported_formats", [])
-        downloaded_formats = self._download_requested_formats(work, unsupported)
-
-        if downloaded_formats.html_edition is not None:
-            set_download_controls(
-                downloaded_formats.html_edition,
-                work,
-                list(downloaded_formats.binary_contents),
+        with TemporaryDirectory(prefix="otl-html-") as directory:
+            downloaded_formats = self._download_requested_formats(
+                work, unsupported, Path(directory)
             )
-            for path, content in downloaded_formats.html_edition.pages.items():
-                self.assembler.add_item_for(
-                    path=path,
-                    content=content,
-                    mimetype="text/html",
-                    is_front=False,
-                )
 
-        if downloaded_formats.downloaded:
-            if downloaded_formats.cover_future is not None:
-                page_cover = downloaded_formats.cover_future.result()
-                if page_cover is not None:
-                    downloaded_formats.cover_image = page_cover
-            if downloaded_formats.cover_image:
-                self.assembler.add_item_for(
-                    path=f"covers/{work.id}_cover_image.webp",
-                    content=downloaded_formats.cover_image,
-                    mimetype="image/webp",
-                    is_front=False,
+            if downloaded_formats.html_edition is not None:
+                set_download_controls(
+                    downloaded_formats.html_edition,
+                    work,
+                    list(downloaded_formats.binary_contents),
                 )
-                work.cover = Cover()
-                work.extra["has_cover"] = True
-            self.store.add(work)
-            self.add_book_search_item(work, self._index_contents(downloaded_formats))
-        else:
-            logger.warning(
-                f"OTL textbook #{work.id} has no downloadable requested format"
-            )
+                for path, fpath in downloaded_formats.html_edition.pages.items():
+                    content = fpath.read_bytes()
+                    self.assembler.add_item_for(
+                        path=path,
+                        content=content,
+                        mimetype=_edition_item_mimetype(path, content),
+                        is_front=False,
+                    )
+
+            if downloaded_formats.downloaded:
+                if downloaded_formats.cover_future is not None:
+                    page_cover = downloaded_formats.cover_future.result()
+                    if page_cover is not None:
+                        downloaded_formats.cover_image = page_cover
+                if downloaded_formats.cover_image:
+                    self.assembler.add_item_for(
+                        path=f"covers/{work.id}_cover_image.webp",
+                        content=downloaded_formats.cover_image,
+                        mimetype="image/webp",
+                        is_front=False,
+                    )
+                    work.cover = Cover()
+                    work.extra["has_cover"] = True
+                self.store.add(work)
+                self.add_book_search_item(
+                    work, self._index_contents(downloaded_formats)
+                )
+            else:
+                logger.warning(
+                    f"OTL textbook #{work.id} has no downloadable requested format"
+                )
 
     def _matches_requested_languages(self, work: Work) -> bool:
         """Whether a work satisfies the ``--languages`` filter.
@@ -137,27 +146,27 @@ class OpenTextbookLibraryPipeline(Pipeline):
     @staticmethod
     def _index_contents(
         downloaded_formats: _DownloadedFormats,
-    ) -> dict[str, bytes | list[bytes]]:
-        contents: dict[str, bytes | list[bytes]] = dict(
+    ) -> dict[str, bytes | Iterable[bytes]]:
+        contents: dict[str, bytes | Iterable[bytes]] = dict(
             downloaded_formats.binary_contents
         )
         if downloaded_formats.html_edition is not None:
-            contents["html"] = [
+            contents["html"] = (
                 content
-                for content in downloaded_formats.html_edition.pages.values()
-                if is_html_document(content)
-            ]
+                for fpath in downloaded_formats.html_edition.pages.values()
+                if is_html_document(content := fpath.read_bytes())
+            )
         return contents
 
     def _download_requested_formats(
-        self, work: Work, unsupported: list[str]
+        self, work: Work, unsupported: list[str], directory: Path
     ) -> _DownloadedFormats:
         """Download binary editions, using online HTML only as a fallback."""
         result = _DownloadedFormats()
         for format_name in sorted(
             self.formats, key=lambda format_name: format_name == "html"
         ):
-            self._download_format(work, format_name, unsupported, result)
+            self._download_format(work, format_name, unsupported, result, directory)
         return result
 
     def _download_format(
@@ -166,6 +175,7 @@ class OpenTextbookLibraryPipeline(Pipeline):
         format_name: str,
         unsupported: list[str],
         result: _DownloadedFormats,
+        directory: Path,
     ) -> None:
         if format_name == "html" and (result.html_downloaded or result.downloaded):
             if not result.html_downloaded:
@@ -182,7 +192,9 @@ class OpenTextbookLibraryPipeline(Pipeline):
             return
 
         if format_name == "html":
-            self._download_html_format(work, request.url, unsupported, result)
+            self._download_html_format(
+                work, request.url, unsupported, result, directory
+            )
         else:
             self._download_binary_format(
                 work, format_name, request.url, unsupported, result
@@ -194,8 +206,11 @@ class OpenTextbookLibraryPipeline(Pipeline):
         url: str,
         unsupported: list[str],
         result: _DownloadedFormats,
+        directory: Path,
     ) -> None:
-        edition = download_html_edition(self.engine, work, url, ["html"])
+        edition = download_html_edition(
+            self.engine, work, url, ["html"], directory=directory
+        )
         if edition is None:
             logger.warning(
                 "OTL textbook #%s has no complete offline HTML edition: %s",
@@ -275,3 +290,9 @@ class OpenTextbookLibraryPipeline(Pipeline):
         return future or self._cover_executor.submit(
             fetch_page_cover, self.engine, work.source_url
         )
+
+
+def _edition_item_mimetype(path: str, content: bytes) -> str | None:
+    if is_html_document(content):
+        return "text/html"
+    return mimetypes.guess_type(path, strict=False)[0]

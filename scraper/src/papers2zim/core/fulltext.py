@@ -6,7 +6,7 @@ search entry (see `core.exporters.search_items_exporter`) so a search hit lands
 on the book page, where the user picks the format to read.
 """
 
-from collections.abc import Collection, Sequence
+from collections.abc import Collection, Iterable
 
 from bs4 import BeautifulSoup
 from zimscraperlib.zim.indexing import get_epub_index_data, get_pdf_index_data
@@ -54,7 +54,7 @@ def html_text(html: str | bytes) -> str:
 
 def extract_index_text(
     format_name: str,
-    content: str | bytes | Sequence[str | bytes],
+    content: str | bytes | Iterable[str | bytes],
     context: str = "",
 ) -> str:
     """Plain text of a book file (or of all pages of an HTML book), "" on failure"""

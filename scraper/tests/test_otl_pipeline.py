@@ -1,14 +1,28 @@
 """Tests for OTL per-work processing."""
 
 from io import BytesIO
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 from zipfile import ZIP_STORED, ZipFile
 
+import pytest
+
+from papers2zim.core.fulltext import extract_index_text
 from papers2zim.core.models import Format, Work
 from papers2zim.core.ports import WorkRef
 from papers2zim.core.progress import ScraperProgress
 from papers2zim.core.work_store import WorkStore
+from papers2zim.sources.opentextbooks.html_mirror import HtmlEdition
 from papers2zim.sources.opentextbooks.pipeline import OpenTextbookLibraryPipeline
+
+
+def _edition(directory: Path, pages: dict[str, bytes]) -> HtmlEdition:
+    files = {}
+    for index, (path, content) in enumerate(pages.items()):
+        fpath = directory / str(index)
+        fpath.write_bytes(content)
+        files[path] = fpath
+    return HtmlEdition(pages=files)
 
 
 def _pipeline(
@@ -252,7 +266,7 @@ def test_process_ref_rejects_an_html_landing_page_at_a_pdf_url():
     fetch_cover.assert_not_called()
 
 
-def test_html_controls_only_receive_validated_binary_formats():
+def test_html_controls_only_receive_validated_binary_formats(tmp_path):
     work = Work(
         id="10",
         source="opentextbooks",
@@ -274,7 +288,7 @@ def test_html_controls_only_receive_validated_binary_formats():
     engine.fetch_bytes.return_value = b"<!doctype html><html></html>"
     assembler = MagicMock()
     pipeline = _pipeline(work, engine, assembler)
-    edition = MagicMock(pages={"Calculus.10": b"<!doctype html><html></html>"})
+    edition = _edition(tmp_path, {"Calculus.10": b"<!doctype html><html></html>"})
 
     with patch(
         "papers2zim.sources.opentextbooks.pipeline.download_html_edition",
@@ -289,10 +303,10 @@ def test_html_controls_only_receive_validated_binary_formats():
         ["html"],
     )
     assert work.extra["unsupported_formats"] == ["epub", "pdf"]
-    assert b"html-reader-btn-pdf" not in edition.pages["Calculus.10"]
+    assert b"html-reader-btn-pdf" not in edition.pages["Calculus.10"].read_bytes()
 
 
-def test_html_is_not_mirrored_when_a_binary_format_is_available_after_it():
+def test_html_is_not_mirrored_when_a_binary_format_is_available_after_it(tmp_path):
     work = Work(
         id="10",
         source="opentextbooks",
@@ -315,7 +329,7 @@ def test_html_is_not_mirrored_when_a_binary_format_is_available_after_it():
     assembler = MagicMock()
     pipeline = _pipeline(work, engine, assembler)
     pipeline.formats = ["html", "pdf"]
-    edition = MagicMock(pages={"Calculus.10": b"<!doctype html><html></html>"})
+    edition = _edition(tmp_path, {"Calculus.10": b"<!doctype html><html></html>"})
 
     with patch(
         "papers2zim.sources.opentextbooks.pipeline.download_html_edition",
@@ -391,7 +405,7 @@ def test_process_ref_indexes_the_downloaded_binary_formats():
     add_search_item.assert_called_once_with(work, {"pdf": b"%PDF-1.7 pdf bytes"})
 
 
-def test_process_ref_indexes_the_html_pages_of_a_mirrored_edition():
+def test_process_ref_indexes_the_html_pages_of_a_mirrored_edition(tmp_path):
     work = Work(
         id="10",
         source="opentextbooks",
@@ -406,7 +420,7 @@ def test_process_ref_indexes_the_html_pages_of_a_mirrored_edition():
     )
     pipeline = _pipeline(work, MagicMock(), MagicMock())
     page = b"<!doctype html><html><body>Limits</body></html>"
-    edition = MagicMock(pages={"Calculus.10": page, "style.css": b"p {}"})
+    edition = _edition(tmp_path, {"Calculus.10": page, "style.css": b"p {}"})
 
     with (
         patch(
@@ -430,3 +444,118 @@ def test_process_ref_does_not_index_a_work_without_any_download():
         pipeline.process_ref(WorkRef(id="10", source="opentextbooks"))
 
     add_search_item.assert_not_called()
+
+
+def test_process_ref_stores_mirrored_assets_under_their_own_mimetype(tmp_path):
+    work = Work(
+        id="10",
+        source="opentextbooks",
+        title="Calculus",
+        formats=[
+            Format(
+                name="Online",
+                media_type="text/html",
+                url="https://example.org/calculus/",
+            )
+        ],
+    )
+    assembler = MagicMock()
+    pipeline = _pipeline(work, MagicMock(), assembler)
+    page = b"<!doctype html><html><body>Limits</body></html>"
+    edition = _edition(
+        tmp_path,
+        {
+            "Calculus.10": page,
+            "html/10/assets/a.css": b"p {}",
+            "html/10/assets/b.js": b"var x;",
+            "html/10/assets/c.png.webp": b"RIFF",
+        },
+    )
+
+    with patch(
+        "papers2zim.sources.opentextbooks.pipeline.download_html_edition",
+        return_value=edition,
+    ):
+        pipeline.process_ref(WorkRef(id="10", source="opentextbooks"))
+
+    mimetypes = {
+        call.kwargs["path"]: call.kwargs["mimetype"]
+        for call in assembler.add_item_for.call_args_list
+    }
+    assert mimetypes == {
+        "Calculus.10": "text/html",
+        "html/10/assets/a.css": "text/css",
+        "html/10/assets/b.js": "text/javascript",
+        "html/10/assets/c.png.webp": "image/webp",
+    }
+
+
+@pytest.mark.parametrize(
+    "outcome", ["complete", "rejected", "download", "export", "index"]
+)
+def test_temporary_edition_storage_lives_through_indexing_and_is_cleaned(outcome):
+    work = Work(
+        id="10",
+        source="opentextbooks",
+        title="Calculus",
+        formats=[
+            Format(
+                name="Online",
+                media_type="text/html",
+                url="https://example.org/calculus/",
+            )
+        ],
+    )
+    assembler = MagicMock()
+    pipeline = _pipeline(work, MagicMock(), assembler)
+    directories = []
+
+    def mirror(_engine, _work, _url, _formats, *, directory):
+        directories.append(directory)
+        edition = _edition(
+            directory,
+            {
+                "Calculus.10": b"<html><body>First chapter</body></html>",
+                "html/10/last.html": b"<html><body>Last chapter</body></html>",
+                "html/10/assets/style.css": b"p {}",
+            },
+        )
+        if outcome == "download":
+            raise OSError("download failed")
+        return None if outcome == "rejected" else edition
+
+    def index(_work, contents):
+        assert directories[0].is_dir()
+        assert not isinstance(contents["html"], list)
+        text = extract_index_text("html", contents["html"])
+        assert "First chapter" in text
+        assert "Last chapter" in text
+        assert "p {}" not in text
+        if outcome == "index":
+            raise OSError("index failed")
+
+    index_mock = MagicMock(side_effect=index)
+    pipeline.add_book_search_item = index_mock
+    if outcome == "export":
+        assembler.add_item_for.side_effect = OSError("export failed")
+    with patch(
+        "papers2zim.sources.opentextbooks.pipeline.download_html_edition",
+        side_effect=mirror,
+    ):
+        if outcome in {"download", "export", "index"}:
+            with pytest.raises(OSError, match=f"{outcome} failed"):
+                pipeline.process_ref(WorkRef(id="10", source="opentextbooks"))
+        else:
+            pipeline.process_ref(WorkRef(id="10", source="opentextbooks"))
+
+    assert len(directories) == 1
+    assert not directories[0].exists()
+    if outcome == "complete":
+        index_mock.assert_called_once()
+        assert len(assembler.add_item_for.call_args_list) == 3
+        assert all(
+            isinstance(call.kwargs["content"], bytes)
+            for call in assembler.add_item_for.call_args_list
+        )
+    elif outcome == "rejected":
+        assembler.add_item_for.assert_not_called()
