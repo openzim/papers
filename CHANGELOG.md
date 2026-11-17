@@ -8,6 +8,10 @@ as of 2.0.0.
 
 ## [Unreleased]
 
+### Fixed
+
+- Wikisource: allow five minutes instead of ten seconds for ws-export responses, so slow OPDS and book exports are not prematurely timed out; other sources keep their existing timeout (#209)
+
 ## [1.3.0] - 2026-11-17
 
 ### Added

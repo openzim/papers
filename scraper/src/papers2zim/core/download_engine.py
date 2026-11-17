@@ -168,17 +168,18 @@ class DownloadEngine:
         return self._cache_dir is not None
 
     def fetch_bytes(
-        self, url: str, headers: dict[str, str | None] | None = None
+        self,
+        url: str,
+        headers: dict[str, str | None] | None = None,
+        *,
+        timeout: int | None = None,
     ) -> bytes:
-        """GET `url` (with optional `headers`) and return its full content.
-
-        Uses this engine's per-thread session, timeout and retry budget.
-        """
+        """Fetch bytes with this engine's settings and an optional timeout override."""
         logger.debug(f"Fetching {url}...")
         return fetch_bytes_with_retry(
             url,
             session=self._get_session(),
-            timeout=self._timeout,
+            timeout=self._timeout if timeout is None else timeout,
             max_retry_time=self._max_retry_time,
             headers=headers,
         )
