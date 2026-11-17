@@ -430,3 +430,46 @@ def test_process_ref_does_not_index_a_work_without_any_download():
         pipeline.process_ref(WorkRef(id="10", source="opentextbooks"))
 
     add_search_item.assert_not_called()
+
+
+def test_process_ref_stores_mirrored_assets_under_their_own_mimetype():
+    work = Work(
+        id="10",
+        source="opentextbooks",
+        title="Calculus",
+        formats=[
+            Format(
+                name="Online",
+                media_type="text/html",
+                url="https://example.org/calculus/",
+            )
+        ],
+    )
+    assembler = MagicMock()
+    pipeline = _pipeline(work, MagicMock(), assembler)
+    page = b"<!doctype html><html><body>Limits</body></html>"
+    edition = MagicMock(
+        pages={
+            "Calculus.10": page,
+            "html/10/assets/a.css": b"p {}",
+            "html/10/assets/b.js": b"var x;",
+            "html/10/assets/c.png.webp": b"RIFF",
+        }
+    )
+
+    with patch(
+        "papers2zim.sources.opentextbooks.pipeline.download_html_edition",
+        return_value=edition,
+    ):
+        pipeline.process_ref(WorkRef(id="10", source="opentextbooks"))
+
+    mimetypes = {
+        call.kwargs["path"]: call.kwargs["mimetype"]
+        for call in assembler.add_item_for.call_args_list
+    }
+    assert mimetypes == {
+        "Calculus.10": "text/html",
+        "html/10/assets/a.css": "text/css",
+        "html/10/assets/b.js": "text/javascript",
+        "html/10/assets/c.png.webp": "image/webp",
+    }

@@ -1,5 +1,6 @@
 """Per-work processing for Open Textbook Library."""
 
+import mimetypes
 from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -90,7 +91,7 @@ class OpenTextbookLibraryPipeline(Pipeline):
                 self.assembler.add_item_for(
                     path=path,
                     content=content,
-                    mimetype="text/html",
+                    mimetype=_edition_item_mimetype(path, content),
                     is_front=False,
                 )
 
@@ -275,3 +276,9 @@ class OpenTextbookLibraryPipeline(Pipeline):
         return future or self._cover_executor.submit(
             fetch_page_cover, self.engine, work.source_url
         )
+
+
+def _edition_item_mimetype(path: str, content: bytes) -> str | None:
+    if is_html_document(content):
+        return "text/html"
+    return mimetypes.guess_type(path, strict=False)[0]

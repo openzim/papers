@@ -2,6 +2,8 @@
 
 from base64 import b64decode
 
+import requests
+
 from papers2zim.core.models import Format, Work
 from papers2zim.sources.opentextbooks.html_mirror import download_html_edition
 
@@ -11,11 +13,45 @@ class StubEngine:
         self.pages = pages
 
     def fetch_bytes(self, url: str) -> bytes:
+        if url not in self.pages:
+            raise requests.HTTPError(f"404 for {url}")
         return self.pages[url]
 
 
 def _work() -> Work:
     return Work(id="10", source="opentextbooks", title="Calculus")
+
+
+PNG = b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/"
+    "9K3jKQAAAABJRU5ErkJggg=="
+)
+ROOT_URL = "https://books.example.edu/calculus/"
+CHAPTER_URL = "https://books.example.edu/calculus/chapter.html"
+
+
+def _mirror(chapter_body: bytes, **extra_pages: bytes) -> dict[str, bytes]:
+    root = (
+        b"<!doctype html><html><body>"
+        + b"x" * 600
+        + b'<a href="chapter.html">Chapter</a></body></html>'
+    )
+    chapter = b"<!doctype html><html><body>" + b"y" * 700 + chapter_body
+    chapter += b"</body></html>"
+    pages = {ROOT_URL: root, CHAPTER_URL: chapter}
+    for name, content in extra_pages.items():
+        pages[f"{ROOT_URL}{name}"] = content
+    edition = download_html_edition(StubEngine(pages), _work(), ROOT_URL, ["html"])
+    assert edition is not None
+    return edition.pages
+
+
+def _chapter_html(pages: dict[str, bytes]) -> bytes:
+    return next(
+        content
+        for path, content in pages.items()
+        if path.startswith("html/10/") and "/assets/" not in path
+    )
 
 
 def test_mirrors_linked_chapters_and_rewrites_navigation():
@@ -196,3 +232,87 @@ def test_keeps_original_asset_path_when_webp_conversion_fails(monkeypatch):
     assert edition is not None
     assert b'.png"' in edition.pages["Calculus.10"]
     assert b".webp" not in edition.pages["Calculus.10"]
+
+
+def test_mirrors_scripts_and_rewrites_them_relative_to_each_page():
+    pages = _mirror(
+        b'<script src="shared/book.js"></script>',
+        **{"shared/book.js": b"function replaceIframe() {}"},
+    )
+
+    (script_path,) = [path for path in pages if path.endswith(".js")]
+    assert pages[script_path] == b"function replaceIframe() {}"
+    script_name = script_path.removeprefix("html/10/")
+    assert f'src="{script_name}"'.encode() in _chapter_html(pages)
+
+
+def test_points_links_to_pages_left_out_of_the_zim_back_to_the_source():
+    chapter = _chapter_html(
+        _mirror(
+            b'<a href="missing.html">Gone</a>'
+            b'<a href="larson-ch01#larson-ch01">Chapter 1</a>'
+            b'<a href="/coulston">Author</a>'
+            b'<a href="#section-2">Below</a>'
+        )
+    )
+
+    assert b'href="https://books.example.edu/calculus/missing.html"' in chapter
+    assert (
+        b'href="https://books.example.edu/calculus/larson-ch01#larson-ch01"' in chapter
+    )
+    assert b'href="https://books.example.edu/coulston"' in chapter
+    assert b'href="#section-2"' in chapter
+
+
+def test_drops_images_and_scripts_that_could_not_be_stored_offline():
+    chapter = _chapter_html(
+        _mirror(
+            b'<img src="figures/missing.png" alt="lost">'
+            b'<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js'
+            b'?config=MML_HTMLorMML"></script>'
+            b'<img src="data:image/png;base64,AAAA" alt="inline">'
+        )
+    )
+
+    assert b"missing.png" not in chapter
+    assert b"mathjax" not in chapter
+    assert b'src="data:image/png;base64,AAAA"' in chapter
+
+
+def test_mirrors_images_hosted_outside_the_edition():
+    image_url = "https://upload.wikimedia.org/commons/figure.png"
+    root = (
+        b"<!doctype html><html><body>"
+        + b"x" * 600
+        + b'<a href="chapter.html">Chapter</a>'
+        + f'<img src="{image_url}"></body></html>'.encode()
+    )
+    chapter = b"<!doctype html><html><body>" + b"y" * 700 + b"</body></html>"
+
+    edition = download_html_edition(
+        StubEngine({ROOT_URL: root, CHAPTER_URL: chapter, image_url: PNG}),
+        _work(),
+        ROOT_URL,
+        ["html"],
+    )
+
+    assert edition is not None
+    assert image_url.encode() not in edition.pages["Calculus.10"]
+    assert b'src="html/10/assets/' in edition.pages["Calculus.10"]
+
+
+def test_replaces_online_only_embeds_with_links_to_them():
+    chapter = _chapter_html(
+        _mirror(
+            b'<iframe src="https://www.youtube.com/embed/abc"></iframe>'
+            b'<a data-iframe-code=\'&lt;iframe src="http://www.youtube.com/v/xyz"'
+            b'&gt;&lt;/iframe&gt;\' href="http://www.youtube.com/v/xyz"'
+            b' onclick="return replaceIframe(this)">(click to see video)</a>'
+        )
+    )
+
+    assert b"<iframe" not in chapter
+    assert b'<a href="https://www.youtube.com/embed/abc">' in chapter
+    assert b"data-iframe-code" not in chapter
+    assert b"onclick" not in chapter
+    assert b'href="http://www.youtube.com/v/xyz"' in chapter

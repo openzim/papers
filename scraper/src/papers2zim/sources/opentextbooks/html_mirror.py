@@ -84,8 +84,10 @@ def download_html_edition(
 
     A response to a PDF/EPUB URL is never considered an HTML edition.  This
     function only processes the source's explicitly declared ``Online`` URL.
-    It follows HTML pages, stylesheets and images within that edition's URL
-    directory and rewrites their references to offline ZIM counterparts.
+    It follows HTML pages, stylesheets and scripts within that edition's URL
+    directory, plus the images its pages display, and rewrites their references
+    to offline ZIM counterparts.  References to anything left out of the ZIM
+    point back to the source site instead of dangling.
     """
     root_url = _canonical_url(url)
     root = urlparse(root_url)
@@ -105,6 +107,11 @@ def download_html_edition(
         return None
 
     asset_content_by_url = _download_assets(context, asset_urls)
+    context.path_by_url = {
+        url: path
+        for url, path in context.path_by_url.items()
+        if url in content_by_url or url in asset_content_by_url
+    }
     output_assets = _prepare_assets(context, asset_content_by_url)
     return HtmlEdition(
         pages=_render_edition(context, content_by_url, output_assets, formats)
@@ -304,7 +311,7 @@ def _discover_html_assets(
 ) -> None:
     for element, attribute in (
         *[(link, "href") for link in soup.select("link[href]")],
-        *[(image, "src") for image in soup.select("img[src], source[src]")],
+        *[(script, "src") for script in soup.select("script[src]")],
     ):
         reference = element.get(attribute)
         if not isinstance(reference, str):
@@ -312,6 +319,13 @@ def _discover_html_assets(
         asset_url = _internal_asset_url(page_url, reference, root, root_directory)
         if asset_url is not None:
             _queue_asset(asset_url, path_by_url, asset_urls, work)
+    for image in soup.select("img[src], source[src]"):
+        reference = image.get("src")
+        if not isinstance(reference, str):
+            continue
+        image_url = _web_url(page_url, reference)
+        if image_url is not None:
+            _queue_asset(image_url, path_by_url, asset_urls, work)
 
 
 def _discover_css_assets(
@@ -344,13 +358,18 @@ def _queue_asset(
 def _internal_asset_url(
     page_url: str, reference: str, root, root_directory: str
 ) -> str | None:
+    asset_url = _web_url(page_url, reference)
+    if asset_url is None:
+        return None
+    target = urlparse(asset_url)
+    if target.netloc != root.netloc or not target.path.startswith(root_directory):
+        return None
+    return asset_url
+
+
+def _web_url(page_url: str, reference: str) -> str | None:
     target_url, _ = urldefrag(urljoin(page_url, reference))
-    target = urlparse(target_url)
-    if (
-        target.scheme not in {"http", "https"}
-        or target.netloc != root.netloc
-        or not target.path.startswith(root_directory)
-    ):
+    if urlparse(target_url).scheme not in {"http", "https"}:
         return None
     return _canonical_url(target_url)
 
@@ -358,11 +377,34 @@ def _internal_asset_url(
 def _rewrite_html_references(
     soup: BeautifulSoup, page_url: str, page_path: str, path_by_url: dict[str, str]
 ) -> None:
-    for element, attribute in (
-        *[(link, "href") for link in soup.select("a[href], link[href]")],
-        *[(image, "src") for image in soup.select("img[src], source[src]")],
-    ):
-        _rewrite_reference(element, attribute, page_url, page_path, path_by_url)
+    for element in soup.select("[data-iframe-code]"):
+        del element["data-iframe-code"]
+        if element.get("onclick"):
+            del element["onclick"]
+    for element in soup.select("a[href], link[href]"):
+        if not _rewrite_reference(element, "href", page_url, page_path, path_by_url):
+            _point_to_source(element, page_url)
+    for element in soup.find_all(src=True):
+        if not _rewrite_reference(element, "src", page_url, page_path, path_by_url):
+            _drop_unavailable_resource(soup, element, page_url)
+
+
+def _point_to_source(element, page_url: str) -> None:
+    reference = element["href"]
+    if reference and not reference.startswith("#") and not urlparse(reference).scheme:
+        element["href"] = urljoin(page_url, reference)
+
+
+def _drop_unavailable_resource(soup: BeautifulSoup, element, page_url: str) -> None:
+    if urlparse(element["src"]).scheme == "data":
+        return
+    if element.name in {"img", "source", "script", "track"}:
+        element.decompose()
+        return
+    source_url = urljoin(page_url, element["src"])
+    link = soup.new_tag("a", href=source_url)
+    link.string = source_url
+    element.replace_with(link)
 
 
 def _rewrite_css_references(
@@ -387,15 +429,18 @@ def _rewrite_css_references(
 
 def _rewrite_reference(
     element, attribute: str, page_url: str, page_path: str, path_by_url: dict[str, str]
-) -> None:
+) -> bool:
+    if element[attribute].startswith("#"):
+        return True
     target_url, fragment = urldefrag(urljoin(page_url, element[attribute]))
     target_path = path_by_url.get(_canonical_url(target_url))
     if target_path is None:
-        return
+        return False
     relative = encode_url_path(
         posixpath.relpath(target_path, posixpath.dirname(page_path))
     )
     element[attribute] = f"{relative}#{fragment}" if fragment else relative
+    return True
 
 
 def _is_html_path(path: str) -> bool:
