@@ -10,6 +10,7 @@ import hashlib
 import io
 import threading
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass
 from http import HTTPStatus
 from pathlib import Path
@@ -25,7 +26,14 @@ from papers2zim.constants import (
     USER_AGENT,
     logger,
 )
+from papers2zim.core.host_limiter import (
+    RATE_LIMIT_STATUS_CODES,
+    HostLimiter,
+    retry_after_seconds,
+)
 from papers2zim.core.ports import DownloadRequest
+
+MAX_RATE_LIMIT_RETRIES = 5
 
 
 @dataclass(frozen=True, slots=True)
@@ -34,6 +42,42 @@ class DownloadResult:
     path: Path
     size: int
     from_cache: bool
+
+
+class RateLimitError(Exception):
+    """Retry signal carrying the HTTP error that triggered a host cooldown."""
+
+    def __init__(self, cause: requests.HTTPError) -> None:
+        super().__init__(str(cause))
+        self.cause = cause
+
+
+def _raise_if_rate_limited(
+    response: requests.Response, url: str, limiter: HostLimiter
+) -> None:
+    """Tell every worker to back off when a host asks us to slow down."""
+    if response.status_code in RATE_LIMIT_STATUS_CODES:
+        limiter.throttle(url, retry_after_seconds(response))
+        try:
+            response.raise_for_status()
+        except requests.HTTPError as exc:
+            raise RateLimitError(exc) from exc
+
+
+def _with_rate_limit_retries[T](attempt: Callable[[], T]) -> T:
+    """Retry after shared host cooldowns, which backoff's own wait ignores.
+
+    `RateLimitError` is deliberately not a `RequestException`: the backoff
+    decorator lets it through untouched, and this loop retries the whole
+    decorated attempt once the limiter says the host is available again.
+    """
+    for retry in range(MAX_RATE_LIMIT_RETRIES + 1):
+        try:
+            return attempt()
+        except RateLimitError as exc:
+            if retry == MAX_RATE_LIMIT_RETRIES:
+                raise exc.cause from exc
+    raise AssertionError("unreachable: rate-limit retries always return or raise")
 
 
 def is_fatal_http_error(exc: Exception) -> bool:
@@ -54,13 +98,18 @@ def fetch_bytes_with_retry(
     timeout: int = DEFAULT_HTTP_TIMEOUT,
     max_retry_time: int = 30,
     headers: dict[str, str | None] | None = None,
+    limiter: HostLimiter | None = None,
 ) -> bytes:
     """GET `url` and return its full content, retrying transient errors.
 
     Retry lives at the individual-download level: transient network errors
     are retried with exponential backoff, while fatal HTTP errors (4xx
-    except 429) give up immediately by raising.
+    except 429) give up immediately by raising. Rate limits (429/503) pause
+    every worker in `limiter` and are retried outside the backoff budget.
+    A fresh limiter is used when none is supplied; a `DownloadEngine` passes
+    its own so all of its workers share the same per-host cooldowns.
     """
+    limiter = limiter if limiter is not None else HostLimiter()
     get = session.get if session is not None else requests.get
 
     # logger=None: backoff's own "giving up" messages would fire at ERROR
@@ -74,6 +123,7 @@ def fetch_bytes_with_retry(
         logger=None,
     )
     def _attempt() -> bytes:
+        limiter.wait(url)
         merged_headers = dict(headers) if headers else {}
         # Default User-Agent for session-less downloads (sessions set it too,
         # see _get_session) so every request identifies the caller
@@ -87,6 +137,7 @@ def fetch_bytes_with_retry(
             name: value for name, value in merged_headers.items() if value is not None
         }
         with get(url, stream=True, timeout=timeout, headers=send_headers) as response:
+            _raise_if_rate_limited(response, url, limiter)
             response.raise_for_status()
             content = io.BytesIO()
             for chunk in response.iter_content(chunk_size=DL_CHUNCK_SIZE):
@@ -94,7 +145,9 @@ def fetch_bytes_with_retry(
                     content.write(chunk)
             return content.getvalue()
 
-    return _attempt()
+    content = _with_rate_limit_retries(_attempt)
+    limiter.succeeded(url)
+    return content
 
 
 class DownloadEngine:
@@ -126,6 +179,7 @@ class DownloadEngine:
         # release their connection pools at the end of the run
         self._sessions: list[requests.Session] = []
         self._sessions_lock = threading.Lock()
+        self.limiter = HostLimiter()
         self._timeout = timeout
         self._max_retry_time = max_retry_time
 
@@ -181,6 +235,7 @@ class DownloadEngine:
             timeout=self._timeout,
             max_retry_time=self._max_retry_time,
             headers=headers,
+            limiter=self.limiter,
         )
 
     def content_type(self, url: str) -> str | None:
@@ -243,9 +298,11 @@ class DownloadEngine:
             logger=logger,
         )
         def _attempt():
+            self.limiter.wait(url)
             with self._get_session().get(
                 url, stream=True, timeout=self._timeout
             ) as response:
+                _raise_if_rate_limited(response, url, self.limiter)
                 response.raise_for_status()
                 target.parent.mkdir(parents=True, exist_ok=True)
                 # Unique tmp name: concurrent downloads of the same URL must not collide
@@ -257,4 +314,5 @@ class DownloadEngine:
                             fh.write(chunk)
                 tmp_path.replace(target)
 
-        _attempt()
+        _with_rate_limit_retries(_attempt)
+        self.limiter.succeeded(url)

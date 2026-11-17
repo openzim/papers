@@ -8,9 +8,11 @@ import requests
 from requests.adapters import HTTPAdapter
 
 from papers2zim.core.download_engine import (
+    MAX_RATE_LIMIT_RETRIES,
     DownloadEngine,
     fetch_bytes_with_retry,
 )
+from papers2zim.core.host_limiter import HostLimiter
 from papers2zim.core.ports import DownloadRequest
 
 URL = "https://example.org/books/12345.epub"
@@ -210,3 +212,103 @@ def test_fetch_bytes_none_user_agent_is_passed_through(session):
 
     merged = session.get.call_args.kwargs["headers"]
     assert "User-Agent" not in merged
+
+
+def _rate_limited_response(status: int, retry_after: str | None) -> MagicMock:
+    resp = _streaming_response([])
+    resp.status_code = status
+    resp.headers = {} if retry_after is None else {"Retry-After": retry_after}
+    error = requests.HTTPError(f"{status} error")
+    error.response = resp
+    resp.raise_for_status.side_effect = error
+    return resp
+
+
+def _fake_clock():
+    now = 1000.0
+    sleeps: list[float] = []
+
+    def clock():
+        return now
+
+    def sleep(seconds):
+        nonlocal now
+        sleeps.append(seconds)
+        now += seconds
+
+    return clock, sleep, sleeps
+
+
+def test_fetch_bytes_retries_429(session):
+    session.get.side_effect = [
+        _rate_limited_response(429, "0"),
+        _streaming_response([b"after", b"-throttle"]),
+    ]
+
+    content = fetch_bytes_with_retry(URL, session=session)
+
+    assert content == b"after-throttle"
+    assert session.get.call_count == 2
+
+
+def test_fetch_bytes_honors_a_shared_retry_after_cooldown(session):
+    clock, sleep, sleeps = _fake_clock()
+    limiter = HostLimiter(clock=clock, sleep=sleep)
+    session.get.side_effect = [
+        _rate_limited_response(429, "30"),
+        _streaming_response([b"ok"]),
+    ]
+
+    content = fetch_bytes_with_retry(URL, session=session, limiter=limiter)
+
+    assert content == b"ok"
+    assert sleeps == [30]
+
+
+def test_fetch_bytes_retries_503_without_a_retry_after_header(session):
+    clock, sleep, sleeps = _fake_clock()
+    limiter = HostLimiter(clock=clock, sleep=sleep)
+    session.get.side_effect = [
+        _rate_limited_response(503, None),
+        _streaming_response([b"ok"]),
+    ]
+
+    assert fetch_bytes_with_retry(URL, session=session, limiter=limiter) == b"ok"
+    assert sleeps == [1]
+
+
+def test_fetch_bytes_stops_after_too_many_rate_limits(session):
+    session.get.return_value = _rate_limited_response(429, "0")
+
+    with pytest.raises(requests.HTTPError) as exc_info:
+        fetch_bytes_with_retry(URL, session=session)
+
+    assert exc_info.value.response is not None
+    assert exc_info.value.response.status_code == 429
+    assert session.get.call_count == MAX_RATE_LIMIT_RETRIES + 1
+
+
+def test_engine_shares_one_limiter_between_fetch_and_download(engine, session):
+    clock, sleep, sleeps = _fake_clock()
+    engine.limiter = HostLimiter(clock=clock, sleep=sleep)
+    session.get.side_effect = [
+        _rate_limited_response(429, "12"),
+        _streaming_response([b"downloaded"]),
+    ]
+
+    result = engine.download(DownloadRequest(url=URL, format_name="epub"))
+
+    assert result.path.read_bytes() == b"downloaded"
+    assert sleeps == [12]
+
+
+def test_engine_fetch_bytes_uses_its_shared_limiter(engine, session):
+    clock, sleep, sleeps = _fake_clock()
+    engine.limiter = HostLimiter(clock=clock, sleep=sleep)
+    session.get.side_effect = [
+        _rate_limited_response(429, "20"),
+        _streaming_response([b"metadata"]),
+    ]
+
+    assert engine.fetch_bytes(URL) == b"metadata"
+    assert sleeps == [20]

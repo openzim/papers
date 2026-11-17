@@ -50,16 +50,22 @@ from papers2zim.core.zim_assembler import ZimAssembler
 NB_FLAMES = 3
 
 
-def compute_flame_ratings(store: WorkStore) -> None:
+def compute_flame_ratings(store: WorkStore, *, attempted: int | None = None) -> None:
     """Bucket each work's popularity score into zero to three flames."""
     logger.info("Computing book flame ratings")
     all_works = store.works
 
     # Check if any works were successfully processed.
     if not all_works:
-        logger.error("No books were successfully processed")
+        detail = f" (0 of {attempted} attempted)" if attempted else ""
+        logger.error(
+            "No books were successfully processed%s; see the per-book errors "
+            "above (a source rate-limiting requests is one possible cause)",
+            detail,
+        )
         raise RuntimeError(
-            "All books failed to process. Cannot create ZIM without any content."
+            f"All books failed to process{detail}. "
+            "Cannot create ZIM without any content."
         )
 
     works_with_scores = sorted(
@@ -173,9 +179,9 @@ class Pipeline(ABC):
                     break
         export_book_search_item(work, index_text, self.assembler)
 
-    def compute_flames(self) -> None:
+    def compute_flames(self, *, attempted: int | None = None) -> None:
         """Compute flame ratings after all works are processed."""
-        compute_flame_ratings(self.store)
+        compute_flame_ratings(self.store, attempted=attempted)
 
     def enrich_authors(self) -> None:
         """Optional post-processing hook to enrich author metadata before export.
@@ -231,9 +237,24 @@ class Pipeline(ABC):
                 )
             self.progress.increase_progress()
 
+        already_processed = len(self.store.works)
         parallel_map(process_one, refs, self.concurrency)
 
-        self.compute_flames()
+        succeeded = len(self.store.works) - already_processed
+        failed = len(refs) - succeeded
+        self.progress.set_book_totals(attempted=len(refs), succeeded=succeeded)
+        if failed:
+            logger.warning(
+                "Books processed: %s succeeded, %s failed out of %s attempted; "
+                "see the per-book errors above",
+                succeeded,
+                failed,
+                len(refs),
+            )
+        else:
+            logger.info("Books processed: %s succeeded", succeeded)
+
+        self.compute_flames(attempted=len(refs))
         self.enrich_authors()
         self.enrich_descriptions()
 
