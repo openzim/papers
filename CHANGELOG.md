@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 as of 2.0.0.
 
-## [Unreleased]
+## [1.3.0] - 2026-11-17
 
 ### Added
 
@@ -14,14 +14,14 @@ as of 2.0.0.
 
 ### Changed
 
-- Add a shared OPDS layer (`core/opds.py` and `core/opds_source.py`) for feed parsing, self-contained `OpdsBook` mapping, metadata, format resolution, and per-work processing, then reuse it in the Bibliothèque numérique romande and Littérature jeunesse libre sources (#197)
+- Add a shared OPDS layer (`core/opds.py` and `core/opds_source.py`) for feed parsing, self-contained `OpdsBook` mapping, metadata, format resolution, and per-work processing, then reuse it in the Bibliothèque numérique romande and Littérature jeunesse libre sources (#173)
 
 ### Fixed
 
 - Open Textbook Library: remove the 300-page, 500-asset and 64 MiB truncation limits and mirror online editions in temporary disk storage; mirror scripts and images, preserve their MIME types, and fix dangling links and online-only dependencies (#206)
-- `papers2zim-validate-i18n`: require every registered source to provide a locale namespace with `metadata_defaults.title` and `metadata_defaults.description`, catching a missing source namespace before it turns into a failed ZIM build
+- `papers2zim-validate-i18n`: require every registered source to provide a locale namespace with `metadata_defaults.title` and `metadata_defaults.description`, catching a missing source namespace before it turns into a failed ZIM build (#202)
 - Wikisource: download the editions ws-export serves instead of stopping with an error when a requested format is one it does not serve (`pdf`, so every run with the default `--formats all`), aligning with the other sources offering a restricted list of formats (#201)
-- Zimfarm recipe schema: relax the BNR/LJL filter fields (`bnr_series`/`bnr_authors`/`bnr_categories`/`bnr_titles`, `ljl_series`/`ljl_authors`/`ljl_categories`/`ljl_titles`) from "exactly one must be set" to "at most one", which was wrongly rejecting every recipe that doesn't use the BNR/LJL sources, Gutenberg included ([openzim/zimfarm#2106](https://github.com/openzim/zimfarm/issues/2106))
+- Zimfarm recipe schema: relax the BNR/LJL filter fields (`bnr_series`/`bnr_authors`/`bnr_categories`/`bnr_titles`, `ljl_series`/`ljl_authors`/`ljl_categories`/`ljl_titles`) from "exactly one must be set" to "at most one", which was wrongly rejecting every recipe that doesn't use the BNR/LJL sources, Gutenberg included (#199, [openzim/zimfarm#2106](https://github.com/openzim/zimfarm/issues/2106))
 
 ## [1.2.0] - 2026-11-13
 
