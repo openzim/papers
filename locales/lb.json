@@ -210,5 +210,10 @@
 			"createdBy": "Ugeluecht vum",
 			"kiwix": "Kiwix"
 		}
+	},
+	"usaiddec": {
+		"footer": {
+			"kiwix": "Kiwix"
+		}
 	}
 }

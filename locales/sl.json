@@ -205,5 +205,55 @@
 			"PT": "Nemška, nizozemska, flamska, afrikanska, skandinavska, staronordijska, staroislandska, staronorveška, moderna islandska, ferska, danska, norveška in švedska književnost",
 			"PZ": "Leposlovje in beletristika za mlade"
 		}
+	},
+	"usaiddec": {
+		"about": {
+			"attribution": "Metapodatke poročil in PDF-je zagotavlja arhiv USAID DEC organizacije AidData.",
+			"introHeading": "O USAID DEC Archive",
+			"introParagraph1": "Arhiv USAID Development Experience Clearinghouse (DEC) hrani poročila o evalvaciji razvojnih programov, ki jih financira USAID.",
+			"introParagraph2": "AidDta vzdržuje arhiv in zagotavlja metapodatke poročil ter dokumente PDF, ki jih uporablja ta knjižnica.",
+			"introParagraph3": "Poročila pokrivajo sektorje, kot so zdravstvo, izobraževanje, kmetijstvo, uparvljanje in gospodarska rast v številnih državah.",
+			"introParagraph4": "Ta knjižnica omogoča branje teh poročil brez povezave.",
+			"missionAuthor": "AidData",
+			"missionHeading": "Ohranjanje razvojnega znanja",
+			"missionParagraph1": "Arhiv obstaja zato, da so poročila o evalvacijah USAID dostopna raziskovalcem, strokovnjakom in javnosti.",
+			"missionParagraph2": "Poročila o evalvaciji dokumentirajo, kaj je delovalo, kaj ne in kaj se lahko naučimo za prihodnje programe.",
+			"missionParagraph3": "Z zagotavljanjem dostopnosti poročil tudi brez internetne povezave to znanje ostaja na voljo bralcem po svetu.",
+			"missionParagraph4": "Odprt dostop do teh poročil podpira učenje in odgovornost v mednarodnem razvoju."
+		},
+		"metadata_defaults": {
+			"title": "Arhiv USAID DEC",
+			"description": "Poročila o evalvaciji USAID, ki jih hrani AidData"
+		},
+		"nav": {
+			"collections": "Teme"
+		},
+		"home": {
+			"allCollections": "Vse teme",
+			"mostPopular": "Najbolj priljubljeno",
+			"popularCollections": "Priljubljene teme"
+		},
+		"collection": {
+			"booksIn": "Poročila v {collection}",
+			"allCollections": "Vse teme"
+		},
+		"messages": {
+			"noBooks": "Ni najdenih poročil.",
+			"noBooksInCollection": "V tej temi ni na voljo nobenih poročil",
+			"noCollections": "Ni najdenih tem.",
+			"notFoundCollection": "Tema ni najdena. Tema, ki jo iščete, ne obstaja ali je bila odstranjena."
+		},
+		"itemTypes": {
+			"collections": "tema | teme"
+		},
+		"book": {
+			"collection": "Zadeva",
+			"sameCollectionBooks": "Poročila v isti temi"
+		},
+		"footer": {
+			"createdBy": "Ustvaril",
+			"packagedBy": "Zapakiral",
+			"kiwix": "Kiwix"
+		}
 	}
 }

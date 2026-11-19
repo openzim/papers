@@ -43,6 +43,7 @@
 			"anonymous": "익명",
 			"various": "여러 가지",
 			"download": "다운로드",
+			"sameCollectionBooks": "같은 모음집에 있는 책",
 			"view": "보기"
 		},
 		"author": {
@@ -51,9 +52,11 @@
 			"wikipediaSource": "출처: 위키백과"
 		},
 		"collection": {
+			"booksIn": "{collection}에 있는 책",
 			"allCollections": "모든 모음집"
 		},
 		"licenses": {
+			"termBy": "저작자표시",
 			"termSeparator": "-",
 			"ccName": "크리에이티브 커먼즈 {terms} {version}",
 			"ccNameUnversioned": "크리에이티브 커먼즈 {terms}",
@@ -167,6 +170,11 @@
 		},
 		"book": {
 			"collection": "분류"
+		},
+		"footer": {
+			"createdBy": "작성자",
+			"packagedBy": "패키지화",
+			"kiwix": "키윅스"
 		}
 	},
 	"gutenberg": {
@@ -224,6 +232,7 @@
 		"collections": {
 			"A": "일반 작품",
 			"B": "철학, 심리학, 종교",
+			"CDEF": "역사",
 			"C": "보조 역사 과학",
 			"D": "유럽, 아시아, 아프리카, 호주, 뉴질랜드 등의 세계사와 역사",
 			"E": "아메리카의 역사",
@@ -263,6 +272,13 @@
 			"PZ": "픽션과 청소년 문학"
 		}
 	},
+	"opentextbooks": {
+		"footer": {
+			"createdBy": "작성자",
+			"packagedBy": "패키지화",
+			"kiwix": "키윅스"
+		}
+	},
 	"wikisource": {
 		"home": {
 			"allCollections": "모든 모음집"
@@ -273,6 +289,32 @@
 		"book": {
 			"collection": "모음집"
 		},
+		"footer": {
+			"createdBy": "작성자",
+			"packagedBy": "패키지화",
+			"kiwix": "키윅스"
+		}
+	},
+	"onemorelibrary": {
+		"nav": {
+			"collections": "분류"
+		},
+		"home": {
+			"allCollections": "모든 분류"
+		},
+		"collection": {
+			"allCollections": "모든 분류"
+		},
+		"book": {
+			"collection": "분류"
+		},
+		"footer": {
+			"createdBy": "작성자",
+			"packagedBy": "패키지화",
+			"kiwix": "키윅스"
+		}
+	},
+	"usaiddec": {
 		"footer": {
 			"createdBy": "작성자",
 			"packagedBy": "패키지화",
