@@ -167,6 +167,37 @@ def test_injected_session_takes_precedence(tmp_path, session):
     assert engine._get_session() is session
 
 
+def test_fetch_bytes_uses_the_engine_timeout_unless_overridden(engine, session):
+    session.get.return_value = _streaming_response([b"default"])
+    assert engine.fetch_bytes(URL) == b"default"
+    assert session.get.call_args.kwargs["timeout"] == engine._timeout
+
+    session.get.return_value = _streaming_response([b"slow"])
+    assert engine.fetch_bytes(URL, timeout=300) == b"slow"
+    assert session.get.call_args.kwargs["timeout"] == 300
+
+    session.get.return_value = _streaming_response([b"default-again"])
+    assert engine.fetch_bytes(URL) == b"default-again"
+    assert session.get.call_args.kwargs["timeout"] == engine._timeout
+
+
+def test_fetch_bytes_retries_with_the_override_and_preserves_headers(session):
+    engine = DownloadEngine(session=session, timeout=7)
+    session.get.side_effect = [
+        requests.ReadTimeout("export is not ready"),
+        _streaming_response([b"ready"]),
+    ]
+
+    assert (
+        engine.fetch_bytes(URL, {"User-Agent": "custom/1.0"}, timeout=300) == b"ready"
+    )
+
+    assert session.get.call_count == 2
+    for call in session.get.call_args_list:
+        assert call.kwargs["timeout"] == 300
+        assert call.kwargs["headers"] == {"User-Agent": "custom/1.0"}
+
+
 # granular per-download retry
 def test_fetch_bytes_retries_transient_error(session):
     session.get.side_effect = [

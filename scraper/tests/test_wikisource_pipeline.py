@@ -4,10 +4,16 @@ from io import BytesIO
 from unittest.mock import MagicMock, patch
 from zipfile import ZIP_STORED, ZipFile
 
+import pytest
+import requests
+
+from papers2zim.constants import DEFAULT_HTTP_TIMEOUT
+from papers2zim.core.download_engine import DownloadEngine
 from papers2zim.core.models import Format, Work
 from papers2zim.core.ports import WorkRef
 from papers2zim.core.progress import ScraperProgress
 from papers2zim.core.work_store import WorkStore
+from papers2zim.sources.wikisource.catalog import WS_EXPORT_TIMEOUT
 from papers2zim.sources.wikisource.pipeline import WikisourcePipeline
 
 
@@ -28,7 +34,7 @@ def _work() -> Work:
 
 def _pipeline(
     work: Work,
-    engine: MagicMock,
+    engine: DownloadEngine | MagicMock,
     assembler: MagicMock,
     *,
     formats: list[str] | None = None,
@@ -171,7 +177,7 @@ def test_process_ref_attaches_a_cover_when_extractable():
 def test_process_ref_adds_the_html_edition_pages():
     work = _work_with_html()
     engine = MagicMock()
-    engine.fetch_bytes.side_effect = lambda url: (
+    engine.fetch_bytes.side_effect = lambda url, **_: (
         _valid_epub() if "format=epub" in url else _valid_html_archive()
     )
     assembler = MagicMock()
@@ -199,10 +205,66 @@ def test_process_ref_adds_the_html_edition_pages():
     }
 
 
+@pytest.mark.parametrize("format_name", ["epub", "html"])
+def test_process_ref_waits_for_ws_export_to_build_each_edition(format_name):
+    work = _work_with_html()
+    content = _valid_epub() if format_name == "epub" else _valid_html_archive()
+    session = MagicMock()
+
+    def export(_url, *, timeout, **_):
+        if timeout <= DEFAULT_HTTP_TIMEOUT:
+            raise requests.ReadTimeout("export takes longer than ten seconds")
+        response = MagicMock()
+        response.__enter__.return_value = response
+        response.iter_content.return_value = [content]
+        return response
+
+    session.get.side_effect = export
+    engine = DownloadEngine(session=session, max_retry_time=0)
+    assembler = MagicMock()
+    pipeline = _pipeline(work, engine, assembler, formats=[format_name])
+
+    with (
+        patch(
+            "papers2zim.sources.wikisource.pipeline.extract_cover", return_value=None
+        ),
+        patch.object(pipeline, "add_book_search_item") as index,
+    ):
+        pipeline.process_ref(WorkRef(id=work.id, source="wikisource"))
+
+    session.get.assert_called_once()
+    assert session.get.call_args.kwargs["timeout"] == WS_EXPORT_TIMEOUT
+    assert pipeline.store.get("wikisource", work.id) is work
+    assert work.extra["unsupported_formats"] == []
+    assert assembler.add_item_for.called
+    assert set(index.call_args.args[1]) == {format_name}
+
+
+@pytest.mark.parametrize("format_name", ["epub", "html"])
+@pytest.mark.parametrize("status_code", [404, 503])
+def test_process_ref_does_not_store_failed_exports(format_name, status_code):
+    work = _work_with_html()
+    response = requests.Response()
+    response.status_code = status_code
+    session = MagicMock()
+    session.get.side_effect = requests.HTTPError(response=response)
+    engine = DownloadEngine(session=session, max_retry_time=0)
+    assembler = MagicMock()
+    pipeline = _pipeline(work, engine, assembler, formats=[format_name])
+
+    with patch.object(pipeline, "add_book_search_item") as index:
+        pipeline.process_ref(WorkRef(id=work.id, source="wikisource"))
+
+    assert pipeline.store.get("wikisource", work.id) is None
+    assert work.extra["unsupported_formats"] == [format_name]
+    assembler.add_item_for.assert_not_called()
+    index.assert_not_called()
+
+
 def test_process_ref_marks_html_unsupported_when_the_archive_is_invalid():
     work = _work_with_html()
     engine = MagicMock()
-    engine.fetch_bytes.side_effect = lambda url: (
+    engine.fetch_bytes.side_effect = lambda url, **_: (
         _valid_epub() if "format=epub" in url else b"<html>not a zip</html>"
     )
     assembler = MagicMock()

@@ -41,6 +41,7 @@ from papers2zim.core.utils import critical_error, slugify
 
 WIKISOURCE_SOURCE = "wikisource"
 BASE_URL = "https://ws-export.wmcloud.org"
+WS_EXPORT_TIMEOUT = 300
 
 # OPDS acquisition media type -> the format name used across the pipeline.
 FORMAT_BY_MEDIA_TYPE = {
@@ -157,7 +158,9 @@ class WikisourceCatalog(CatalogPort):
     ) -> list[WorkRef]:
         refs: list[WorkRef] = []
         for feed_url in self._feed_urls(lang, feed_name):
-            feed = BeautifulSoup(self._engine.fetch_bytes(feed_url), "xml")
+            feed = BeautifulSoup(
+                self._engine.fetch_bytes(feed_url, timeout=WS_EXPORT_TIMEOUT), "xml"
+            )
             if feed.find("feed") is None:
                 critical_error(
                     f"{feed_url} is not an OPDS feed: it holds no Atom <feed> "
@@ -184,7 +187,9 @@ class WikisourceCatalog(CatalogPort):
     def _feed_urls(self, lang: str, feed_name: str | None) -> list[str]:
         index_url = f"{self._base_url}/opds/{lang}/"
         try:
-            index = self._engine.fetch_bytes(index_url).decode("utf-8", "replace")
+            index = self._engine.fetch_bytes(
+                index_url, timeout=WS_EXPORT_TIMEOUT
+            ).decode("utf-8", "replace")
         except requests.RequestException as exc:
             logger.warning(
                 "No Wikisource OPDS index for language %r, skipping (%s)", lang, exc

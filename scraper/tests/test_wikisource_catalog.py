@@ -6,12 +6,14 @@ from urllib.parse import unquote
 
 import pytest
 
+from papers2zim.constants import DEFAULT_HTTP_TIMEOUT
 from papers2zim.core.download_engine import DownloadEngine
 from papers2zim.core.ports import CatalogFilters
 from papers2zim.core.utils import CriticalError
 from papers2zim.sources.wikisource import catalog as catalog_module
 from papers2zim.sources.wikisource.catalog import (
     WIKISOURCE_SOURCE,
+    WS_EXPORT_TIMEOUT,
     WikisourceCatalog,
     page_key,
 )
@@ -76,9 +78,18 @@ class StubEngine(DownloadEngine):
     def __init__(self, responses: dict[str, str]):
         self._responses = responses
         self.fetched: list[str] = []
+        self.timeouts: list[int | None] = []
 
-    def fetch_bytes(self, url: str) -> bytes:
+    def fetch_bytes(
+        self,
+        url: str,
+        headers: dict[str, str | None] | None = None,
+        *,
+        timeout: int | None = None,
+    ) -> bytes:
+        assert headers is None
         self.fetched.append(url)
+        self.timeouts.append(timeout)
         for fragment, body in self._responses.items():
             if fragment in url:
                 return body.encode("utf-8")
@@ -118,6 +129,16 @@ def test_discover_parses_feed_entries_into_work_refs():
     assert "xhtml" not in formats
     # the second book only advertises epub, so its html link is derived from it
     assert [name for name, _mt, _url in refs[1].extra["formats"]] == ["epub", "html"]
+
+
+def test_discover_waits_for_a_slow_ws_export():
+    catalog, engine = _catalog(_feed(_entry("First_Book", "First Book")))
+
+    refs = list(catalog.discover(CatalogFilters(languages=["en"], formats=["epub"])))
+
+    assert len(refs) == 1
+    assert WS_EXPORT_TIMEOUT > DEFAULT_HTTP_TIMEOUT
+    assert engine.timeouts == [WS_EXPORT_TIMEOUT, WS_EXPORT_TIMEOUT]
 
 
 def test_discover_mints_path_safe_unique_ids():

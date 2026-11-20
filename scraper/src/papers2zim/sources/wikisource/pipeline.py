@@ -19,6 +19,7 @@ from papers2zim.core.models import Cover, Work
 from papers2zim.core.pipeline import Pipeline
 from papers2zim.core.ports import WorkRef
 from papers2zim.core.utils import archive_name_for
+from papers2zim.sources.wikisource.catalog import WS_EXPORT_TIMEOUT
 from papers2zim.sources.wikisource.description import enrich_work_descriptions
 from papers2zim.sources.wikisource.html_export import HtmlEdition, extract_html_edition
 from papers2zim.sources.wikisource.resolver import WikisourceFormatResolver
@@ -100,7 +101,7 @@ class WikisourcePipeline(Pipeline):
             unsupported.append("html")
             return None
         try:
-            content = self.engine.fetch_bytes(request.url)
+            content = self.engine.fetch_bytes(request.url, timeout=WS_EXPORT_TIMEOUT)
         except requests.RequestException as exc:
             log = logger.debug if is_fatal_http_error(exc) else logger.warning
             log("Could not download HTML for %s: %s", work.id, exc)
@@ -125,7 +126,7 @@ class WikisourcePipeline(Pipeline):
             unsupported.append(format_name)
             return None
         try:
-            content = self.engine.fetch_bytes(request.url)
+            content = self.engine.fetch_bytes(request.url, timeout=WS_EXPORT_TIMEOUT)
         except requests.RequestException as exc:
             log = logger.debug if is_fatal_http_error(exc) else logger.warning
             log("Could not download %s for %s: %s", format_name, work.id, exc)
