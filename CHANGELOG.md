@@ -8,6 +8,11 @@ as of 2.0.0.
 
 ## [Unreleased]
 
+### Fixed
+
+- Downloader: honor `Retry-After` on 429/503 responses and share a per-host cooldown between all workers, so one rate-limited host (e.g. `open.umn.edu` for Open Textbook Library metadata) no longer lets every concurrent book exhaust its own retry budget and fail the whole run (#211)
+- Progress reporting: distinguish attempted books from succeeded ones in the stats file and in the final "all books failed" error, which used to appear after a misleading 100% progress (#211)
+
 ## [1.3.0] - 2026-11-17
 
 ### Added

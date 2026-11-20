@@ -1,5 +1,6 @@
 """Wiring smoke tests for core.pipeline.Pipeline with mocked ports (no network)"""
 
+import json
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -183,6 +184,44 @@ def test_no_book_level_retry_for_network_errors():
     # book 1 failed once (no whole-book reprocessing), book 2 still processed
     assert calls.count("process:1") == 1
     assert calls.count("process:2") == 1
+
+
+def test_run_records_book_outcomes_in_progress_stats(tmp_path):
+    stats_file = tmp_path / "progress.json"
+    pipeline = build_pipeline([], WorkStore())
+    pipeline.progress = ScraperProgress(str(stats_file))
+    refs = [WorkRef(id=str(i), source=GUTENBERG_SOURCE) for i in (1, 2, 3)]
+
+    with (
+        patch("papers2zim.core.pipeline.generate_json_files"),
+        patch("papers2zim.core.pipeline.generate_noscript_pages"),
+    ):
+        pipeline.run(refs)
+
+    stats = json.loads(stats_file.read_text())
+    assert stats["books_attempted"] == 3
+    assert stats["books_succeeded"] == 3
+
+
+def test_all_books_failing_error_reports_how_many_were_attempted(tmp_path):
+    stats_file = tmp_path / "progress.json"
+    pipeline = build_pipeline([], WorkStore())
+    pipeline.progress = ScraperProgress(str(stats_file))
+    metadata = MagicMock(name="metadata")
+    metadata.fetch.return_value = []
+    pipeline.metadata = metadata
+    refs = [WorkRef(id=str(i), source=GUTENBERG_SOURCE) for i in (1, 2, 3)]
+
+    with (
+        patch("papers2zim.core.pipeline.generate_json_files"),
+        patch("papers2zim.core.pipeline.generate_noscript_pages"),
+        pytest.raises(RuntimeError, match=r"0 of 3 attempted"),
+    ):
+        pipeline.run(refs)
+
+    stats = json.loads(stats_file.read_text())
+    assert stats["books_attempted"] == 3
+    assert stats["books_succeeded"] == 0
 
 
 def _search_item_pipeline(**kwargs) -> tuple[DummyPipeline, MagicMock]:
