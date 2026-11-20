@@ -36,6 +36,7 @@
 			"worksAvailable": "Mevcut Eser",
 			"unknown": "Bilinmiyor",
 			"cover": "Kitap Kapağı",
+			"coverAlt": "Kapak: {title}",
 			"coverLabel": "(kapak)",
 			"anonymous": "Anonim",
 			"various": "Çeşitli",
@@ -44,6 +45,7 @@
 			"view": "Görüntüle"
 		},
 		"author": {
+			"bookCount": "{n} kitap | {n} kitap",
 			"viewAuthor": "Yazarı görüntüle: {name} ({bookCount})",
 			"wikipediaSource": "Kaynak: Vikipedi"
 		},
@@ -53,7 +55,13 @@
 		},
 		"licenses": {
 			"termBy": "Atıf",
-			"termSeparator": "-"
+			"termNc": "GayriTicari",
+			"termNd": "Türetilemez",
+			"termSa": "AynıLisanslaPaylaş",
+			"termSeparator": "-",
+			"ccName": "Creative Commons {terms} {version}",
+			"ccNameUnversioned": "Creative Commons {terms}",
+			"cc0Name": "CC0 1.0 Evrensel"
 		},
 		"zimInfo": {
 			"trigger": "Bu ZIM hakkında bilgi",
@@ -78,6 +86,7 @@
 			"dateScraped": "Oluşturulma tarihi"
 		},
 		"languageFilter": {
+			"trigger": "Kitap diline göre filtrele",
 			"allLanguages": "Tüm diller",
 			"select": "Dil seçin"
 		},
@@ -336,7 +345,10 @@
 			"missionParagraph7": "Açık Ders Kitabı Kütüphanesi bu materyalleri tek bir yerde bir araya getirir.",
 			"missionParagraph8": "Koleksiyonu, çeşitli konularda öğretim ve öğrenmeyi desteklemektedir.",
 			"missionParagraph10": "Öğretim üyelerinden gelen değerlendirmeler, eğitimcilerin ders kitaplarını kabul edip etmeyeceklerini belirlemelerine yardımcı olur.",
-			"missionParagraph11": "Açık erişimli ders kitapları basılı, çevrimiçi veya çevrimdışı biçimlerde kullanılabilirler."
+			"missionParagraph11": "Açık erişimli ders kitapları basılı, çevrimiçi veya çevrimdışı biçimlerde kullanılabilirler.",
+			"missionParagraph15": "Açık eğitim, işbirliğine ve bilginin serbest paylaşımına dayanır.",
+			"missionParagraph16": "Bu koleksiyon, bilgiyi keşfetmeyi ve kullanmayı kolaylaştırmaya yardımcı oluyor.",
+			"missionParagraph17": "Herkes açık eğitim kaynaklarından faydalanmaya ve bunlara katkıda bulunmaya davetlidir."
 		},
 		"nav": {
 			"collections": "Konular"
@@ -392,9 +404,32 @@
 			"introHeading": "Vikikaynak Hakkında",
 			"introParagraph1": "Vikikaynak, herkesin geliştirebileceği ücretsiz bir çevrimiçi kaynak metin kütüphanesidir.",
 			"introParagraph2": "Gönüllüleri kitapların, belgelerin ve diğer yayınlanmış eserlerin yazıya geçirilmesi ve düzeltilmesi işlemlerini gerçekleştirirler.",
+			"introParagraph4": "Bu kütüphane, söz konusu yazıları çevrimdışı okuma için erişilebilir hale getirir.",
+			"missionAuthor": "Vikikaynak topluluğu",
 			"missionHeading": "Misyonumuz"
 		},
+		"metadata_defaults": {
+			"title": "Vikikaynak Kütüphanesi",
+			"description": "Vikikaynak’tan ücretsiz kaynak metinler"
+		},
+		"nav": {
+			"collections": "Derlemler"
+		},
+		"home": {
+			"allCollections": "Tüm derlemler",
+			"mostPopular": "En popüler",
+			"popularCollections": "Popüler derlemler"
+		},
+		"collection": {
+			"allCollections": "Tüm derlemler"
+		},
+		"book": {
+			"collection": "Derlem",
+			"sameCollectionBooks": "Aynı koleksiyondaki kitaplar"
+		},
 		"footer": {
+			"createdBy": "Oluşturan",
+			"packagedBy": "Paketleyen",
 			"kiwix": "Kiwix"
 		}
 	},
@@ -402,8 +437,40 @@
 		"about": {
 			"attribution": "Kitap üstverileri ve kapak görselleri One More Library tarafından sağlanmıştır.",
 			"introHeading": "One More Library Hakkında",
+			"introParagraph1": "One More Library, özgür kullanıma açık kitaplardan oluşan ücretsiz bir çevrimiçi kütüphanedir.",
+			"introParagraph2": "Koleksiyonu edebiyat, felsefe, tarih, bilim, din ve daha birçok konuyu kapsar.",
+			"introParagraph3": "Kitapları çeşitli dillerde mevcuttur ve çevrimiçi olarak okunabilir veya indirilebilir.",
+			"introParagraph4": "Bu kütüphane, kitapları çevrimdışı okuma için kullanılabilir halde tutar.",
 			"missionAuthor": "One More Library topluluğu",
-			"missionHeading": "Herkes için ücretsiz kitaplar"
+			"missionHeading": "Herkes için ücretsiz kitaplar",
+			"missionParagraph1": "One More Library, özgür kullanıma açık kitapları herkese, her dilde, ücretsiz olarak sunmak amacıyla vardır.",
+			"missionParagraph2": "Koleksiyon, okuyucuların birçok geleneğe ait eserleri keşfedebilmeleri için kategori ve dile göre düzenlenmiştir.",
+			"missionParagraph3": "Kitaplar çoğu cihaz ve okuyucuda kullanılabilir EPUB ve PDF gibi açık biçimlerde sunulur.",
+			"missionParagraph4": "Bu kitapların çevrimdışı olarak kullanılabilir tutulması, bugün ve gelecekte genç okuyucular için onları korumaya yardımcı olur."
+		},
+		"metadata_defaults": {
+			"title": "One More Library",
+			"description": "One More Library'den ücretsiz, özgür kullanıma açık kitaplar"
+		},
+		"nav": {
+			"collections": "Kategoriler"
+		},
+		"home": {
+			"allCollections": "Tüm kategoriler",
+			"mostPopular": "En popüler",
+			"popularCollections": "Popüler kategoriler"
+		},
+		"collection": {
+			"allCollections": "Tüm kategoriler"
+		},
+		"book": {
+			"collection": "Kategori",
+			"sameCollectionBooks": "Aynı kategoride kitaplar"
+		},
+		"footer": {
+			"createdBy": "Oluşturan",
+			"packagedBy": "Paketleyen",
+			"kiwix": "Kiwix"
 		}
 	}
 }

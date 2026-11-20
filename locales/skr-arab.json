@@ -52,19 +52,34 @@
 		"nav": {
 			"collections": "ونکیاں"
 		},
+		"home": {
+			"allCollections": "ساریاں ونکیاں"
+		},
 		"collection": {
 			"allCollections": "ساریاں ونکیاں"
+		},
+		"book": {
+			"collection": "ونکی"
 		},
 		"footer": {
 			"kiwix": "کیویکس"
 		}
 	},
 	"litteraturejeunesselibre": {
+		"nav": {
+			"collections": "ونکیاں"
+		},
 		"home": {
+			"allCollections": "ساریاں ونکیاں"
+		},
+		"collection": {
 			"allCollections": "ساریاں ونکیاں"
 		},
 		"book": {
 			"collection": "ونکی"
+		},
+		"footer": {
+			"kiwix": "کیویکس"
 		}
 	},
 	"gutenberg": {
@@ -89,6 +104,14 @@
 		},
 		"footer": {
 			"createdBy": "بݨاوݨ آلا",
+			"kiwix": "کیویکس"
+		}
+	},
+	"usaiddec": {
+		"book": {
+			"collection": "موضوع"
+		},
+		"footer": {
 			"kiwix": "کیویکس"
 		}
 	}
