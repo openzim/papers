@@ -8,6 +8,10 @@ as of 2.0.0.
 
 ## [Unreleased]
 
+### Fixed
+
+- Stop setting the reserved ZIM `_category` tag for source labels that are not legacy reader categories: BNR, LJL, One More Library, Open Textbook Library and USAID DEC now use plain source tags, while Gutenberg and Wikisource keep their legacy categories (#218)
+
 ## [1.3.0] - 2026-11-17
 
 ### Added

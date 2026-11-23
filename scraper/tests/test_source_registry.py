@@ -70,6 +70,18 @@ def test_source_short_names_resolve_case_insensitively(source_name, source_slug)
     assert get_source(source_name).slug == source_slug
 
 
+def test_source_default_zim_tags():
+    assert {slug: profile.zim_tags for slug, profile in registry.SOURCES.items()} == {
+        "bibliothequenumeriqueromande": "bnr",
+        "gutenberg": "_category:gutenberg;gutenberg",
+        "litteraturejeunesselibre": "ljl",
+        "onemorelibrary": "onemorelibrary",
+        "opentextbooks": "opentextbooks",
+        "usaiddec": "usaiddec",
+        "wikisource": "_category:wikisource;wikisource",
+    }
+
+
 def test_register_source_rejects_slug_that_conflicts_with_an_alias(isolated_registry):
     isolated_registry.register_source(_profile("first", ("other",)))
 

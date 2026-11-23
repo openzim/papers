@@ -348,7 +348,9 @@ option uniqueness.
 The profile supplies:
 
 - UI locale namespace and human-readable source name;
-- ZIM creator, default tags, name prefix, tagline, and description;
+- ZIM creator, default tags, name prefix, tagline, and description. Use plain
+  tags by default; `_category:` is reserved for the legacy source categories
+  understood by existing readers, such as `gutenberg` and `wikisource`;
 - collection label/icon style;
 - whether the source provides a popularity signal (`has_popularity`);
 - default source/mirror URL;
@@ -363,7 +365,7 @@ EXAMPLE_PROFILE = SourceProfile(
     locale_namespace="example",
     display_name="Example Library",
     source_creator="example.org",
-    zim_tags="_category:books;example",
+    zim_tags="books;example",
     zim_name_prefix="example",
     tagline="a library of example works",
     source_description="Example source description.",
