@@ -200,11 +200,11 @@ def test_zim_tags_override_source_defaults():
     config = build_scrape_config(
         {
             "--source": "gutenberg",
-            "--zim-tags": " _category:medical;gutenberg ",
+            "--zim-tags": " books;gutenberg ",
         }
     )
 
-    assert config.zim_tags == "_category:medical;gutenberg"
+    assert config.zim_tags == "books;gutenberg"
 
 
 def test_source_neutral_environment_variables_configure_output_and_ui(

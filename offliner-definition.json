@@ -149,7 +149,7 @@
       "type": "string",
       "required": false,
       "title": "ZIM Tags",
-      "description": "Semicolon-separated ZIM tags. Overrides the selected source's default tags; for example: _category:medical;gutenberg."
+      "description": "Semicolon-separated ZIM tags. Overrides the selected source's default tags; for example: books;gutenberg."
     },
     "books": {
       "type": "string",

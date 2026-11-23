@@ -193,7 +193,7 @@ def test_recipe_exposes_custom_zim_tags():
         "title": "ZIM Tags",
         "description": (
             "Semicolon-separated ZIM tags. Overrides the selected source's default "
-            "tags; for example: _category:medical;gutenberg."
+            "tags; for example: books;gutenberg."
         ),
     }
     assert {"metadata": "Tags", "flag": "zim_tags"} in definition["zimMetadata"]
