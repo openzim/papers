@@ -12,6 +12,7 @@ as of 2.0.0.
 
 - Stop setting the reserved ZIM `_category` tag for source labels that are not legacy reader categories: BNR, LJL, One More Library, Open Textbook Library and USAID DEC now use plain source tags, while Gutenberg and Wikisource keep their legacy categories (#218)
 - Deduplicate ZIM image assets by content, replacing repeated images with aliases so OTL books sharing the same illustrations no longer produce hundreds of redundant-content warnings (#216)
+- Open Textbook Library: skip empty and HTML error-page responses when mirroring online-edition assets, so image URLs that redirect to a web page no longer store HTML under an image path and introduce zimcheck internal and external link errors (#217)
 
 ## [1.3.0] - 2026-11-17
 

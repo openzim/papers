@@ -251,6 +251,61 @@ def test_keeps_original_asset_path_when_webp_conversion_fails(monkeypatch, tmp_p
     assert b".webp" not in edition.pages["Calculus.10"].read_bytes()
 
 
+def test_skips_empty_and_html_asset_responses(tmp_path):
+    empty_url = "https://images.example/empty.png"
+    html_error_url = "https://commons.example/File:photo.jpg"
+    html_error = (
+        b"<!doctype html><html><body>"
+        + b"error" * 200
+        + b'<a href="/wiki/Main_Page">Main page</a></body></html>'
+    )
+    cover = BytesIO()
+    Image.new("RGB", (2, 2), "red").save(cover, format="PNG")
+    root = (
+        b"<!doctype html><html><body>"
+        + b"x" * 600
+        + b'<a href="chapter.html">Chapter</a></body></html>'
+    )
+    chapter = (
+        b"<!doctype html><html><body>"
+        + b"y" * 700
+        + (
+            f'<img src="{empty_url}"><img src="{html_error_url}">'
+            '<img src="cover.png"></body></html>'
+        ).encode()
+    )
+    edition = download_html_edition(
+        StubEngine(
+            {
+                ROOT_URL: root,
+                CHAPTER_URL: chapter,
+                empty_url: b"",
+                html_error_url: html_error,
+                f"{ROOT_URL}cover.png": cover.getvalue(),
+            }
+        ),
+        _work(),
+        ROOT_URL,
+        ["html"],
+        directory=tmp_path,
+    )
+
+    assert edition is not None
+    asset_paths = [path for path in edition.pages if "/assets/" in path]
+    assert len(asset_paths) == 1
+    assert asset_paths[0].endswith(".webp")
+    chapter_content = next(
+        fpath.read_bytes()
+        for path, fpath in edition.pages.items()
+        if path.endswith(".html") and path != "Calculus.10"
+    )
+    asset_name = asset_paths[0].rsplit("/", 1)[-1]
+    assert f'src="assets/{asset_name}"'.encode() in chapter_content
+    assert empty_url.encode() not in chapter_content
+    assert html_error_url.encode() not in chapter_content
+    assert b"/wiki/Main_Page" not in chapter_content
+
+
 def test_mirrors_scripts_and_rewrites_them_relative_to_each_page():
     pages = _mirror(
         b'<script src="shared/book.js"></script>',
