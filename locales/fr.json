@@ -5,7 +5,9 @@
 			"Braaark",
 			"Chpol",
 			"Dash777",
+			"Eihel",
 			"Léo Delebarre",
+			"NClara",
 			"Uriel",
 			"Wladek92"
 		]
@@ -198,22 +200,22 @@
 	},
 	"litteraturejeunesselibre": {
 		"about": {
-			"attribution": "Les métadonnées du livre et des images de couverture sont fournies par Littérature jeunesse libre.",
+			"attribution": "Métadonnées du livre et images de couverture fournies par Littérature jeunesse libre.",
 			"introHeading": "À propos de Littérature jeunesse libre",
 			"introParagraph1": "Littérature jeunesse libre est une bibliothèque gratuite en ligne de livres pour enfants en français.",
-			"introParagraph2": "Sa collection rassemble des albums illustrés, des nouvelles, des romans et d'autres ouvrages destinés aux jeunes lecteurs.",
+			"introParagraph2": "Sa collection rassemble des albums illustrés, des romans, des contes et d’autres ouvrages destinés aux jeunes lecteurs.",
 			"introParagraph3": "Les livres sont disponibles aux formats EPUB et PDF et peuvent être lus hors ligne.",
 			"introParagraph4": "Les livres de cette bibliothèque sont accessibles hors ligne.",
 			"missionAuthor": "L'équipe de Littérature jeunesse libre",
 			"missionHeading": "Des livres pour enfants gratuits pour tous",
-			"missionParagraph1": "Littérature jeunesse libre a pour vocation de rendre la littérature pour enfants en langue française accessible à tous.tes gratuitement.",
-			"missionParagraph2": "Sa collection comprend des albums illustrés, des nouvelles, des contes, de la poésie et d'autres œuvres.",
-			"missionParagraph3": "Les livres sont disponibles dans des formats ouverts tels que EPUB et RDF compatibles avec la plupart des appareils et des liseuses.",
-			"missionParagraph4": "Le fait de rendre ces livres accessibles hors ligne contribue à les préserver pour les jeunes lecteurs d'aujourd'hui et de demain."
+			"missionParagraph1": "Littérature jeunesse libre a pour vocation de rendre la littérature pour enfants en langue française accessible à tous·tes gratuitement.",
+			"missionParagraph2": "Sa collection comprend des albums illustrés, des romans, des contes, de la poésie et d’autres œuvres.",
+			"missionParagraph3": "Les livres sont disponibles dans des formats ouverts tels que EPUB et PDF compatibles avec la plupart des appareils et des liseuses.",
+			"missionParagraph4": "Le fait de rendre ces livres accessibles hors ligne contribue à les préserver pour les jeunes lecteurs d’aujourd’hui et de demain."
 		},
 		"metadata_defaults": {
 			"title": "Littérature jeunesse libre",
-			"description": "Livres gratuits pour enfants en français de Littérature jeunesse libre."
+			"description": "Livres pour enfants gratuits en français de Littérature jeunesse libre"
 		},
 		"nav": {
 			"collections": "Catégories"
@@ -232,7 +234,7 @@
 		},
 		"footer": {
 			"createdBy": "Créé par",
-			"packagedBy": "Emballé par",
+			"packagedBy": "Empaqueté  par",
 			"kiwix": "Kiwix"
 		}
 	},
