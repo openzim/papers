@@ -7,10 +7,12 @@ may add items concurrently.
 """
 
 import pathlib
+import re
 import threading
 from datetime import date
 
 from zimscraperlib.zim.creator import Creator
+from zimscraperlib.zim.dedup import Deduplicator
 from zimscraperlib.zim.indexing import IndexData
 from zimscraperlib.zim.metadata import (
     CreatorMetadata,
@@ -28,6 +30,8 @@ from zimscraperlib.zim.metadata import (
 )
 
 from papers2zim.constants import VERSION, logger
+
+IMAGE_ASSET_PATH = re.compile(r".*\.(?:gif|ico|jpe?g|png|svg|webp)$", re.IGNORECASE)
 
 
 class ZimAssembler:
@@ -81,6 +85,8 @@ class ZimAssembler:
             .config_verbose(debug)
             .config_indexing(with_fulltext_index)
         )
+        self._deduplicator = Deduplicator(self._creator)
+        self._deduplicator.filters.append(IMAGE_ASSET_PATH)
 
     @property
     def can_finish(self) -> bool:
@@ -113,7 +119,7 @@ class ZimAssembler:
             mimetype = "application/epub+zip"
 
         with self._lock:
-            self._creator.add_item_for(
+            self._deduplicator.add_item_for(
                 path=path,
                 title=title,
                 fpath=fpath,
