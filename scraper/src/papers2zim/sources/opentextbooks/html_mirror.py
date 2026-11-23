@@ -163,6 +163,9 @@ def _download_assets(
                 "Could not download OTL online-edition asset %s: %s", asset_url, exc
             )
             continue
+        if not content or is_html_document(content):
+            logger.debug("Ignoring unusable OTL online-edition asset %s", asset_url)
+            continue
         fpath = context.directory / hashlib.sha256(asset_url.encode()).hexdigest()
         fpath.write_bytes(content)
         content_by_url[asset_url] = fpath
