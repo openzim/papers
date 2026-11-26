@@ -166,13 +166,13 @@
 	},
 	"bibliothequenumeriqueromande": {
 		"about": {
-			"attribution": "Métadonnées du livre et images de couverture fournies par la Bibliothèque numérique romande.",
+			"attribution": "Métadonnées du livre et d’images de couverture fournies par la Bibliothèque numérique romande.",
 			"introHeading": "À propos de la Bibliothèque numérique romande",
-			"introParagraph1": "La Bibliothèque numérique romande est une une bibliothèque gratuite en ligne de livres en français.",
-			"missionAuthor": "L'équipe de la Bibliothèque numérique romande",
-			"missionHeading": "Des livres gratuits en français accessibles à tous.tes",
-			"missionParagraph1": "La Bibliothèque numérique romande a pour vocation de rendre la littérature en langue française accessible à tous.tes gratuitement.",
-			"missionParagraph4": "Le fait de rendre ces livres accessibles hors ligne contribue à les préserver pour les lecteurs présents et à venir."
+			"introParagraph1": "La Bibliothèque numérique romande est une une bibliothèque gratuite en ligne de livres numériques en français.",
+			"missionAuthor": "L’équipe de la Bibliothèque numérique romande",
+			"missionHeading": "Des livres gratuits en français accessibles à tous·tes",
+			"missionParagraph1": "La Bibliothèque numérique romande a pour vocation de rendre la littérature en langue française accessible à tous·tes gratuitement.",
+			"missionParagraph4": "Le fait de rendre ces livres disponibles hors ligne contribue à les préserver pour les lecteurs d’aujourd’hui et de demain."
 		},
 		"metadata_defaults": {
 			"title": "Bibliothèque numérique romande"
